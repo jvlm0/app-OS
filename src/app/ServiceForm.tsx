@@ -1,8 +1,7 @@
-import { ChevronDown, ChevronUp, Trash2, UserPlus, X } from 'lucide-react-native';
-import React, { useEffect, useState } from 'react';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { ChevronDown, ChevronRight, ChevronUp, Trash2 } from 'lucide-react-native';
+import React, { useState } from 'react';
 import {
-  ActivityIndicator,
-  FlatList,
   ScrollView,
   StyleSheet,
   Text,
@@ -24,82 +23,29 @@ interface Client {
   telefone: string;
 }
 
-const ServiceForm = () => {
+type RootStackParamList = {
+  ServiceForm: undefined;
+  ClientSearch: {
+    onSelectClient: (client: Client) => void;
+  };
+};
+
+type ServiceFormProps = NativeStackScreenProps<RootStackParamList, 'ServiceForm'>;
+
+const ServiceForm = ({ navigation }: ServiceFormProps) => {
   const [title, setTitle] = useState('');
-  const [clientSearch, setClientSearch] = useState('');
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [description, setDescription] = useState('');
   const [servicesExpanded, setServicesExpanded] = useState(false);
   const [detailsExpanded, setDetailsExpanded] = useState(false);
   const [services, setServices] = useState<Service[]>([]);
-  const [clients, setClients] = useState<Client[]>([]);
-  const [loadingClients, setLoadingClients] = useState(false);
-  const [showClientList, setShowClientList] = useState(false);
-  const searchTimeout = React.useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Buscar clientes na API
-  const searchClients = async (query: string) => {
-    if (!query || query.length < 2) {
-      setClients([]);
-      setShowClientList(false);
-      return;
-    }
-
-    setLoadingClients(true);
-    try {
-      const response = await fetch(`http://localhost:8000/clientes?q=${encodeURIComponent(query)}`);
-      const data = await response.json();
-      setClients(data);
-      setShowClientList(true);
-    } catch (error) {
-      console.error('Erro ao buscar clientes:', error);
-      setClients([]);
-    } finally {
-      setLoadingClients(false);
-    }
-  };
-
-  // Debounce para pesquisa
-  useEffect(() => {
-    if (searchTimeout.current) {
-      clearTimeout(searchTimeout.current);
-    }
-
-    searchTimeout.current = setTimeout(() => {
-      searchClients(clientSearch);
-    }, 300);
-
-    return () => {
-      if (searchTimeout.current) {
-        clearTimeout(searchTimeout.current);
-      }
-    };
-  }, [clientSearch]);
-
-  // Limpar resultados quando cliente é selecionado
-  useEffect(() => {
-    if (selectedClient) {
-      setShowClientList(false);
-      setClients([]);
-    }
-  }, [selectedClient]);
-
-  const handleClientSearch = (text: string) => {
-    setClientSearch(text);
-    setSelectedClient(null);
-  };
-
-  const selectClient = (client: Client) => {
-    setSelectedClient(client);
-    setClientSearch(client.nome);
-    setShowClientList(false);
-  };
-
-  const clearClientSelection = () => {
-    setSelectedClient(null);
-    setClientSearch('');
-    setClients([]);
-    setShowClientList(false);
+  const handleClientSelect = () => {
+    navigation.navigate('ClientSearch', {
+      onSelectClient: (client: Client) => {
+        setSelectedClient(client);
+      },
+    });
   };
 
   const addService = () => {
@@ -148,71 +94,29 @@ const ServiceForm = () => {
           />
         </View>
 
-        {/* Cliente */}
+        {/* Cliente - Campo Fake Clicável */}
         <View style={styles.fieldContainer}>
           <Text style={styles.label}>
             Cliente <Text style={styles.required}>*</Text>
           </Text>
-          <View style={styles.clientContainer}>
-            <View style={styles.clientSearchWrapper}>
-              <TextInput
-                style={styles.clientSearchInput}
-                placeholder="Digite nome ou telefone do cliente"
-                placeholderTextColor="#999"
-                value={clientSearch}
-                onChangeText={handleClientSearch}
-                onFocus={() => {
-                  if (clientSearch.length >= 2 && clients.length > 0) {
-                    setShowClientList(true);
-                  }
-                }}
-              />
-              {loadingClients && (
-                <View style={styles.searchLoader}>
-                  <ActivityIndicator size="small" color="#666" />
-                </View>
-              )}
-              {selectedClient && !loadingClients && (
-                <TouchableOpacity
-                  style={styles.clearButton}
-                  onPress={clearClientSelection}
-                >
-                  <X size={18} color="#666" />
-                </TouchableOpacity>
-              )}
-            </View>
-            <TouchableOpacity style={styles.addClientButton}>
-              <UserPlus size={20} color="#000" />
-            </TouchableOpacity>
-          </View>
-
-          {/* Lista de resultados da pesquisa */}
-          {showClientList && clients.length > 0 && (
-            <View style={styles.clientListContainer}>
-              <FlatList
-                data={clients}
-                keyExtractor={(item) => item.COD_PESSOA.toString()}
-                style={styles.clientList}
-                nestedScrollEnabled={true}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    style={styles.clientItem}
-                    onPress={() => selectClient(item)}
-                  >
-                    <Text style={styles.clientItemName}>{item.nome}</Text>
-                    <Text style={styles.clientItemPhone}>{item.telefone}</Text>
-                  </TouchableOpacity>
-                )}
-                ItemSeparatorComponent={() => <View style={styles.clientItemSeparator} />}
-              />
-            </View>
-          )}
-
-          {showClientList && clients.length === 0 && !loadingClients && clientSearch.length >= 2 && (
-            <View style={styles.noResultsContainer}>
-              <Text style={styles.noResultsText}>Nenhum cliente encontrado</Text>
-            </View>
-          )}
+          <TouchableOpacity
+            style={styles.clientSelectButton}
+            onPress={handleClientSelect}
+          >
+            <Text
+              style={[
+                styles.clientSelectText,
+                selectedClient ? styles.clientSelectedText : styles.clientPlaceholderText,
+              ]}
+            >
+              {selectedClient ? selectedClient.nome : 'Selecione o cliente'}
+              
+            </Text>
+            
+            <ChevronRight size={20} color="#666" />
+          </TouchableOpacity>
+          
+          
         </View>
 
         {/* Descrição */}
@@ -376,94 +280,31 @@ const styles = StyleSheet.create({
     height: 120,
     textAlignVertical: 'top',
   },
-  clientContainer: {
+  clientSelectButton: {
+    backgroundColor: '#f5f5f5',
+    borderRadius: 8,
+    padding: 16,
     flexDirection: 'row',
-    gap: 12,
-  },
-  clientSearchWrapper: {
-    flex: 1,
-    position: 'relative',
-  },
-  clientSearchInput: {
-    backgroundColor: '#f5f5f5',
-    borderRadius: 8,
-    padding: 16,
-    paddingRight: 45,
-    fontSize: 16,
-    color: '#000',
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-  },
-  searchLoader: {
-    position: 'absolute',
-    right: 16,
-    top: 18,
-  },
-  clearButton: {
-    position: 'absolute',
-    right: 16,
-    top: 18,
-    padding: 2,
-  },
-  clientListContainer: {
-    marginTop: 8,
-    maxHeight: 300,
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  clientList: {
-    maxHeight: 300,
-  },
-  clientItem: {
-    padding: 16,
-    backgroundColor: '#fff',
-  },
-  clientItemName: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#000',
-    marginBottom: 4,
-  },
-  clientItemPhone: {
-    fontSize: 14,
-    color: '#666',
-  },
-  clientItemSeparator: {
-    height: 1,
-    backgroundColor: '#e0e0e0',
-  },
-  noResultsContainer: {
-    marginTop: 8,
-    padding: 16,
-    backgroundColor: '#f5f5f5',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-  },
-  noResultsText: {
-    fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
-  },
-  addClientButton: {
-    backgroundColor: '#f5f5f5',
-    borderRadius: 8,
-    width: 56,
-    height: 56,
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#e0e0e0',
+  },
+  clientSelectText: {
+    fontSize: 16,
+  },
+  clientPlaceholderText: {
+    color: '#999',
+  },
+  clientSelectedText: {
+    color: '#000',
+    fontWeight: '600',
+  },
+  clientPhoneText: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 8,
+    marginLeft: 4,
   },
   expandableHeader: {
     backgroundColor: '#f5f5f5',
