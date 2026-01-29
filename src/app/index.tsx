@@ -3,6 +3,7 @@
 // NÃO crie um novo NavigationContainer
 
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import CameraScreen from './CameraScreen';
 import ClientSearchScreen from './ClientSearchScreen';
 import ServiceForm from './ServiceForm';
@@ -16,46 +17,48 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 // OPÇÃO 1: Se você já tem um Stack Navigator, apenas adicione essas duas telas:
 function Index() {
   return (
-    <Stack.Navigator>
-      {/* Tela principal do formulário */}
-      <Stack.Screen
-        name="ServiceForm"
-        component={ServiceForm}
-        options={{
-          title: 'Novo Serviço',
-        }}
-      />
+    <SafeAreaProvider>
+      <Stack.Navigator>
+        {/* Tela principal do formulário */}
+        <Stack.Screen
+          name="ServiceForm"
+          component={ServiceForm}
+          options={{
+            title: 'Novo Serviço',
+          }}
+        />
 
-      {/* Tela de busca de cliente */}
-      <Stack.Screen
-        name="ClientSearch"
-        component={ClientSearchScreen}
-        options={{
-          headerShown: false,
-          presentation: 'modal',
-        }}
-      />
+        {/* Tela de busca de cliente */}
+        <Stack.Screen
+          name="ClientSearch"
+          component={ClientSearchScreen}
+          options={{
+            headerShown: false,
+            presentation: 'modal',
+          }}
+        />
 
-      {/* Tela de câmera para capturar placa */}
-      <Stack.Screen
-        name="CameraScreen"
-        component={CameraScreen}
-        options={{
-          headerShown: false,
-          presentation: 'fullScreenModal',
-        }}
-      />
+        {/* Tela de câmera para capturar placa */}
+        <Stack.Screen
+          name="CameraScreen"
+          component={CameraScreen}
+          options={{
+            headerShown: false,
+            presentation: 'fullScreenModal',
+          }}
+        />
 
-      {/* Tela de formulário de veículo */}
-      <Stack.Screen
-        name="VehicleForm"
-        component={VehicleFormScreen}
-        options={{
-          headerShown: false,
-          presentation: 'modal',
-        }}
-      />
-    </Stack.Navigator>
+        {/* Tela de formulário de veículo */}
+        <Stack.Screen
+          name="VehicleForm"
+          component={VehicleFormScreen}
+          options={{
+            headerShown: false,
+            presentation: 'modal',
+          }}
+        />
+      </Stack.Navigator>
+    </SafeAreaProvider>
   );
 }
 
