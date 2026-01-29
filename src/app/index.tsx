@@ -3,22 +3,13 @@
 // NÃO crie um novo NavigationContainer
 
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import CameraScreen from './CameraScreen';
 import ClientSearchScreen from './ClientSearchScreen';
 import ServiceForm from './ServiceForm';
+import VehicleFormScreen from './VehicleFormScreen';
 
-interface Client {
-  COD_PESSOA: number;
-  nome: string;
-  telefone: string;
-}
 
-type RootStackParamList = {
-  ServiceForm: undefined;
-  ClientSearch: {
-    onSelectClient: (client: Client) => void;
-  };
-  // ... suas outras rotas aqui
-};
+import { RootStackParamList } from './navigation/types';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -26,21 +17,42 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 function Index() {
   return (
     <Stack.Navigator>
-      {/* Suas outras telas aqui... */}
-      
-      <Stack.Screen 
-        name="ServiceForm" 
+      {/* Tela principal do formulário */}
+      <Stack.Screen
+        name="ServiceForm"
         component={ServiceForm}
         options={{
           title: 'Novo Serviço',
         }}
       />
-      <Stack.Screen 
-        name="ClientSearch" 
+
+      {/* Tela de busca de cliente */}
+      <Stack.Screen
+        name="ClientSearch"
         component={ClientSearchScreen}
         options={{
-          headerShown: false, // O ClientSearchScreen tem seu próprio header
-          presentation: 'modal', // Opcional: faz a tela aparecer como modal
+          headerShown: false,
+          presentation: 'modal',
+        }}
+      />
+
+      {/* Tela de câmera para capturar placa */}
+      <Stack.Screen
+        name="CameraScreen"
+        component={CameraScreen}
+        options={{
+          headerShown: false,
+          presentation: 'fullScreenModal',
+        }}
+      />
+
+      {/* Tela de formulário de veículo */}
+      <Stack.Screen
+        name="VehicleForm"
+        component={VehicleFormScreen}
+        options={{
+          headerShown: false,
+          presentation: 'modal',
         }}
       />
     </Stack.Navigator>

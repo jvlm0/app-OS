@@ -23,10 +23,22 @@ interface Client {
   telefone: string;
 }
 
+interface Vehicle {
+  plate: string;
+  mileage: string;
+}
+
 type RootStackParamList = {
   ServiceForm: undefined;
   ClientSearch: {
     onSelectClient: (client: Client) => void;
+  };
+  CameraScreen: {
+    onVehicleAdd: (vehicle: Vehicle) => void;
+  };
+  VehicleForm: {
+    plate?: string;
+    onVehicleAdd: (vehicle: Vehicle) => void;
   };
 };
 
@@ -35,6 +47,7 @@ type ServiceFormProps = NativeStackScreenProps<RootStackParamList, 'ServiceForm'
 const ServiceForm = ({ navigation }: ServiceFormProps) => {
   const [title, setTitle] = useState('');
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   const [description, setDescription] = useState('');
   const [servicesExpanded, setServicesExpanded] = useState(false);
   const [detailsExpanded, setDetailsExpanded] = useState(false);
@@ -44,6 +57,14 @@ const ServiceForm = ({ navigation }: ServiceFormProps) => {
     navigation.navigate('ClientSearch', {
       onSelectClient: (client: Client) => {
         setSelectedClient(client);
+      },
+    });
+  };
+
+  const handleVehicleAdd = () => {
+    navigation.navigate('CameraScreen', {
+      onVehicleAdd: (vehicle: Vehicle) => {
+        setSelectedVehicle(vehicle);
       },
     });
   };
@@ -110,13 +131,47 @@ const ServiceForm = ({ navigation }: ServiceFormProps) => {
               ]}
             >
               {selectedClient ? selectedClient.nome : 'Selecione o cliente'}
-              
             </Text>
-            
             <ChevronRight size={20} color="#666" />
           </TouchableOpacity>
           
+          {selectedClient && (
+            <Text style={styles.clientPhoneText}>{selectedClient.telefone}</Text>
+          )}
+        </View>
+
+        {/* Veículo - Campo Fake Clicável */}
+        <View style={styles.fieldContainer}>
+          <Text style={styles.label}>
+            Veículo <Text style={styles.required}>*</Text>
+          </Text>
+          <TouchableOpacity
+            style={styles.clientSelectButton}
+            onPress={handleVehicleAdd}
+          >
+            <View style={styles.vehicleContent}>
+              <Text
+                style={[
+                  styles.clientSelectText,
+                  selectedVehicle ? styles.clientSelectedText : styles.clientPlaceholderText,
+                ]}
+              >
+                {selectedVehicle ? selectedVehicle.plate : 'Adicionar veículo'}
+              </Text>
+              {selectedVehicle && (
+                <Text style={styles.vehicleMileageText}>
+                  {selectedVehicle.mileage} km
+                </Text>
+              )}
+            </View>
+            <ChevronRight size={20} color="#666" />
+          </TouchableOpacity>
           
+          {!selectedVehicle && (
+            <Text style={styles.helperText}>
+              Tire uma foto da placa ou digite manualmente
+            </Text>
+          )}
         </View>
 
         {/* Descrição */}
@@ -301,6 +356,20 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   clientPhoneText: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 8,
+    marginLeft: 4,
+  },
+  vehicleContent: {
+    flex: 1,
+  },
+  vehicleMileageText: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 4,
+  },
+  helperText: {
     fontSize: 14,
     color: '#666',
     marginTop: 8,
