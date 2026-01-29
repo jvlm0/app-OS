@@ -2,15 +2,15 @@
 // IMPORTANTE: Adicione essas telas no seu Stack Navigator existente
 // NÃO crie um novo NavigationContainer
 
+import CameraScreen from '@/screens/CameraScreen';
+import ClientSearchScreen from '@/screens/ClientSearchScreen';
+import ServiceForm from '@/screens/ServiceForm';
+import VehicleFormScreen from '@/screens/VehicleFormScreen';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import CameraScreen from './screens/CameraScreen';
-import ClientSearchScreen from './screens/ClientSearchScreen';
-import ServiceForm from './screens/ServiceForm';
-import VehicleFormScreen from './screens/VehicleFormScreen';
 
 
-import { RootStackParamList } from './screens/navigation/types';
+import { RootStackParamList } from '@/screens/navigation/types';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 

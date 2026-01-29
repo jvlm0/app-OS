@@ -9,6 +9,10 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+
+
 
 interface Service {
   id: string;
@@ -52,6 +56,8 @@ const ServiceForm = ({ navigation }: ServiceFormProps) => {
   const [servicesExpanded, setServicesExpanded] = useState(false);
   const [detailsExpanded, setDetailsExpanded] = useState(false);
   const [services, setServices] = useState<Service[]>([]);
+
+  const insets = useSafeAreaInsets();
 
   const handleClientSelect = () => {
     navigation.navigate('ClientSearch', {
@@ -99,7 +105,10 @@ const ServiceForm = ({ navigation }: ServiceFormProps) => {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} 
+                contentContainerStyle={{
+                    paddingBottom: 20 + insets.bottom,
+                     }}>
       <View style={styles.formContainer}>
         {/* Título */}
         <View style={styles.fieldContainer}>
