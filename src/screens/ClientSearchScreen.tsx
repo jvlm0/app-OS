@@ -2,15 +2,16 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Search, X } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    FlatList,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  FlatList,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
+import ModalHeader from '@/components/ModalHeader';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface Client {
@@ -87,16 +88,10 @@ const ClientSearchScreen = ({ navigation, route }: ClientSearchScreenProps) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <X size={24} color="#000" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Selecionar Cliente</Text>
-        <View style={styles.placeholder} />
-      </View>
+      <ModalHeader
+        title="Selecionar Cliente"
+        onClose={() => navigation.goBack()}
+      />
 
       <View style={styles.searchContainer}>
         <View style={styles.searchInputWrapper}>
@@ -174,26 +169,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-  },
-  backButton: {
-    padding: 4,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#000',
-  },
-  placeholder: {
-    width: 32,
   },
   searchContainer: {
     padding: 16,
