@@ -4,13 +4,13 @@
 
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import CameraScreen from './CameraScreen';
-import ClientSearchScreen from './ClientSearchScreen';
-import ServiceForm from './ServiceForm';
-import VehicleFormScreen from './VehicleFormScreen';
+import CameraScreen from './screens/CameraScreen';
+import ClientSearchScreen from './screens/ClientSearchScreen';
+import ServiceForm from './screens/ServiceForm';
+import VehicleFormScreen from './screens/VehicleFormScreen';
 
 
-import { RootStackParamList } from './navigation/types';
+import { RootStackParamList } from './screens/navigation/types';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 

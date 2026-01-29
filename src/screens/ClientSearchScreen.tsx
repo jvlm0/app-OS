@@ -218,6 +218,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     fontSize: 16,
     color: '#000',
+    paddingHorizontal: 5
   },
   searchLoader: {
     marginLeft: 8,
