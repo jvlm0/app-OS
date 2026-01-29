@@ -12,8 +12,8 @@ import {
     View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import type { RootStackParamList } from '../app/navigation/types'; // Importe o tipo
 import { extractPlateFromText, extractTextFromImage } from '../services/ocrService';
+import type { RootStackParamList } from './navigation/types'; // Importe o tipo
 
 type CameraScreenProps = NativeStackScreenProps<RootStackParamList, 'CameraScreen'>;
 

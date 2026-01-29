@@ -124,7 +124,10 @@ const ServiceForm = ({ navigation }: ServiceFormProps) => {
             style={styles.clientSelectButton}
             onPress={handleClientSelect}
           >
-            <Text
+            
+            
+            <View style={styles.vehicleContent}>
+              <Text
               style={[
                 styles.clientSelectText,
                 selectedClient ? styles.clientSelectedText : styles.clientPlaceholderText,
@@ -132,12 +135,18 @@ const ServiceForm = ({ navigation }: ServiceFormProps) => {
             >
               {selectedClient ? selectedClient.nome : 'Selecione o cliente'}
             </Text>
+              {selectedClient && (
+                <Text style={styles.vehicleMileageText}>
+                  {selectedClient.telefone}
+                </Text>
+              )}
+            </View>
+            
+
             <ChevronRight size={20} color="#666" />
           </TouchableOpacity>
           
-          {selectedClient && (
-            <Text style={styles.clientPhoneText}>{selectedClient.telefone}</Text>
-          )}
+          
         </View>
 
         {/* Veículo - Campo Fake Clicável */}
