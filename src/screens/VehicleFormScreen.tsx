@@ -1,6 +1,6 @@
 // screens/VehicleFormScreen.tsx
+import ModalHeader from '@/components/ModalHeader';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { X } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
@@ -132,16 +132,10 @@ const VehicleFormScreen = ({ navigation, route }: VehicleFormScreenProps) => {
         style={styles.keyboardView}
       >
         {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.closeButton}
-            onPress={() => navigation.goBack()}
-          >
-            <X size={24} color="#000" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Dados do Veículo</Text>
-          <View style={styles.placeholder} />
-        </View>
+        <ModalHeader
+          title="Dados do Veículo"
+          onClose={() => navigation.goBack()}
+        />
 
         {/* Formulário */}
         <View style={styles.formContainer}>
@@ -225,26 +219,6 @@ const styles = StyleSheet.create({
   },
   keyboardView: {
     flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-  },
-  closeButton: {
-    padding: 4,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#000',
-  },
-  placeholder: {
-    width: 32,
   },
   formContainer: {
     flex: 1,

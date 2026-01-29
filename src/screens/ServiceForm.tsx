@@ -1,5 +1,6 @@
+import SelectField from '@/components/SelectField';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { ChevronDown, ChevronRight, ChevronUp, Trash2 } from 'lucide-react-native';
+import { ChevronDown, ChevronUp, Trash2 } from 'lucide-react-native';
 import React, { useState } from 'react';
 import {
   ScrollView,
@@ -10,9 +11,6 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-
-
 
 interface Service {
   id: string;
@@ -49,6 +47,7 @@ type RootStackParamList = {
 type ServiceFormProps = NativeStackScreenProps<RootStackParamList, 'ServiceForm'>;
 
 const ServiceForm = ({ navigation }: ServiceFormProps) => {
+  const insets = useSafeAreaInsets();
   const [title, setTitle] = useState('');
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
@@ -56,8 +55,6 @@ const ServiceForm = ({ navigation }: ServiceFormProps) => {
   const [servicesExpanded, setServicesExpanded] = useState(false);
   const [detailsExpanded, setDetailsExpanded] = useState(false);
   const [services, setServices] = useState<Service[]>([]);
-
-  const insets = useSafeAreaInsets();
 
   const handleClientSelect = () => {
     navigation.navigate('ClientSearch', {
@@ -124,73 +121,26 @@ const ServiceForm = ({ navigation }: ServiceFormProps) => {
           />
         </View>
 
-        {/* Cliente - Campo Fake Clicável */}
-        <View style={styles.fieldContainer}>
-          <Text style={styles.label}>
-            Cliente <Text style={styles.required}>*</Text>
-          </Text>
-          <TouchableOpacity
-            style={styles.clientSelectButton}
-            onPress={handleClientSelect}
-          >
-            
-            
-            <View style={styles.vehicleContent}>
-              <Text
-              style={[
-                styles.clientSelectText,
-                selectedClient ? styles.clientSelectedText : styles.clientPlaceholderText,
-              ]}
-            >
-              {selectedClient ? selectedClient.nome : 'Selecione o cliente'}
-            </Text>
-              {selectedClient && (
-                <Text style={styles.vehicleMileageText}>
-                  {selectedClient.telefone}
-                </Text>
-              )}
-            </View>
-            
+        {/* Cliente */}
+        <SelectField
+          label="Cliente"
+          required
+          placeholder="Selecione o cliente"
+          selectedValue={selectedClient?.nome}
+          selectedSubtitle={selectedClient?.telefone}
+          onPress={handleClientSelect}
+        />
 
-            <ChevronRight size={20} color="#666" />
-          </TouchableOpacity>
-          
-          
-        </View>
-
-        {/* Veículo - Campo Fake Clicável */}
-        <View style={styles.fieldContainer}>
-          <Text style={styles.label}>
-            Veículo <Text style={styles.required}>*</Text>
-          </Text>
-          <TouchableOpacity
-            style={styles.clientSelectButton}
-            onPress={handleVehicleAdd}
-          >
-            <View style={styles.vehicleContent}>
-              <Text
-                style={[
-                  styles.clientSelectText,
-                  selectedVehicle ? styles.clientSelectedText : styles.clientPlaceholderText,
-                ]}
-              >
-                {selectedVehicle ? selectedVehicle.plate : 'Adicionar veículo'}
-              </Text>
-              {selectedVehicle && (
-                <Text style={styles.vehicleMileageText}>
-                  {selectedVehicle.mileage} km
-                </Text>
-              )}
-            </View>
-            <ChevronRight size={20} color="#666" />
-          </TouchableOpacity>
-          
-          {!selectedVehicle && (
-            <Text style={styles.helperText}>
-              Tire uma foto da placa ou digite manualmente
-            </Text>
-          )}
-        </View>
+        {/* Veículo */}
+        <SelectField
+          label="Veículo"
+          required
+          placeholder="Adicionar veículo"
+          selectedValue={selectedVehicle?.plate}
+          selectedSubtitle={selectedVehicle ? `${selectedVehicle.mileage} km` : undefined}
+          helperText="Tire uma foto da placa ou digite manualmente"
+          onPress={handleVehicleAdd}
+        />
 
         {/* Descrição */}
         <View style={styles.fieldContainer}>
@@ -297,6 +247,8 @@ const ServiceForm = ({ navigation }: ServiceFormProps) => {
         </View>
 
         {/* Detalhes */}
+      
+
         <View style={styles.fieldContainer}>
           <TouchableOpacity
             style={styles.expandableHeader}
@@ -352,46 +304,6 @@ const styles = StyleSheet.create({
   textArea: {
     height: 120,
     textAlignVertical: 'top',
-  },
-  clientSelectButton: {
-    backgroundColor: '#f5f5f5',
-    borderRadius: 8,
-    padding: 16,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-  },
-  clientSelectText: {
-    fontSize: 16,
-  },
-  clientPlaceholderText: {
-    color: '#999',
-  },
-  clientSelectedText: {
-    color: '#000',
-    fontWeight: '600',
-  },
-  clientPhoneText: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 8,
-    marginLeft: 4,
-  },
-  vehicleContent: {
-    flex: 1,
-  },
-  vehicleMileageText: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 4,
-  },
-  helperText: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 8,
-    marginLeft: 4,
   },
   expandableHeader: {
     backgroundColor: '#f5f5f5',
