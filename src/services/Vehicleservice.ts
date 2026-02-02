@@ -1,7 +1,7 @@
 // services/vehicleService.ts
 // Serviço para consultar dados de veículos por placa
 
-import type { VehicleData, VehicleQueryResult } from '../types/vehicle.types';
+import type { VehicleCreate, VehicleCreateResult, VehicleQueryResult } from '../types/vehicle.types';
 
 const API_BASE_URL = 'http://localhost:8000';
 
@@ -36,7 +36,7 @@ export const getVehicleByPlate = async (plate: string): Promise<VehicleQueryResu
       };
     }
 
-    const data: VehicleData = await response.json();
+    const data = await response.json();
 
     return {
       success: true,
@@ -44,6 +44,44 @@ export const getVehicleByPlate = async (plate: string): Promise<VehicleQueryResu
     };
   } catch (error) {
     console.error('Erro ao consultar veículo:', error);
+    return {
+      success: false,
+      error: 'Erro ao conectar com o servidor',
+    };
+  }
+};
+
+/**
+ * Cadastra um novo veículo
+ * @param vehicleData - Dados do veículo para cadastro
+ * @returns Código do veículo cadastrado
+ */
+export const createVehicle = async (vehicleData: VehicleCreate): Promise<VehicleCreateResult> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/veiculos`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(vehicleData),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      return {
+        success: false,
+        error: errorData.detail || `Erro ao cadastrar veículo: ${response.status}`,
+      };
+    }
+
+    const data = await response.json();
+
+    return {
+      success: true,
+      data,
+    };
+  } catch (error) {
+    console.error('Erro ao cadastrar veículo:', error);
     return {
       success: false,
       error: 'Erro ao conectar com o servidor',

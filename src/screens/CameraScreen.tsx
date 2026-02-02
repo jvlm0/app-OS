@@ -23,7 +23,7 @@ const CameraScreen = ({ navigation, route }: CameraScreenProps) => {
     const [processing, setProcessing] = useState(false);
     const cameraRef = useRef<any>(null);
 
-    const { onVehicleAdd } = route.params;
+    const { cod_cliente, onVehicleAdd } = route.params;
 
     if (!permission) {
         return <View style={styles.container} />;
@@ -93,6 +93,7 @@ const CameraScreen = ({ navigation, route }: CameraScreenProps) => {
                             onPress: () => {
                                 navigation.replace('VehicleForm', {
                                     plate: undefined,
+                                    cod_cliente,
                                     onVehicleAdd
                                 });
                             },
@@ -105,6 +106,7 @@ const CameraScreen = ({ navigation, route }: CameraScreenProps) => {
             // Sucesso! Ir para o formulário de veículo com a placa
             navigation.replace('VehicleForm', {
                 plate,
+                cod_cliente,
                 onVehicleAdd
             });
             setProcessing(false);
@@ -191,6 +193,7 @@ const CameraScreen = ({ navigation, route }: CameraScreenProps) => {
                                 onPress={() =>
                                     navigation.replace('VehicleForm', {
                                         plate: undefined,
+                                        cod_cliente,
                                         onVehicleAdd,
                                     })
                                 }

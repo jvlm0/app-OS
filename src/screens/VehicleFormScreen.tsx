@@ -16,14 +16,14 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { isValidPlate } from '../services/ocrService';
-import { getVehicleByPlate } from '../services/Vehicleservice';
+import { createVehicle, getVehicleByPlate } from '../services/Vehicleservice';
 import type { RootStackParamList } from '../types/navigation.types';
 import type { Vehicle } from '../types/vehicle.types';
 
 type VehicleFormScreenProps = NativeStackScreenProps<RootStackParamList, 'VehicleForm'>;
 
 const VehicleFormScreen = ({ navigation, route }: VehicleFormScreenProps) => {
-  const { plate: initialPlate, onVehicleAdd } = route.params;
+  const { plate: initialPlate, cod_cliente, onVehicleAdd } = route.params;
   
   const [plate, setPlate] = useState(initialPlate || '');
   const [modelo, setModelo] = useState('');
@@ -31,6 +31,7 @@ const VehicleFormScreen = ({ navigation, route }: VehicleFormScreenProps) => {
   const [mileage, setMileage] = useState('');
   const [plateError, setPlateError] = useState('');
   const [searching, setSearching] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [autoFilled, setAutoFilled] = useState(false);
 
   useEffect(() => {
@@ -137,7 +138,7 @@ const VehicleFormScreen = ({ navigation, route }: VehicleFormScreenProps) => {
     }
   };
 
-  const validateAndSave = () => {
+  const validateAndSave = async () => {
     // Validar placa
     if (!plate.trim()) {
       setPlateError('A placa é obrigatória');
@@ -176,21 +177,52 @@ const VehicleFormScreen = ({ navigation, route }: VehicleFormScreenProps) => {
     }
 
     const mileageNumber = parseInt(mileage.replace(/\D/g, ''), 10);
-    if (isNaN(mileageNumber) || mileageNumber <= 0) {
+    if (isNaN(mileageNumber) || mileageNumber < 0) {
       Alert.alert('Atenção', 'Quilometragem inválida');
       return;
     }
 
-    // Retornar dados do veículo
-    const vehicle: Vehicle = {
-      plate: plate,
-      modelo: modelo,
-      ano: ano,
-      mileage: mileage,
-    };
+    // Cadastrar veículo na API
+    setSaving(true);
 
-    onVehicleAdd(vehicle);
-    navigation.goBack();
+    try {
+      const result = await createVehicle({
+        placa: cleanPlate,
+        cod_cliente: cod_cliente,
+        modelo: modelo.trim(),
+        ano: ano,
+        kmatual: mileageNumber,
+      });
+
+      if (!result.success) {
+        Alert.alert(
+          'Erro ao cadastrar',
+          result.error || 'Não foi possível cadastrar o veículo. Tente novamente.',
+          [{ text: 'OK' }]
+        );
+        setSaving(false);
+        return;
+      }
+
+      // Sucesso! Retornar dados do veículo para o ServiceForm
+      const vehicle: Vehicle = {
+        plate: plate,
+        modelo: modelo,
+        ano: ano,
+        mileage: mileage,
+      };
+
+      onVehicleAdd(vehicle);
+      navigation.goBack();
+    } catch (error) {
+      console.error('Erro ao cadastrar veículo:', error);
+      Alert.alert(
+        'Erro',
+        'Ocorreu um erro ao cadastrar o veículo. Tente novamente.',
+        [{ text: 'OK' }]
+      );
+      setSaving(false);
+    }
   };
 
   return (
@@ -226,15 +258,15 @@ const VehicleFormScreen = ({ navigation, route }: VehicleFormScreenProps) => {
                 maxLength={8}
                 autoCapitalize="characters"
                 autoCorrect={false}
-                editable={!searching}
+                editable={!searching && !saving}
               />
               <TouchableOpacity
                 style={[
                   styles.searchButton,
-                  searching && styles.searchButtonDisabled,
+                  (searching || saving) && styles.searchButtonDisabled,
                 ]}
                 onPress={() => searchVehicleData()}
-                disabled={searching}
+                disabled={searching || saving}
               >
                 {searching ? (
                   <ActivityIndicator size="small" color="#fff" />
@@ -264,7 +296,7 @@ const VehicleFormScreen = ({ navigation, route }: VehicleFormScreenProps) => {
               value={modelo}
               onChangeText={setModelo}
               autoCapitalize="characters"
-              editable={!searching}
+              editable={!searching && !saving}
             />
           </View>
 
@@ -281,7 +313,7 @@ const VehicleFormScreen = ({ navigation, route }: VehicleFormScreenProps) => {
               onChangeText={setAno}
               keyboardType="numeric"
               maxLength={4}
-              editable={!searching}
+              editable={!searching && !saving}
             />
           </View>
 
@@ -297,7 +329,7 @@ const VehicleFormScreen = ({ navigation, route }: VehicleFormScreenProps) => {
               value={mileage}
               onChangeText={handleMileageChange}
               keyboardType="numeric"
-              editable={!searching}
+              editable={!searching && !saving}
             />
             <Text style={styles.helperText}>
               Informe a quilometragem atual do veículo
@@ -332,11 +364,15 @@ const VehicleFormScreen = ({ navigation, route }: VehicleFormScreenProps) => {
         {/* Botão Salvar */}
         <View style={styles.footer}>
           <TouchableOpacity
-            style={[styles.saveButton, searching && styles.saveButtonDisabled]}
+            style={[styles.saveButton, (searching || saving) && styles.saveButtonDisabled]}
             onPress={validateAndSave}
-            disabled={searching}
+            disabled={searching || saving}
           >
-            <Text style={styles.saveButtonText}>Salvar Veículo</Text>
+            {saving ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Text style={styles.saveButtonText}>Salvar Veículo</Text>
+            )}
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
