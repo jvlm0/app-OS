@@ -10,7 +10,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 
-import { RootStackParamList } from '@/screens/navigation/types';
+import { RootStackParamList } from '@/types/navigation.types';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
