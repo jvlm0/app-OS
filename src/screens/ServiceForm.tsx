@@ -3,6 +3,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ChevronDown, ChevronUp, Trash2 } from 'lucide-react-native';
 import React, { useState } from 'react';
 import {
+  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -11,6 +12,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import type { RootStackParamList } from '../types/navigation.types';
 import type { Vehicle } from '../types/vehicle.types';
 
 interface Service {
@@ -25,20 +27,6 @@ interface Client {
   nome: string;
   telefone: string;
 }
-
-type RootStackParamList = {
-  ServiceForm: undefined;
-  ClientSearch: {
-    onSelectClient: (client: Client) => void;
-  };
-  CameraScreen: {
-    onVehicleAdd: (vehicle: Vehicle) => void;
-  };
-  VehicleForm: {
-    plate?: string;
-    onVehicleAdd: (vehicle: Vehicle) => void;
-  };
-};
 
 type ServiceFormProps = NativeStackScreenProps<RootStackParamList, 'ServiceForm'>;
 
@@ -61,7 +49,18 @@ const ServiceForm = ({ navigation }: ServiceFormProps) => {
   };
 
   const handleVehicleAdd = () => {
+    // Verifica se um cliente foi selecionado
+    if (!selectedClient) {
+      Alert.alert(
+        'Atenção',
+        'Selecione um cliente antes de adicionar um veículo',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+
     navigation.navigate('CameraScreen', {
+      cod_cliente: selectedClient.COD_PESSOA,
       onVehicleAdd: (vehicle: Vehicle) => {
         setSelectedVehicle(vehicle);
       },
@@ -133,7 +132,7 @@ const ServiceForm = ({ navigation }: ServiceFormProps) => {
           required
           placeholder="Adicionar veículo"
           selectedValue={selectedVehicle?.plate}
-          selectedSubtitle={selectedVehicle ? `${selectedVehicle.mileage} km` : undefined}
+          selectedSubtitle={selectedVehicle ? `${selectedVehicle.modelo} - ${selectedVehicle.ano} | ${selectedVehicle.mileage} km` : undefined}
           helperText="Tire uma foto da placa ou digite manualmente"
           onPress={handleVehicleAdd}
         />
@@ -243,8 +242,6 @@ const ServiceForm = ({ navigation }: ServiceFormProps) => {
         </View>
 
         {/* Detalhes */}
-      
-
         <View style={styles.fieldContainer}>
           <TouchableOpacity
             style={styles.expandableHeader}

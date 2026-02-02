@@ -29,3 +29,31 @@ export interface VehicleQueryResult {
   data?: VehicleData;
   error?: string;
 }
+
+/**
+ * Dados para criar um veículo na API
+ */
+export interface VehicleCreate {
+  placa: string;
+  cod_cliente: number;
+  modelo: string;
+  ano: string;
+  kmatual: number;
+}
+
+/**
+ * Resposta da API ao criar veículo
+ */
+export interface VehicleCreateResponse {
+  status: string;
+  cod_veiculo: number;
+}
+
+/**
+ * Resultado da criação de veículo
+ */
+export interface VehicleCreateResult {
+  success: boolean;
+  data?: VehicleCreateResponse;
+  error?: string;
+}
