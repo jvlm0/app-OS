@@ -11,6 +11,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import type { Vehicle } from '../types/vehicle.types';
 
 interface Service {
   id: string;
@@ -23,11 +24,6 @@ interface Client {
   COD_PESSOA: number;
   nome: string;
   telefone: string;
-}
-
-interface Vehicle {
-  plate: string;
-  mileage: string;
 }
 
 type RootStackParamList = {

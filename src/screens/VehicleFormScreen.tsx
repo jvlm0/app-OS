@@ -1,8 +1,10 @@
 // screens/VehicleFormScreen.tsx
 import ModalHeader from '@/components/ModalHeader';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { Search } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
   Platform,
@@ -14,21 +16,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { isValidPlate } from '../services/ocrService';
-
-interface Vehicle {
-  plate: string;
-  mileage: string;
-}
-
-type RootStackParamList = {
-  ServiceForm: undefined;
-  ClientSearch: { onSelectClient: (client: any) => void };
-  CameraScreen: { onVehicleAdd: (vehicle: Vehicle) => void };
-  VehicleForm: {
-    plate?: string;
-    onVehicleAdd: (vehicle: Vehicle) => void;
-  };
-};
+import { getVehicleByPlate } from '../services/Vehicleservice';
+import type { RootStackParamList } from '../types/navigation.types';
+import type { Vehicle } from '../types/vehicle.types';
 
 type VehicleFormScreenProps = NativeStackScreenProps<RootStackParamList, 'VehicleForm'>;
 
@@ -36,12 +26,18 @@ const VehicleFormScreen = ({ navigation, route }: VehicleFormScreenProps) => {
   const { plate: initialPlate, onVehicleAdd } = route.params;
   
   const [plate, setPlate] = useState(initialPlate || '');
+  const [modelo, setModelo] = useState('');
+  const [ano, setAno] = useState('');
   const [mileage, setMileage] = useState('');
   const [plateError, setPlateError] = useState('');
+  const [searching, setSearching] = useState(false);
+  const [autoFilled, setAutoFilled] = useState(false);
 
   useEffect(() => {
     if (initialPlate) {
       setPlate(initialPlate);
+      // Busca automática quando vem da câmera
+      searchVehicleData(initialPlate);
     }
   }, [initialPlate]);
 
@@ -72,6 +68,7 @@ const VehicleFormScreen = ({ navigation, route }: VehicleFormScreenProps) => {
     const formatted = formatPlateInput(text);
     setPlate(formatted);
     setPlateError('');
+    setAutoFilled(false);
   };
 
   const formatMileageInput = (text: string) => {
@@ -90,6 +87,56 @@ const VehicleFormScreen = ({ navigation, route }: VehicleFormScreenProps) => {
     setMileage(formatted);
   };
 
+  const searchVehicleData = async (plateToSearch?: string) => {
+    const searchPlate = plateToSearch || plate;
+    
+    if (!searchPlate.trim()) {
+      Alert.alert('Atenção', 'Digite uma placa para buscar');
+      return;
+    }
+
+    const cleanPlate = searchPlate.replace(/[^A-Z0-9]/g, '');
+    if (!isValidPlate(cleanPlate)) {
+      setPlateError('Placa inválida. Use formato ABC-1234 ou ABC1D23');
+      return;
+    }
+
+    setSearching(true);
+    setPlateError('');
+
+    try {
+      const result = await getVehicleByPlate(searchPlate);
+
+      if (result.success && result.data) {
+        // Preenche os campos com os dados encontrados
+        setModelo(result.data.modelo);
+        setAno(result.data.ano);
+        setAutoFilled(true);
+        
+        Alert.alert(
+          'Veículo encontrado!',
+          `${result.data.modelo} - ${result.data.ano}\n\nOs campos foram preenchidos automaticamente.`,
+          [{ text: 'OK' }]
+        );
+      } else {
+        Alert.alert(
+          'Veículo não encontrado',
+          result.error || 'Este veículo não está cadastrado na base de dados. Você pode preencher os dados manualmente.',
+          [{ text: 'OK' }]
+        );
+      }
+    } catch (error) {
+      console.error('Erro ao buscar veículo:', error);
+      Alert.alert(
+        'Erro',
+        'Ocorreu um erro ao buscar o veículo. Tente novamente.',
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setSearching(false);
+    }
+  };
+
   const validateAndSave = () => {
     // Validar placa
     if (!plate.trim()) {
@@ -100,6 +147,25 @@ const VehicleFormScreen = ({ navigation, route }: VehicleFormScreenProps) => {
     const cleanPlate = plate.replace(/[^A-Z0-9]/g, '');
     if (!isValidPlate(cleanPlate)) {
       setPlateError('Placa inválida. Use formato ABC-1234 ou ABC1D23');
+      return;
+    }
+
+    // Validar modelo
+    if (!modelo.trim()) {
+      Alert.alert('Atenção', 'O modelo é obrigatório');
+      return;
+    }
+
+    // Validar ano
+    if (!ano.trim()) {
+      Alert.alert('Atenção', 'O ano é obrigatório');
+      return;
+    }
+
+    const anoNumber = parseInt(ano, 10);
+    const currentYear = new Date().getFullYear();
+    if (isNaN(anoNumber) || anoNumber < 1900 || anoNumber > currentYear + 1) {
+      Alert.alert('Atenção', 'Ano inválido');
       return;
     }
 
@@ -118,6 +184,8 @@ const VehicleFormScreen = ({ navigation, route }: VehicleFormScreenProps) => {
     // Retornar dados do veículo
     const vehicle: Vehicle = {
       plate: plate,
+      modelo: modelo,
+      ano: ano,
       mileage: mileage,
     };
 
@@ -139,25 +207,42 @@ const VehicleFormScreen = ({ navigation, route }: VehicleFormScreenProps) => {
 
         {/* Formulário */}
         <View style={styles.formContainer}>
-          {/* Campo Placa */}
+          {/* Campo Placa com Botão de Busca */}
           <View style={styles.fieldContainer}>
             <Text style={styles.label}>
               Placa <Text style={styles.required}>*</Text>
             </Text>
-            <TextInput
-              style={[
-                styles.input,
-                styles.plateInput,
-                plateError ? styles.inputError : null,
-              ]}
-              placeholder="ABC-1234 ou ABC1D23"
-              placeholderTextColor="#999"
-              value={plate}
-              onChangeText={handlePlateChange}
-              maxLength={8}
-              autoCapitalize="characters"
-              autoCorrect={false}
-            />
+            <View style={styles.plateInputContainer}>
+              <TextInput
+                style={[
+                  styles.input,
+                  styles.plateInput,
+                  plateError ? styles.inputError : null,
+                ]}
+                placeholder="ABC-1234 ou ABC1D23"
+                placeholderTextColor="#999"
+                value={plate}
+                onChangeText={handlePlateChange}
+                maxLength={8}
+                autoCapitalize="characters"
+                autoCorrect={false}
+                editable={!searching}
+              />
+              <TouchableOpacity
+                style={[
+                  styles.searchButton,
+                  searching && styles.searchButtonDisabled,
+                ]}
+                onPress={() => searchVehicleData()}
+                disabled={searching}
+              >
+                {searching ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Search size={20} color="#fff" />
+                )}
+              </TouchableOpacity>
+            </View>
             {plateError ? (
               <Text style={styles.errorText}>{plateError}</Text>
             ) : (
@@ -165,6 +250,39 @@ const VehicleFormScreen = ({ navigation, route }: VehicleFormScreenProps) => {
                 Formato antigo (ABC-1234) ou Mercosul (ABC1D23)
               </Text>
             )}
+          </View>
+
+          {/* Campo Modelo */}
+          <View style={styles.fieldContainer}>
+            <Text style={styles.label}>
+              Modelo <Text style={styles.required}>*</Text>
+            </Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Ex: KICKS, CIVIC, GOL"
+              placeholderTextColor="#999"
+              value={modelo}
+              onChangeText={setModelo}
+              autoCapitalize="characters"
+              editable={!searching}
+            />
+          </View>
+
+          {/* Campo Ano */}
+          <View style={styles.fieldContainer}>
+            <Text style={styles.label}>
+              Ano <Text style={styles.required}>*</Text>
+            </Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Ex: 2020"
+              placeholderTextColor="#999"
+              value={ano}
+              onChangeText={setAno}
+              keyboardType="numeric"
+              maxLength={4}
+              editable={!searching}
+            />
           </View>
 
           {/* Campo Quilometragem */}
@@ -179,6 +297,7 @@ const VehicleFormScreen = ({ navigation, route }: VehicleFormScreenProps) => {
               value={mileage}
               onChangeText={handleMileageChange}
               keyboardType="numeric"
+              editable={!searching}
             />
             <Text style={styles.helperText}>
               Informe a quilometragem atual do veículo
@@ -196,13 +315,26 @@ const VehicleFormScreen = ({ navigation, route }: VehicleFormScreenProps) => {
               </Text>
             </View>
           )}
+
+          {/* Informação sobre dados preenchidos automaticamente */}
+          {autoFilled && (
+            <View style={[styles.infoBox, styles.successBox]}>
+              <Text style={styles.infoText}>
+                ✓ Dados preenchidos automaticamente
+              </Text>
+              <Text style={styles.infoSubtext}>
+                Você pode editá-los se necessário
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* Botão Salvar */}
         <View style={styles.footer}>
           <TouchableOpacity
-            style={styles.saveButton}
+            style={[styles.saveButton, searching && styles.saveButtonDisabled]}
             onPress={validateAndSave}
+            disabled={searching}
           >
             <Text style={styles.saveButtonText}>Salvar Veículo</Text>
           </TouchableOpacity>
@@ -245,11 +377,26 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#e0e0e0',
   },
+  plateInputContainer: {
+    flexDirection: 'row',
+    gap: 8,
+  },
   plateInput: {
+    flex: 1,
     fontSize: 20,
     fontWeight: '600',
     letterSpacing: 2,
     textAlign: 'center',
+  },
+  searchButton: {
+    backgroundColor: '#000',
+    borderRadius: 8,
+    width: 56,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  searchButtonDisabled: {
+    backgroundColor: '#666',
   },
   inputError: {
     borderColor: '#ff0000',
@@ -271,6 +418,11 @@ const styles = StyleSheet.create({
     padding: 16,
     borderLeftWidth: 4,
     borderLeftColor: '#4caf50',
+    marginTop: 8,
+  },
+  successBox: {
+    backgroundColor: '#e3f2fd',
+    borderLeftColor: '#2196f3',
   },
   infoText: {
     fontSize: 16,
@@ -292,6 +444,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 18,
     alignItems: 'center',
+  },
+  saveButtonDisabled: {
+    backgroundColor: '#666',
   },
   saveButtonText: {
     fontSize: 16,

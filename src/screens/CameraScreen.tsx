@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { extractPlateFromText, extractTextFromImage } from '../services/ocrService';
-import type { RootStackParamList } from './navigation/types'; // Importe o tipo
+import type { RootStackParamList } from '../types/navigation.types';
 
 type CameraScreenProps = NativeStackScreenProps<RootStackParamList, 'CameraScreen'>;
 
@@ -23,9 +23,29 @@ const CameraScreen = ({ navigation, route }: CameraScreenProps) => {
     const [processing, setProcessing] = useState(false);
     const cameraRef = useRef<any>(null);
 
-    const { onVehicleAdd } = route.params; // Mudou de onPlateCapture para onVehicleAdd
+    const { onVehicleAdd } = route.params;
 
-    // ... resto do código de permissão permanece igual ...
+    if (!permission) {
+        return <View style={styles.container} />;
+    }
+
+    if (!permission.granted) {
+        return (
+            <View style={styles.permissionContainer}>
+                <Text style={styles.permissionText}>
+                    Precisamos de sua permissão para usar a câmera
+                </Text>
+                <TouchableOpacity
+                    style={styles.permissionButton}
+                    onPress={requestPermission}
+                >
+                    <Text style={styles.permissionButtonText}>
+                        Permitir acesso à câmera
+                    </Text>
+                </TouchableOpacity>
+            </View>
+        );
+    }
 
     const takePicture = async () => {
         if (!cameraRef.current || processing) return;
@@ -186,8 +206,6 @@ const CameraScreen = ({ navigation, route }: CameraScreenProps) => {
         </View>
     );
 };
-
-// ... estilos permanecem iguais ...
 
 const styles = StyleSheet.create({
     container: {
