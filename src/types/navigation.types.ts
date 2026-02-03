@@ -19,6 +19,10 @@ export type RootStackParamList = {
     onVehicleAdd: (vehicle: Vehicle) => void;
   };
 
+  ClientForm: {
+    onClientAdd: (client: Client) => void;
+  };
+
   VehicleForm: {
     plate?: string;
     cod_cliente: number;

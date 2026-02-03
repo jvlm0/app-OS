@@ -10,6 +10,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 
+import ClientFormScreen from '@/screens/ClientFormScreen';
 import { RootStackParamList } from '@/types/navigation.types';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -57,6 +58,15 @@ function Index() {
             presentation: 'modal',
           }}
         />
+
+        <Stack.Screen
+          name="ClientForm"
+          component={ClientFormScreen}
+          options={{
+            headerShown: false,
+            presentation: 'modal',
+          }}
+          />
       </Stack.Navigator>
     </SafeAreaProvider>
   );

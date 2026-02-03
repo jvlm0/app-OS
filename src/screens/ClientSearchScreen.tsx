@@ -1,5 +1,7 @@
+// screens/ClientSearchScreen.tsx
+import ModalHeader from '@/components/ModalHeader';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { Search, X } from 'lucide-react-native';
+import { Plus, Search, UserPlus } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -10,157 +12,200 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-
-import ModalHeader from '@/components/ModalHeader';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
-interface Client {
-  COD_PESSOA: number;
-  nome: string;
-  telefone: string;
-}
-
-type RootStackParamList = {
-  ServiceForm: undefined;
-  ClientSearch: {
-    onSelectClient: (client: Client) => void;
-  };
-};
+import type { Client } from '../types/client.types';
+import type { RootStackParamList } from '../types/navigation.types';
 
 type ClientSearchScreenProps = NativeStackScreenProps<RootStackParamList, 'ClientSearch'>;
 
-const ClientSearchScreen = ({ navigation, route }: ClientSearchScreenProps) => {
-  const [clientSearch, setClientSearch] = useState('');
-  const [clients, setClients] = useState<Client[]>([]);
-  const [loadingClients, setLoadingClients] = useState(false);
-  const searchTimeout = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+const API_BASE_URL = 'http://100.67.122.72:8000';
 
+const ClientSearchScreen = ({ navigation, route }: ClientSearchScreenProps) => {
   const { onSelectClient } = route.params;
 
-  // Buscar clientes na API
-  const searchClients = async (query: string) => {
-    if (!query || query.length < 2) {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [hasSearched, setHasSearched] = useState(false);
+
+  // Debounce para não fazer requisição a cada letra digitada
+  useEffect(() => {
+    if (!searchQuery.trim()) {
       setClients([]);
+      setHasSearched(false);
       return;
     }
 
-    setLoadingClients(true);
+    const timer = setTimeout(() => {
+      searchClients(searchQuery);
+    }, 500); // Aguarda 500ms após parar de digitar
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  const searchClients = async (query: string) => {
+    if (!query.trim()) return;
+
+    setLoading(true);
+    setHasSearched(true);
+
     try {
       const response = await fetch(
-        `http://localhost:8000/clientes?q=${encodeURIComponent(query)}`
+        `${API_BASE_URL}/clientes?q=${encodeURIComponent(query)}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
       );
+
+      if (!response.ok) {
+        console.error('Erro ao buscar clientes:', response.status);
+        setClients([]);
+        setLoading(false);
+        return;
+      }
+
       const data = await response.json();
       setClients(data);
     } catch (error) {
       console.error('Erro ao buscar clientes:', error);
       setClients([]);
     } finally {
-      setLoadingClients(false);
+      setLoading(false);
     }
   };
 
-  // Debounce para pesquisa
-  useEffect(() => {
-    if (searchTimeout.current) {
-      clearTimeout(searchTimeout.current);
-    }
-
-    searchTimeout.current = setTimeout(() => {
-      searchClients(clientSearch);
-    }, 300);
-
-    return () => {
-      if (searchTimeout.current) {
-        clearTimeout(searchTimeout.current);
-      }
-    };
-  }, [clientSearch]);
+  const handleSearch = (text: string) => {
+    setSearchQuery(text);
+  };
 
   const handleSelectClient = (client: Client) => {
     onSelectClient(client);
     navigation.goBack();
   };
 
-  const handleClearSearch = () => {
-    setClientSearch('');
-    setClients([]);
+  const handleAddClient = () => {
+    navigation.navigate('ClientForm', {
+      onClientAdd: (client: Client) => {
+        // Adiciona o novo cliente à lista
+        setClients([client, ...clients]);
+        // Seleciona automaticamente
+        onSelectClient(client);
+      },
+    });
   };
+
+  const formatPhone = (phone: string) => {
+    if (!phone) return '';
+    const numbers = phone.replace(/\D/g, '');
+    if (numbers.length <= 10) {
+      return numbers.replace(/^(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
+    }
+    return numbers.replace(/^(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+  };
+
+  const renderClientItem = ({ item }: { item: Client }) => (
+    <TouchableOpacity
+      style={styles.clientItem}
+      onPress={() => handleSelectClient(item)}
+    >
+      <View style={styles.clientInfo}>
+        <Text style={styles.clientName}>{item.nome}</Text>
+        <Text style={styles.clientPhone}>{formatPhone(item.telefone)}</Text>
+      </View>
+    </TouchableOpacity>
+  );
+
+  const renderEmptyState = () => {
+    if (loading) {
+      return (
+        <View style={styles.emptyContainer}>
+          <ActivityIndicator size="large" color="#000" />
+          <Text style={styles.loadingText}>Buscando clientes...</Text>
+        </View>
+      );
+    }
+
+    if (searchQuery.trim() && hasSearched) {
+      // Nenhum resultado encontrado
+      return (
+        <View style={styles.emptyContainer}>
+          <UserPlus size={64} color="#ccc" />
+          <Text style={styles.emptyTitle}>Nenhum cliente encontrado</Text>
+          <Text style={styles.emptyText}>
+            Não encontramos clientes com "{searchQuery}"
+          </Text>
+          <TouchableOpacity
+            style={styles.linkButton}
+            onPress={handleAddClient}
+          >
+            <Text style={styles.linkButtonText}>Cadastrar agora</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+
+    // Estado inicial - sem busca
+    return (
+      <View style={styles.emptyContainer}>
+        <Search size={64} color="#ccc" />
+        <Text style={styles.emptyTitle}>Buscar cliente</Text>
+        <Text style={styles.emptyText}>
+          Digite o nome ou telefone do cliente para buscar
+        </Text>
+      </View>
+    );
+  };
+
+  // Não mostra o botão de adicionar quando está digitando
+  const showAddButton = !searchQuery.trim() && clients.length === 0 && !hasSearched;
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Header */}
       <ModalHeader
-        title="Selecionar Cliente"
+        title="Buscar Cliente"
         onClose={() => navigation.goBack()}
       />
 
+      {/* Search Bar */}
       <View style={styles.searchContainer}>
-        <View style={styles.searchInputWrapper}>
-          <Search size={20} color="#666" style={styles.searchIcon} />
+        <View style={styles.searchInputContainer}>
+          <Search size={20} color="#666" />
           <TextInput
             style={styles.searchInput}
-            placeholder="Digite nome ou telefone do cliente"
+            placeholder="Buscar por nome ou telefone"
             placeholderTextColor="#999"
-            value={clientSearch}
-            onChangeText={setClientSearch}
+            value={searchQuery}
+            onChangeText={handleSearch}
             autoFocus
           />
-          {loadingClients && (
-            <View style={styles.searchLoader}>
-              <ActivityIndicator size="small" color="#666" />
-            </View>
-          )}
-          {clientSearch.length > 0 && !loadingClients && (
-            <TouchableOpacity
-              style={styles.clearButton}
-              onPress={handleClearSearch}
-            >
-              <X size={18} color="#666" />
-            </TouchableOpacity>
-          )}
         </View>
       </View>
 
-      <View style={styles.listContainer}>
-        {loadingClients ? (
-          <View style={styles.centerContainer}>
-            <ActivityIndicator size="large" color="#000" />
-            <Text style={styles.loadingText}>Buscando clientes...</Text>
-          </View>
-        ) : clientSearch.length < 2 ? (
-          <View style={styles.centerContainer}>
-            <Search size={48} color="#ccc" />
-            <Text style={styles.emptyText}>
-              Digite pelo menos 2 caracteres para buscar
-            </Text>
-          </View>
-        ) : clients.length === 0 ? (
-          <View style={styles.centerContainer}>
-            <Text style={styles.emptyText}>Nenhum cliente encontrado</Text>
-            <Text style={styles.emptySubtext}>
-              Tente buscar com outro termo
-            </Text>
-          </View>
-        ) : (
-          <FlatList
-            data={clients}
-            keyExtractor={(item) => item.COD_PESSOA.toString()}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={styles.clientItem}
-                onPress={() => handleSelectClient(item)}
-                activeOpacity={0.7}
-              >
-                <View style={styles.clientInfo}>
-                  <Text style={styles.clientName}>{item.nome}</Text>
-                  <Text style={styles.clientPhone}>{item.telefone}</Text>
-                </View>
-              </TouchableOpacity>
-            )}
-            ItemSeparatorComponent={() => <View style={styles.separator} />}
-            contentContainerStyle={styles.listContent}
-          />
-        )}
-      </View>
+      {/* Lista de Clientes */}
+      <FlatList
+        data={clients}
+        renderItem={renderClientItem}
+        keyExtractor={item => item.COD_PESSOA.toString()}
+        contentContainerStyle={styles.listContainer}
+        ListEmptyComponent={renderEmptyState}
+      />
+
+      {/* Botão Adicionar Cliente (aparece apenas no estado inicial) */}
+      {showAddButton && (
+        <View style={styles.footer}>
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={handleAddClient}
+          >
+            <Plus size={20} color="#fff" />
+            <Text style={styles.addButtonText}>Adicionar Cliente</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </SafeAreaView>
   );
 };
@@ -171,77 +216,40 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   searchContainer: {
-    padding: 16,
-    backgroundColor: '#fff',
+    padding: 20,
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
   },
-  searchInputWrapper: {
+  searchInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#f5f5f5',
-    borderRadius: 12,
+    borderRadius: 8,
     paddingHorizontal: 16,
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-  },
-  searchIcon: {
-    marginRight: 8,
+    gap: 12,
   },
   searchInput: {
     flex: 1,
-    paddingVertical: 14,
     fontSize: 16,
     color: '#000',
-    paddingHorizontal: 5
-  },
-  searchLoader: {
-    marginLeft: 8,
-  },
-  clearButton: {
-    padding: 4,
-    marginLeft: 8,
+    paddingVertical: 12,
   },
   listContainer: {
-    flex: 1,
-  },
-  listContent: {
     flexGrow: 1,
   },
-  centerContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 32,
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: '#666',
-  },
-  emptyText: {
-    marginTop: 16,
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#666',
-    textAlign: 'center',
-  },
-  emptySubtext: {
-    marginTop: 8,
-    fontSize: 14,
-    color: '#999',
-    textAlign: 'center',
-  },
   clientItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
     padding: 20,
-    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
   },
   clientInfo: {
     flex: 1,
   },
   clientName: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '600',
     color: '#000',
     marginBottom: 4,
   },
@@ -249,10 +257,57 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
   },
-  separator: {
-    height: 1,
-    backgroundColor: '#f0f0f0',
-    marginLeft: 20,
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 40,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  emptyText: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  loadingText: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 12,
+  },
+  linkButton: {
+    paddingVertical: 8,
+  },
+  linkButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000',
+    textDecorationLine: 'underline',
+  },
+  footer: {
+    padding: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+  },
+  addButton: {
+    backgroundColor: '#000',
+    borderRadius: 8,
+    padding: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  addButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#fff',
   },
 });
 

@@ -3,7 +3,7 @@
 
 import type { VehicleCreate, VehicleCreateResult, VehicleQueryResult } from '../types/vehicle.types';
 
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = 'http://100.67.122.72:8000';
 
 /**
  * Consulta dados do veículo pela placa
