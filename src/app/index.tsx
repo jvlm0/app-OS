@@ -1,6 +1,4 @@
-// Exemplo de como adicionar as rotas no seu Stack Navigator existente
-// IMPORTANTE: Adicione essas telas no seu Stack Navigator existente
-// NÃO crie um novo NavigationContainer
+// app/index.tsx
 
 import CameraScreen from '@/screens/CameraScreen';
 import ClientSearchScreen from '@/screens/ClientSearchScreen';
