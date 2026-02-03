@@ -8,6 +8,7 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -236,7 +237,7 @@ const VehicleFormScreen = ({ navigation, route }: VehicleFormScreenProps) => {
           title="Dados do Veículo"
           onClose={() => navigation.goBack()}
         />
-
+        <ScrollView style={styles.scrollView}>
         {/* Formulário */}
         <View style={styles.formContainer}>
           {/* Campo Placa com Botão de Busca */}
@@ -360,6 +361,7 @@ const VehicleFormScreen = ({ navigation, route }: VehicleFormScreenProps) => {
             </View>
           )}
         </View>
+        </ScrollView>
 
         {/* Botão Salvar */}
         <View style={styles.footer}>
@@ -386,6 +388,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   keyboardView: {
+    flex: 1,
+  },
+  scrollView: {
     flex: 1,
   },
   formContainer: {

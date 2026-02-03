@@ -4,6 +4,8 @@ import { ChevronDown, ChevronUp, Trash2, UserPlus } from 'lucide-react-native';
 import React, { useState } from 'react';
 import {
   Alert,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -100,10 +102,15 @@ const ServiceForm = ({ navigation }: ServiceFormProps) => {
   };
 
   return (
+    <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={styles.keyboardView}
+          >
     <ScrollView style={styles.container} 
                 contentContainerStyle={{
                     paddingBottom: 20 + insets.bottom,
-                     }}>
+                     }}
+                keyboardShouldPersistTaps="handled">
       <View style={styles.formContainer}>
         {/* Título */}
         <View style={styles.fieldContainer}>
@@ -288,6 +295,7 @@ const ServiceForm = ({ navigation }: ServiceFormProps) => {
         </TouchableOpacity>
       </View>
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -296,8 +304,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
+  keyboardView: {
+    flex: 1,
+    paddingBottom: 10
+  },
   formContainer: {
     padding: 20,
+    paddingBottom: 0,
   },
   fieldContainer: {
     marginBottom: 24,
@@ -448,6 +461,7 @@ const styles = StyleSheet.create({
     padding: 18,
     alignItems: 'center',
     marginTop: 32,
+    marginBottom: 30,
   },
   continueButtonText: {
     fontSize: 16,
