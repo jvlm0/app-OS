@@ -8,7 +8,16 @@ export type {
     VehicleQueryResult
 } from './vehicle.types';
 
+// Tipos de clientes
+export type {
+    Client,
+    ClientCreate,
+    ClientCreateResponse,
+    ClientCreateResult, PersonType
+} from './client.types';
+
 // Tipos de navegação
 export type {
     RootStackParamList
 } from './navigation.types';
+

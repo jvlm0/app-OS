@@ -1,6 +1,6 @@
 import SelectField from '@/components/SelectField';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { ChevronDown, ChevronUp, Trash2 } from 'lucide-react-native';
+import { ChevronDown, ChevronUp, Trash2, UserPlus } from 'lucide-react-native';
 import React, { useState } from 'react';
 import {
   Alert,
@@ -12,6 +12,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import type { Client } from '../types/client.types';
 import type { RootStackParamList } from '../types/navigation.types';
 import type { Vehicle } from '../types/vehicle.types';
 
@@ -20,12 +21,6 @@ interface Service {
   description: string;
   quantity: string;
   unitValue: string;
-}
-
-interface Client {
-  COD_PESSOA: number;
-  nome: string;
-  telefone: string;
 }
 
 type ServiceFormProps = NativeStackScreenProps<RootStackParamList, 'ServiceForm'>;
@@ -43,6 +38,14 @@ const ServiceForm = ({ navigation }: ServiceFormProps) => {
   const handleClientSelect = () => {
     navigation.navigate('ClientSearch', {
       onSelectClient: (client: Client) => {
+        setSelectedClient(client);
+      },
+    });
+  };
+
+  const handleAddClient = () => {
+    navigation.navigate('ClientForm', {
+      onClientAdd: (client: Client) => {
         setSelectedClient(client);
       },
     });
@@ -117,14 +120,37 @@ const ServiceForm = ({ navigation }: ServiceFormProps) => {
         </View>
 
         {/* Cliente */}
-        <SelectField
-          label="Cliente"
-          required
-          placeholder="Selecione o cliente"
-          selectedValue={selectedClient?.nome}
-          selectedSubtitle={selectedClient?.telefone}
-          onPress={handleClientSelect}
-        />
+        <View style={styles.fieldContainer}>
+          <Text style={styles.label}>
+            Cliente <Text style={styles.required}>*</Text>
+          </Text>
+          <View style={styles.clientContainer}>
+            <TouchableOpacity
+              style={styles.selectFieldButton}
+              onPress={handleClientSelect}
+            >
+              <View style={styles.selectFieldContent}>
+                {selectedClient ? (
+                  <View>
+                    <Text style={styles.selectFieldValue}>{selectedClient.nome}</Text>
+                    {selectedClient.telefone && (
+                      <Text style={styles.selectFieldSubtitle}>{selectedClient.telefone}</Text>
+                    )}
+                  </View>
+                ) : (
+                  <Text style={styles.selectFieldPlaceholder}>Selecione o cliente</Text>
+                )}
+              </View>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={styles.addClientButton}
+              onPress={handleAddClient}
+            >
+              <UserPlus size={20} color="#fff" />
+            </TouchableOpacity>
+          </View>
+        </View>
 
         {/* Veículo */}
         <SelectField
@@ -284,6 +310,43 @@ const styles = StyleSheet.create({
   },
   required: {
     color: '#ff0000',
+  },
+  clientContainer: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  selectFieldButton: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 8,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  selectFieldContent: {
+    minHeight: 24,
+    justifyContent: 'center',
+  },
+  selectFieldPlaceholder: {
+    fontSize: 16,
+    color: '#999',
+  },
+  selectFieldValue: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000',
+    marginBottom: 4,
+  },
+  selectFieldSubtitle: {
+    fontSize: 14,
+    color: '#666',
+  },
+  addClientButton: {
+    backgroundColor: '#000',
+    borderRadius: 8,
+    width: 56,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   input: {
     backgroundColor: '#f5f5f5',
