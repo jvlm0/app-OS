@@ -8,6 +8,8 @@ export interface Client {
 
 
 export type RootStackParamList = {
+  OrderList: undefined;
+
   ServiceForm: undefined;
 
   ClientSearch: {

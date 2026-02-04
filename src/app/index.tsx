@@ -2,6 +2,7 @@
 
 import CameraScreen from '@/screens/CameraScreen';
 import ClientSearchScreen from '@/screens/ClientSearchScreen';
+import OrderListScreen from '@/screens/OrderListScreen';
 import ServiceForm from '@/screens/ServiceForm';
 import VehicleFormScreen from '@/screens/VehicleFormScreen';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -13,17 +14,25 @@ import { RootStackParamList } from '@/types/navigation.types';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-// OPÇÃO 1: Se você já tem um Stack Navigator, apenas adicione essas duas telas:
 function Index() {
   return (
     <SafeAreaProvider>
-      <Stack.Navigator>
-        {/* Tela principal do formulário */}
+      <Stack.Navigator initialRouteName="OrderList">
+        {/* Tela principal - Lista de ordens */}
+        <Stack.Screen
+          name="OrderList"
+          component={OrderListScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+
+        {/* Tela de cadastro de ordem de serviço */}
         <Stack.Screen
           name="ServiceForm"
           component={ServiceForm}
           options={{
-            title: 'Novo Serviço',
+            title: 'Nova Ordem de Serviço',
           }}
         />
 
@@ -57,6 +66,7 @@ function Index() {
           }}
         />
 
+        {/* Tela de formulário de cliente */}
         <Stack.Screen
           name="ClientForm"
           component={ClientFormScreen}
@@ -64,24 +74,10 @@ function Index() {
             headerShown: false,
             presentation: 'modal',
           }}
-          />
+        />
       </Stack.Navigator>
     </SafeAreaProvider>
   );
 }
-
-// OPÇÃO 2: Se este for seu único Stack, você pode fazer assim:
-// import { NavigationContainer } from '@react-navigation/native';
-//
-// function App() {
-//   return (
-//     <NavigationContainer>
-//       <Stack.Navigator>
-//         <Stack.Screen name="ServiceForm" component={ServiceForm} />
-//         <Stack.Screen name="ClientSearch" component={ClientSearchScreen} />
-//       </Stack.Navigator>
-//     </NavigationContainer>
-//   );
-// }
 
 export default Index;
