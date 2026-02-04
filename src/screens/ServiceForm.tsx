@@ -3,9 +3,8 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ChevronDown, ChevronUp, Trash2, UserPlus } from 'lucide-react-native';
 import React, { useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
-  KeyboardAvoidingView,
-  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -14,6 +13,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { createOrder } from '../services/orderService';
 import type { Client } from '../types/client.types';
 import type { RootStackParamList } from '../types/navigation.types';
 import type { Vehicle } from '../types/vehicle.types';
@@ -36,6 +36,7 @@ const ServiceForm = ({ navigation }: ServiceFormProps) => {
   const [servicesExpanded, setServicesExpanded] = useState(false);
   const [detailsExpanded, setDetailsExpanded] = useState(false);
   const [services, setServices] = useState<Service[]>([]);
+  const [saving, setSaving] = useState(false);
 
   const handleClientSelect = () => {
     navigation.navigate('ClientSearch', {
@@ -101,16 +102,93 @@ const ServiceForm = ({ navigation }: ServiceFormProps) => {
     return `R$ ${amount.toFixed(2).replace('.', ',')}`;
   };
 
+  const handleSave = async () => {
+    // Validar título
+    if (!title.trim()) {
+      Alert.alert('Atenção', 'O título é obrigatório');
+      return;
+    }
+
+    // Validar cliente
+    if (!selectedClient) {
+      Alert.alert('Atenção', 'Selecione um cliente');
+      return;
+    }
+
+    // Validar veículo
+    if (!selectedVehicle) {
+      Alert.alert('Atenção', 'Adicione um veículo');
+      return;
+    }
+
+    // Validar se o veículo tem código (foi cadastrado)
+    if (!selectedVehicle.cod_veiculo) {
+      Alert.alert(
+        'Erro',
+        'O veículo não possui um código válido. Por favor, cadastre o veículo novamente.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+
+    setSaving(true);
+
+    try {
+      // Preparar dados para envio
+      const orderData = {
+        titulo: title.trim(),
+        descricao: description.trim() || '',
+        cod_veiculo: selectedVehicle.cod_veiculo,
+        cod_cliente: selectedClient.COD_PESSOA,
+      };
+
+      const result = await createOrder(orderData);
+
+      if (!result.success) {
+        Alert.alert(
+          'Erro ao salvar',
+          result.error || 'Não foi possível salvar a ordem de serviço. Tente novamente.',
+          [{ text: 'OK' }]
+        );
+        setSaving(false);
+        return;
+      }
+
+      // Sucesso!
+      Alert.alert(
+        'Sucesso!',
+        `Ordem de serviço #${result.data!.cod_ordem} criada com sucesso!`,
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              // Limpar formulário
+              setTitle('');
+              setSelectedClient(null);
+              setSelectedVehicle(null);
+              setDescription('');
+              setServices([]);
+            },
+          },
+        ]
+      );
+    } catch (error) {
+      console.error('Erro ao salvar ordem:', error);
+      Alert.alert(
+        'Erro',
+        'Ocorreu um erro ao salvar a ordem de serviço. Tente novamente.',
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
-    <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            style={styles.keyboardView}
-          >
     <ScrollView style={styles.container} 
                 contentContainerStyle={{
                     paddingBottom: 20 + insets.bottom,
-                     }}
-                keyboardShouldPersistTaps="handled">
+                     }}>
       <View style={styles.formContainer}>
         {/* Título */}
         <View style={styles.fieldContainer}>
@@ -289,13 +367,20 @@ const ServiceForm = ({ navigation }: ServiceFormProps) => {
           </TouchableOpacity>
         </View>
 
-        {/* Botão Continuar */}
-        <TouchableOpacity style={styles.continueButton}>
-          <Text style={styles.continueButtonText}>Continuar</Text>
+        {/* Botão Salvar */}
+        <TouchableOpacity
+          style={[styles.continueButton, saving && styles.continueButtonDisabled]}
+          onPress={handleSave}
+          disabled={saving}
+        >
+          {saving ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
+            <Text style={styles.continueButtonText}>Salvar</Text>
+          )}
         </TouchableOpacity>
       </View>
     </ScrollView>
-    </KeyboardAvoidingView>
   );
 };
 
@@ -304,13 +389,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
-  keyboardView: {
-    flex: 1,
-    paddingBottom: 10
-  },
   formContainer: {
     padding: 20,
-    paddingBottom: 0,
   },
   fieldContainer: {
     marginBottom: 24,
@@ -461,7 +541,9 @@ const styles = StyleSheet.create({
     padding: 18,
     alignItems: 'center',
     marginTop: 32,
-    marginBottom: 30,
+  },
+  continueButtonDisabled: {
+    backgroundColor: '#666',
   },
   continueButtonText: {
     fontSize: 16,

@@ -1,7 +1,7 @@
 // screens/ClientFormScreen.tsx
 import ModalHeader from '@/components/ModalHeader';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
@@ -29,6 +29,8 @@ const ClientFormScreen = ({ navigation, route }: ClientFormScreenProps) => {
   const [phone, setPhone] = useState('');
   const [document, setDocument] = useState('');
   const [saving, setSaving] = useState(false);
+  const nameRef = useRef(null);
+  const phoneRef = useRef<TextInput | null>(null);
 
   const formatPhone = (text: string) => {
     // Remove tudo que não é número
@@ -315,6 +317,13 @@ const ClientFormScreen = ({ navigation, route }: ClientFormScreenProps) => {
                 onChangeText={setName}
                 autoCapitalize="words"
                 editable={!saving}
+                ref={nameRef}
+                returnKeyType="next"
+                onSubmitEditing={() => {
+                    if (phoneRef.current) {
+                        phoneRef.current.focus();
+                    }
+                }}
               />
             </View>
 
@@ -331,6 +340,7 @@ const ClientFormScreen = ({ navigation, route }: ClientFormScreenProps) => {
                 onChangeText={handlePhoneChange}
                 keyboardType="phone-pad"
                 editable={!saving}
+                ref={phoneRef}
               />
               <Text style={styles.helperText}>
                 Telefone com DDD
