@@ -6,6 +6,8 @@ import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
+  KeyboardAvoidingView,
+  Platform,
   StyleSheet,
   Text,
   TextInput,
@@ -19,39 +21,61 @@ import type { RootStackParamList } from '../types/navigation.types';
 type ClientSearchScreenProps = NativeStackScreenProps<RootStackParamList, 'ClientSearch'>;
 
 const API_BASE_URL = 'http://100.67.122.72:8000';
+const PAGE_SIZE = 20;
+
+interface PaginatedResponse {
+  page: number;
+  page_size: number;
+  total_pages: number;
+  data: Client[];
+}
 
 const ClientSearchScreen = ({ navigation, route }: ClientSearchScreenProps) => {
   const { onSelectClient } = route.params;
 
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [clients, setClients] = useState<Client[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   // Debounce para não fazer requisição a cada letra digitada
   useEffect(() => {
     if (!searchQuery.trim()) {
       setClients([]);
       setHasSearched(false);
+      setCurrentPage(1);
+      setTotalPages(1);
       return;
     }
 
     const timer = setTimeout(() => {
-      searchClients(searchQuery);
+      // Reseta a paginação quando a busca muda
+      setCurrentPage(1);
+      setClients([]);
+      searchClients(searchQuery, 1);
     }, 500); // Aguarda 500ms após parar de digitar
 
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  const searchClients = async (query: string) => {
+  const searchClients = async (query: string, page: number = 1) => {
     if (!query.trim()) return;
 
-    setLoading(true);
+    // Define o estado de loading apropriado
+    if (page === 1) {
+      setLoading(true);
+    } else {
+      setLoadingMore(true);
+    }
+    
     setHasSearched(true);
 
     try {
       const response = await fetch(
-        `${API_BASE_URL}/clientes?q=${encodeURIComponent(query)}`,
+        `${API_BASE_URL}/clientes?q=${encodeURIComponent(query)}&page=${page}&page_size=${PAGE_SIZE}`,
         {
           method: 'GET',
           headers: {
@@ -62,18 +86,36 @@ const ClientSearchScreen = ({ navigation, route }: ClientSearchScreenProps) => {
 
       if (!response.ok) {
         console.error('Erro ao buscar clientes:', response.status);
-        setClients([]);
-        setLoading(false);
+        if (page === 1) {
+          setClients([]);
+        }
         return;
       }
 
-      const data = await response.json();
-      setClients(data);
+      const data: PaginatedResponse = await response.json();
+      
+      // Atualiza o total de páginas
+      setTotalPages(data.total_pages);
+      
+      // Se for a primeira página, substitui os clientes
+      // Se for uma página subsequente, adiciona aos existentes
+      if (page === 1) {
+        setClients(data.data);
+      } else {
+        setClients(prevClients => [...prevClients, ...data.data]);
+      }
+      
+      // Atualiza a página atual
+      setCurrentPage(page);
+      
     } catch (error) {
       console.error('Erro ao buscar clientes:', error);
-      setClients([]);
+      if (page === 1) {
+        setClients([]);
+      }
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   };
 
@@ -97,6 +139,17 @@ const ClientSearchScreen = ({ navigation, route }: ClientSearchScreenProps) => {
     });
   };
 
+  const handleLoadMore = () => {
+    // Verifica se já está carregando ou se já chegou na última página
+    if (loadingMore || loading || currentPage >= totalPages) {
+      return;
+    }
+    
+    // Carrega a próxima página
+    const nextPage = currentPage + 1;
+    searchClients(searchQuery, nextPage);
+  };
+
   const formatPhone = (phone: string) => {
     if (!phone) return '';
     const numbers = phone.replace(/\D/g, '');
@@ -117,6 +170,17 @@ const ClientSearchScreen = ({ navigation, route }: ClientSearchScreenProps) => {
       </View>
     </TouchableOpacity>
   );
+
+  const renderFooter = () => {
+    if (!loadingMore) return null;
+    
+    return (
+      <View style={styles.loadingFooter}>
+        <ActivityIndicator size="small" color="#000" />
+        <Text style={styles.loadingFooterText}>Carregando mais...</Text>
+      </View>
+    );
+  };
 
   const renderEmptyState = () => {
     if (loading) {
@@ -165,6 +229,11 @@ const ClientSearchScreen = ({ navigation, route }: ClientSearchScreenProps) => {
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
+      
+      <KeyboardAvoidingView
+              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+              style={styles.keyboardView}
+            >
       <ModalHeader
         title="Buscar Cliente"
         onClose={() => navigation.goBack()}
@@ -192,6 +261,9 @@ const ClientSearchScreen = ({ navigation, route }: ClientSearchScreenProps) => {
         keyExtractor={item => item.COD_PESSOA.toString()}
         contentContainerStyle={styles.listContainer}
         ListEmptyComponent={renderEmptyState}
+        ListFooterComponent={renderFooter}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.5}
       />
 
       {/* Botão Adicionar Cliente (aparece apenas no estado inicial) */}
@@ -206,6 +278,7 @@ const ClientSearchScreen = ({ navigation, route }: ClientSearchScreenProps) => {
           </TouchableOpacity>
         </View>
       )}
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
@@ -214,6 +287,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  keyboardView: {
+    flex: 1
   },
   searchContainer: {
     padding: 20,
@@ -280,6 +356,15 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     marginTop: 12,
+  },
+  loadingFooter: {
+    paddingVertical: 20,
+    alignItems: 'center',
+    gap: 8,
+  },
+  loadingFooterText: {
+    fontSize: 12,
+    color: '#666',
   },
   linkButton: {
     paddingVertical: 8,
