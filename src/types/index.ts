@@ -25,8 +25,13 @@ export type {
     OrderCreateResult
 } from './order.types';
 
+// Tipos de listagem de ordens
+export type {
+    Order,
+    OrderClient, OrderListResult, OrderVehicle
+} from './order-list.types';
+
 // Tipos de navegação
 export type {
     RootStackParamList
 } from './navigation.types';
-
