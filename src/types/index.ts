@@ -3,8 +3,9 @@
 
 // Tipos de veículos
 export type {
-    Vehicle,
-    VehicleData,
+    Vehicle, VehicleCreate,
+    VehicleCreateResponse,
+    VehicleCreateResult, VehicleData,
     VehicleQueryResult
 } from './vehicle.types';
 
@@ -15,6 +16,14 @@ export type {
     ClientCreateResponse,
     ClientCreateResult, PersonType
 } from './client.types';
+
+
+// Tipos de ordem de serviço
+export type {
+    OrderCreate,
+    OrderCreateResponse,
+    OrderCreateResult
+} from './order.types';
 
 // Tipos de navegação
 export type {

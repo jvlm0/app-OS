@@ -5,6 +5,7 @@
  * Interface principal do veículo usado no formulário e cadastro
  */
 export interface Vehicle {
+  cod_veiculo?: number; // ID do veículo (vem do cadastro)
   plate: string;
   modelo: string;
   ano: string;
