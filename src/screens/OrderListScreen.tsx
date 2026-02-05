@@ -72,14 +72,15 @@ const OrderListScreen = ({ navigation }: OrderListScreenProps) => {
     return plate;
   };
 
+  const handleOrderPress = (order: Order) => {
+    navigation.navigate('ServiceForm', { order });
+  };
+
   const renderOrderCard = ({ item }: { item: Order }) => (
     <TouchableOpacity
       style={styles.card}
       activeOpacity={0.7}
-      onPress={() => {
-        // Futuramente pode navegar para detalhes da ordem
-        console.log('Ordem selecionada:', item.cod_ordem);
-      }}
+      onPress={() => handleOrderPress(item)}
     >
       <View style={styles.cardHeader}>
         <View style={styles.orderInfo}>

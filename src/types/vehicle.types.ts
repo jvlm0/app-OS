@@ -2,7 +2,7 @@
 // Tipos e interfaces relacionados a veículos
 
 /**
- * Interface principal do veículo usado no formulário e cadastro
+ * Interface principal do veículo (unificada - usada em todo o app)
  */
 export interface Vehicle {
   cod_veiculo?: number; // ID do veículo (vem do cadastro)

@@ -1,3 +1,4 @@
+import type { Order } from './order-list.types';
 import type { Vehicle } from './vehicle.types';
 
 export interface Client {
@@ -10,7 +11,9 @@ export interface Client {
 export type RootStackParamList = {
   OrderList: undefined;
 
-  ServiceForm: undefined;
+  ServiceForm: {
+    order?: Order;
+  } | undefined;
 
   ClientSearch: {
     onSelectClient: (client: Client) => void;
