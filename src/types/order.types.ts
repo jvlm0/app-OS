@@ -27,3 +27,30 @@ export interface OrderCreateResult {
   data?: OrderCreateResponse;
   error?: string;
 }
+
+/**
+ * Dados para atualizar uma ordem de serviço na API
+ */
+export interface OrderUpdate {
+  cod_ordem: number;
+  titulo: string;
+  descricao: string;
+  cod_veiculo: number;
+  cod_cliente: number;
+}
+
+/**
+ * Resposta da API ao atualizar ordem de serviço
+ */
+export interface OrderUpdateResponse {
+  status: string;
+}
+
+/**
+ * Resultado da atualização de ordem de serviço
+ */
+export interface OrderUpdateResult {
+  success: boolean;
+  data?: OrderUpdateResponse;
+  error?: string;
+}

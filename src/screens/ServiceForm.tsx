@@ -15,7 +15,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { createOrder } from '../services/orderService';
+import { createOrder, updateOrder } from '../services/orderService';
 import type { Client } from '../types/client.types';
 import type { RootStackParamList } from '../types/navigation.types';
 import type { Vehicle } from '../types/vehicle.types';
@@ -64,7 +64,7 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
         plate: order.veiculo.placa,
         modelo: order.veiculo.modelo,
         ano: order.veiculo.ano,
-        mileage:  (order.veiculo.kmatual!=null) ? order.veiculo.kmatual.toString(): "",
+        mileage: (order.veiculo.kmatual != null) ? order.veiculo.kmatual.toString() : "",
       });
     }
   }, [order]);
@@ -165,58 +165,85 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
     setSaving(true);
 
     try {
-      if (isEditMode) {
-        // Modo de edição - mostrar mensagem informando que não há endpoint de atualização
+      if (isEditMode && order) {
+        // Modo de edição - atualizar ordem existente
+        const orderData = {
+          cod_ordem: order.cod_ordem,
+          titulo: title.trim(),
+          descricao: description.trim() || '',
+          cod_veiculo: selectedVehicle.cod_veiculo,
+          cod_cliente: selectedClient.COD_PESSOA,
+        };
+
+        const result = await updateOrder(orderData);
+
+        if (!result.success) {
+          Alert.alert(
+            'Erro ao atualizar',
+            result.error || 'Não foi possível atualizar a ordem de serviço. Tente novamente.',
+            [{ text: 'OK' }]
+          );
+          setSaving(false);
+          return;
+        }
+
+        // Sucesso na atualização!
         Alert.alert(
-          'Informação',
-          'A edição de ordens de serviço ainda não está implementada no backend.',
-          [{ text: 'OK' }]
-        );
-        setSaving(false);
-        return;
-      }
-
-      // Preparar dados para envio (modo criação)
-      const orderData = {
-        titulo: title.trim(),
-        descricao: description.trim() || '',
-        cod_veiculo: selectedVehicle.cod_veiculo,
-        cod_cliente: selectedClient.COD_PESSOA,
-      };
-
-      const result = await createOrder(orderData);
-
-      if (!result.success) {
-        Alert.alert(
-          'Erro ao salvar',
-          result.error || 'Não foi possível salvar a ordem de serviço. Tente novamente.',
-          [{ text: 'OK' }]
-        );
-        setSaving(false);
-        return;
-      }
-
-      // Sucesso!
-      Alert.alert(
-        'Sucesso!',
-        `Ordem de serviço #${result.data!.cod_ordem} criada com sucesso!`,
-        [
-          {
-            text: 'OK',
-            onPress: () => {
-              // Limpar formulário
-              setTitle('');
-              setSelectedClient(null);
-              setSelectedVehicle(null);
-              setDescription('');
-              setServices([]);
-              
-              // Voltar para a lista
-              navigation.goBack();
+          'Sucesso!',
+          `Ordem de serviço #${order.cod_ordem} atualizada com sucesso!`,
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                // Voltar para a lista
+                navigation.goBack();
+              },
             },
-          },
-        ]
-      );
+          ]
+        );
+      } else {
+        // Modo de criação - criar nova ordem
+        const orderData = {
+          titulo: title.trim(),
+          descricao: description.trim() || '',
+          cod_veiculo: selectedVehicle.cod_veiculo,
+          cod_cliente: selectedClient.COD_PESSOA,
+        };
+
+        const result = await createOrder(orderData);
+
+        if (!result.success) {
+          Alert.alert(
+            'Erro ao salvar',
+            result.error || 'Não foi possível salvar a ordem de serviço. Tente novamente.',
+            [{ text: 'OK' }]
+          );
+          setSaving(false);
+          return;
+        }
+
+        // Sucesso na criação!
+        Alert.alert(
+          'Sucesso!',
+          `Ordem de serviço #${result.data!.cod_ordem} criada com sucesso!`,
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                // Limpar formulário
+                setTitle('');
+                setSelectedClient(null);
+                setSelectedVehicle(null);
+                setDescription('');
+                setServices([]);
+                
+                // Voltar para a lista
+                navigation.goBack();
+              },
+            },
+          ]
+        );
+      }
     } catch (error) {
       console.error('Erro ao salvar ordem:', error);
       Alert.alert(
@@ -240,7 +267,7 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
         {isEditMode && (
           <View style={styles.editModeBanner}>
             <Text style={styles.editModeText}>
-              Visualizando OS #{order?.cod_ordem}
+              Editando OS #{order?.cod_ordem}
             </Text>
           </View>
         )}
@@ -251,12 +278,11 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
             Título <Text style={styles.required}>*</Text>
           </Text>
           <TextInput
-            style={[styles.input, isEditMode && styles.inputDisabled]}
+            style={styles.input}
             placeholder="Ex.: Manutenção de ar condicionado"
             placeholderTextColor="#999"
             value={title}
             onChangeText={setTitle}
-            editable={!isEditMode}
           />
         </View>
 
@@ -267,9 +293,8 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
           </Text>
           <View style={styles.clientContainer}>
             <TouchableOpacity
-              style={[styles.selectFieldButton, isEditMode && styles.selectFieldButtonDisabled]}
+              style={styles.selectFieldButton}
               onPress={handleClientSelect}
-              disabled={isEditMode}
             >
               <View style={styles.selectFieldContent}>
                 {selectedClient ? (
@@ -285,14 +310,12 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
               </View>
             </TouchableOpacity>
             
-            {!isEditMode && (
-              <TouchableOpacity
-                style={styles.addClientButton}
-                onPress={handleAddClient}
-              >
-                <UserPlus size={20} color="#fff" />
-              </TouchableOpacity>
-            )}
+            <TouchableOpacity
+              style={styles.addClientButton}
+              onPress={handleAddClient}
+            >
+              <UserPlus size={20} color="#fff" />
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -303,22 +326,21 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
           placeholder="Adicionar veículo"
           selectedValue={selectedVehicle?.plate}
           selectedSubtitle={selectedVehicle ? `${selectedVehicle.modelo} - ${selectedVehicle.ano} | ${selectedVehicle.mileage} km` : undefined}
-          helperText={!isEditMode ? "Tire uma foto da placa ou digite manualmente" : undefined}
-          onPress={isEditMode ? (() => void{}) : handleVehicleAdd}
+          helperText="Tire uma foto da placa ou digite manualmente"
+          onPress={handleVehicleAdd}
         />
 
         {/* Descrição */}
         <View style={styles.fieldContainer}>
           <Text style={styles.label}>Descrição (opcional)</Text>
           <TextInput
-            style={[styles.input, styles.textArea, isEditMode && styles.inputDisabled]}
+            style={[styles.input, styles.textArea]}
             placeholder="Detalhes adicionais, instruções especiais, etc."
             placeholderTextColor="#999"
             multiline
             numberOfLines={4}
             value={description}
             onChangeText={setDescription}
-            editable={!isEditMode}
           />
         </View>
 
@@ -342,14 +364,12 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
                 <View key={service.id} style={styles.serviceCard}>
                   <View style={styles.serviceHeader}>
                     <Text style={styles.serviceTitle}>SERVIÇO {index + 1}</Text>
-                    {!isEditMode && (
-                      <TouchableOpacity
-                        onPress={() => removeService(service.id)}
-                        style={styles.deleteButton}
-                      >
-                        <Trash2 size={20} color="#666" />
-                      </TouchableOpacity>
-                    )}
+                    <TouchableOpacity
+                      onPress={() => removeService(service.id)}
+                      style={styles.deleteButton}
+                    >
+                      <Trash2 size={20} color="#666" />
+                    </TouchableOpacity>
                   </View>
 
                   <View style={styles.serviceField}>
@@ -364,7 +384,6 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
                       onChangeText={value =>
                         updateService(service.id, 'description', value)
                       }
-                      editable={!isEditMode}
                     />
                   </View>
 
@@ -382,7 +401,6 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
                         onChangeText={value =>
                           updateService(service.id, 'quantity', value)
                         }
-                        editable={!isEditMode}
                       />
                     </View>
 
@@ -400,21 +418,18 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
                           const formatted = formatCurrency(value);
                           updateService(service.id, 'unitValue', formatted);
                         }}
-                        editable={!isEditMode}
                       />
                     </View>
                   </View>
                 </View>
               ))}
 
-              {!isEditMode && (
-                <TouchableOpacity
-                  style={styles.addServiceButton}
-                  onPress={addService}
-                >
-                  <Text style={styles.addServiceText}>+ Adicionar outro serviço</Text>
-                </TouchableOpacity>
-              )}
+              <TouchableOpacity
+                style={styles.addServiceButton}
+                onPress={addService}
+              >
+                <Text style={styles.addServiceText}>+ Adicionar outro serviço</Text>
+              </TouchableOpacity>
             </View>
           )}
         </View>
@@ -434,20 +449,20 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
           </TouchableOpacity>
         </View>
 
-        {/* Botão Salvar - apenas em modo de criação */}
-        {!isEditMode && (
-          <TouchableOpacity
-            style={[styles.continueButton, saving && styles.continueButtonDisabled]}
-            onPress={handleSave}
-            disabled={saving}
-          >
-            {saving ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              <Text style={styles.continueButtonText}>Salvar</Text>
-            )}
-          </TouchableOpacity>
-        )}
+        {/* Botão Salvar/Atualizar */}
+        <TouchableOpacity
+          style={[styles.continueButton, saving && styles.continueButtonDisabled]}
+          onPress={handleSave}
+          disabled={saving}
+        >
+          {saving ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
+            <Text style={styles.continueButtonText}>
+              {isEditMode ? 'Atualizar' : 'Salvar'}
+            </Text>
+          )}
+        </TouchableOpacity>
       </View>
     </ScrollView>
   
@@ -502,10 +517,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#e0e0e0',
   },
-  selectFieldButtonDisabled: {
-    backgroundColor: '#f9f9f9',
-    opacity: 0.7,
-  },
   selectFieldContent: {
     minHeight: 24,
     justifyContent: 'center',
@@ -539,10 +550,6 @@ const styles = StyleSheet.create({
     color: '#000',
     borderWidth: 1,
     borderColor: '#e0e0e0',
-  },
-  inputDisabled: {
-    backgroundColor: '#f9f9f9',
-    opacity: 0.7,
   },
   textArea: {
     height: 120,

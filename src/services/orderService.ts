@@ -1,7 +1,7 @@
 // services/orderService.ts
 // Serviço para gerenciar ordens de serviço
 
-import type { OrderCreate, OrderCreateResult } from '../types/order.types';
+import type { OrderCreate, OrderCreateResult, OrderUpdate, OrderUpdateResult } from '../types/order.types';
 
 const API_BASE_URL = 'http://100.67.122.72:8000';
 
@@ -36,6 +36,44 @@ export const createOrder = async (orderData: OrderCreate): Promise<OrderCreateRe
     };
   } catch (error) {
     console.error('Erro ao cadastrar ordem de serviço:', error);
+    return {
+      success: false,
+      error: 'Erro ao conectar com o servidor',
+    };
+  }
+};
+
+/**
+ * Atualiza uma ordem de serviço existente
+ * @param orderData - Dados da ordem de serviço para atualização
+ * @returns Resultado da atualização
+ */
+export const updateOrder = async (orderData: OrderUpdate): Promise<OrderUpdateResult> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/ordens`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(orderData),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      return {
+        success: false,
+        error: errorData.detail || `Erro ao atualizar ordem de serviço: ${response.status}`,
+      };
+    }
+
+    const data = await response.json();
+
+    return {
+      success: true,
+      data,
+    };
+  } catch (error) {
+    console.error('Erro ao atualizar ordem de serviço:', error);
     return {
       success: false,
       error: 'Erro ao conectar com o servidor',
