@@ -264,6 +264,7 @@ const ClientSearchScreen = ({ navigation, route }: ClientSearchScreenProps) => {
         ListFooterComponent={renderFooter}
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.5}
+        keyboardShouldPersistTaps="handled"
       />
 
       {/* Botão Adicionar Cliente (aparece apenas no estado inicial) */}

@@ -261,7 +261,7 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
               behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
               style={{flex:1}}
             >
-    <ScrollView style={styles.container} contentContainerStyle = {{paddingBottom: 50+insets.bottom}}>
+    <ScrollView style={styles.container} contentContainerStyle = {{paddingBottom: 50+insets.bottom}} keyboardShouldPersistTaps="handled">
       <View style={styles.formContainer}>
         {/* Indicador de modo de edição */}
         {isEditMode && (
