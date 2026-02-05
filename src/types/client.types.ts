@@ -7,7 +7,7 @@
 export type PersonType = 'PF' | 'PJ';
 
 /**
- * Interface do cliente
+ * Interface do cliente (unificada - usada em todo o app)
  */
 export interface Client {
   COD_PESSOA: number;

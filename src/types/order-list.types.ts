@@ -1,15 +1,7 @@
 // types/order-list.types.ts
 // Tipos e interfaces relacionados à listagem de ordens de serviço
 
-/**
- * Dados do cliente na listagem de ordens
- */
-export interface OrderClient {
-  COD_PESSOA: number;
-  nome: string;
-  telefone: string;
-  cpfcnpj: string;
-}
+import type { Client } from './client.types';
 
 /**
  * Dados do veículo na listagem de ordens
@@ -30,7 +22,7 @@ export interface Order {
   status: string;
   titulo: string;
   descricao: string;
-  cliente: OrderClient;
+  cliente: Client; // Usando o tipo unificado Client
   veiculo: OrderVehicle;
 }
 
