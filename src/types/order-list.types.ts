@@ -8,6 +8,7 @@ export interface OrderClient {
   COD_PESSOA: number;
   nome: string;
   telefone: string;
+  cpfcnpj: string;
 }
 
 /**
@@ -18,6 +19,7 @@ export interface OrderVehicle {
   modelo: string;
   placa: string;
   ano: string;
+  kmatual: number;
 }
 
 /**
