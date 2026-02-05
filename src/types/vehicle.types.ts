@@ -58,3 +58,29 @@ export interface VehicleCreateResult {
   data?: VehicleCreateResponse;
   error?: string;
 }
+
+/**
+ * Dados para atualizar um veículo na API
+ */
+export interface VehicleUpdate {
+  cod_veiculo: number;
+  modelo?: string;
+  ano?: string;
+  kmatual?: number;
+}
+
+/**
+ * Resposta da API ao atualizar veículo
+ */
+export interface VehicleUpdateResponse {
+  status: string;
+}
+
+/**
+ * Resultado da atualização de veículo
+ */
+export interface VehicleUpdateResult {
+  success: boolean;
+  data?: VehicleUpdateResponse;
+  error?: string;
+}
