@@ -19,14 +19,37 @@
         "NSCameraUsageDescription": "Este app precisa acessar a câmera para ler placas de veículos."
       }
     },
+    "androidStatusBar": {
+      "barStyle": "dark-content",
+      "backgroundColor": "#ffffff",
+      "translucent": false
+    },
+    "androidNavigationBar": {
+      "visible": "leanback",
+      "barStyle": "dark-content",
+      "backgroundColor": "#ffffff"
+    },
     "android": {
-      "permissions": ["CAMERA"],
+      "permissions": [
+        "CAMERA",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "CAMERA",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
+      "navigationBar": {
+        "visible": true,
+        "barStyle": "dark-content",
+        "backgroundColor": "#ffffff"
+      },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.anonymous.nortusmobile"
     },
     "web": {
       "bundler": "metro",
@@ -39,6 +62,17 @@
         "expo-camera",
         {
           "cameraPermission": "Permitir que o app use a câmera para ler placas de veículos."
+        }
+      ],
+      [
+        "expo-navigation-bar",
+        {
+          "backgroundColor": "#0f172a",
+          "barStyle": "light",
+          "borderColor": "#1f2937",
+          "visibility": "visible",
+          "behavior": "inset-swipe",
+          "position": "relative"
         }
       ]
     ],

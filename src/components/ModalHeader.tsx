@@ -2,10 +2,10 @@
 import { X } from 'lucide-react-native';
 import React from 'react';
 import {
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 interface ModalHeaderProps {
