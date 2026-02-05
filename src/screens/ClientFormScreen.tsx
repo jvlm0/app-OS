@@ -53,7 +53,7 @@ const ClientFormScreen = ({ navigation, route }: ClientFormScreenProps) => {
           onClose={() => navigation.goBack()}
         />
 
-        <ScrollView style={styles.scrollView}>
+        <ScrollView style={styles.scrollView} keyboardShouldPersistTaps="handled">
           <View style={styles.formContainer}>
             {/* Seletor de Tipo de Pessoa */}
             <FormField label="Tipo de Pessoa" required>

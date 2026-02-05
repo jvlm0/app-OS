@@ -59,7 +59,7 @@ const VehicleFormScreen = ({ navigation, route }: VehicleFormScreenProps) => {
           onClose={() => navigation.goBack()}
         />
 
-        <ScrollView style={styles.scrollView}>
+        <ScrollView style={styles.scrollView} keyboardShouldPersistTaps="handled">
           <View style={styles.formContainer}>
             {/* Campo Placa */}
             <FormField
