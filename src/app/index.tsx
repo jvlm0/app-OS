@@ -28,12 +28,13 @@ function Index() {
 
   const isFocuse = useIsFocused();
 
+
   useEffect(() => {
-  if (Platform.OS === 'android') {
-    NavigationBar.setStyle("light"); // fundo da barra
-    
-  }
-}, [isFocuse]);
+    if (Platform.OS === 'android') {
+      NavigationBar.setStyle("light");
+
+    }
+  }, [isFocuse]);
 
   return (
     <SafeAreaProvider>
@@ -52,7 +53,7 @@ function Index() {
           name="ServiceForm"
           component={ServiceForm}
           options={{
-           
+
             title: 'Nova Ordem de Serviço',
           }}
         />

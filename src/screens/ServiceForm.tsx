@@ -5,6 +5,8 @@ import React, { useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -185,10 +187,11 @@ const ServiceForm = ({ navigation }: ServiceFormProps) => {
   };
 
   return (
-    <ScrollView style={styles.container} 
-                contentContainerStyle={{
-                    paddingBottom: 20 + insets.bottom,
-                     }}>
+    <KeyboardAvoidingView
+              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+              style={{flex:1}}
+            >
+    <ScrollView style={styles.container} contentContainerStyle = {{paddingBottom: 50+insets.bottom}}>
       <View style={styles.formContainer}>
         {/* Título */}
         <View style={styles.fieldContainer}>
@@ -381,6 +384,8 @@ const ServiceForm = ({ navigation }: ServiceFormProps) => {
         </TouchableOpacity>
       </View>
     </ScrollView>
+  
+    </KeyboardAvoidingView>
   );
 };
 
@@ -388,6 +393,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  keyboardView: {
+    flex: 1,
   },
   formContainer: {
     padding: 20,
@@ -540,7 +548,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 18,
     alignItems: 'center',
-    marginTop: 32,
+    marginTop: 16,
   },
   continueButtonDisabled: {
     backgroundColor: '#666',

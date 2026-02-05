@@ -176,7 +176,7 @@ const OrderListScreen = ({ navigation }: OrderListScreenProps) => {
 
   return (
     
-    <View style={{flex: 1, backgroundColor: '#f5f5f5'}}>
+    <View style={{flex: 1, backgroundColor: '#f5f5f5', paddingBottom: insets.bottom}}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       <View style={[styles.header, { paddingTop: insets.top}]}>
         <Text style={styles.headerTitle}>Ordens de Serviço</Text>
