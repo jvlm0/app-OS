@@ -17,9 +17,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { isValidPlate } from '../services/ocrService';
-import { createVehicle, getVehicleByPlate } from '../services/Vehicleservice';
+import { createVehicle, getVehicleByPlate, updateVehicle } from '../services/Vehicleservice';
 import type { RootStackParamList } from '../types/navigation.types';
-import type { Vehicle } from '../types/vehicle.types';
+import type { Vehicle, VehicleData } from '../types/vehicle.types';
 
 type VehicleFormScreenProps = NativeStackScreenProps<RootStackParamList, 'VehicleForm'>;
 
@@ -34,6 +34,8 @@ const VehicleFormScreen = ({ navigation, route }: VehicleFormScreenProps) => {
   const [searching, setSearching] = useState(false);
   const [saving, setSaving] = useState(false);
   const [autoFilled, setAutoFilled] = useState(false);
+  const [foundVehicle, setFoundVehicle] = useState<VehicleData | null>(null);
+  const [isExistingVehicle, setIsExistingVehicle] = useState(false);
 
   useEffect(() => {
     if (initialPlate) {
@@ -71,6 +73,8 @@ const VehicleFormScreen = ({ navigation, route }: VehicleFormScreenProps) => {
     setPlate(formatted);
     setPlateError('');
     setAutoFilled(false);
+    setFoundVehicle(null);
+    setIsExistingVehicle(false);
   };
 
   const formatMileageInput = (text: string) => {
@@ -110,17 +114,49 @@ const VehicleFormScreen = ({ navigation, route }: VehicleFormScreenProps) => {
       const result = await getVehicleByPlate(searchPlate);
 
       if (result.success && result.data) {
+        // Armazena o veículo encontrado
+        setFoundVehicle(result.data);
+        setIsExistingVehicle(true);
+        
         // Preenche os campos com os dados encontrados
         setModelo(result.data.modelo);
         setAno(result.data.ano);
         setAutoFilled(true);
         
+        // Mostra opções: selecionar ou criar novo
         Alert.alert(
           'Veículo encontrado!',
-          `${result.data.modelo} - ${result.data.ano}\n\nOs campos foram preenchidos automaticamente.`,
-          [{ text: 'OK' }]
+          `${result.data.modelo} - ${result.data.ano}\n\nEste veículo já está cadastrado. Deseja selecioná-lo ou criar um novo cadastro?`,
+          [
+            {
+              text: 'Selecionar este',
+              onPress: () => {
+                // Mantém como seleção do veículo existente
+                setIsExistingVehicle(true);
+              },
+            },
+            {
+              text: 'Criar novo',
+              onPress: () => {
+                // Limpa os campos para criar novo
+                setFoundVehicle(null);
+                setIsExistingVehicle(false);
+                setModelo('');
+                setAno('');
+                setMileage('');
+                setAutoFilled(false);
+                Alert.alert(
+                  'Criar novo veículo',
+                  'Preencha os dados do novo veículo com esta placa.',
+                  [{ text: 'OK' }]
+                );
+              },
+            },
+          ]
         );
       } else {
+        setFoundVehicle(null);
+        setIsExistingVehicle(false);
         Alert.alert(
           'Veículo não encontrado',
           result.error || 'Este veículo não está cadastrado na base de dados. Você pode preencher os dados manualmente.',
@@ -152,6 +188,72 @@ const VehicleFormScreen = ({ navigation, route }: VehicleFormScreenProps) => {
       return;
     }
 
+    // Se for veículo existente, apenas atualiza a quilometragem se foi alterada
+    if (isExistingVehicle && foundVehicle) {
+      // Validar quilometragem se foi preenchida
+      if (mileage.trim()) {
+        const mileageNumber = parseInt(mileage.replace(/\D/g, ''), 10);
+        if (isNaN(mileageNumber) || mileageNumber < 0) {
+          Alert.alert('Atenção', 'Quilometragem inválida');
+          return;
+        }
+
+        // Atualiza apenas a quilometragem
+        setSaving(true);
+
+        try {
+          const result = await updateVehicle({
+            cod_veiculo: foundVehicle.cod_veiculo,
+            kmatual: mileageNumber,
+          });
+
+          if (!result.success) {
+            Alert.alert(
+              'Erro ao atualizar',
+              result.error || 'Não foi possível atualizar o veículo. Tente novamente.',
+              [{ text: 'OK' }]
+            );
+            setSaving(false);
+            return;
+          }
+
+          // Sucesso! Retorna o veículo selecionado
+          const vehicle: Vehicle = {
+            cod_veiculo: foundVehicle.cod_veiculo,
+            plate: plate,
+            modelo: foundVehicle.modelo,
+            ano: foundVehicle.ano,
+            mileage: mileage,
+          };
+
+          onVehicleAdd(vehicle);
+          navigation.goBack();
+        } catch (error) {
+          console.error('Erro ao atualizar veículo:', error);
+          Alert.alert(
+            'Erro',
+            'Ocorreu um erro ao atualizar o veículo. Tente novamente.',
+            [{ text: 'OK' }]
+          );
+          setSaving(false);
+        }
+      } else {
+        // Sem quilometragem, apenas retorna o veículo sem atualizar
+        const vehicle: Vehicle = {
+          cod_veiculo: foundVehicle.cod_veiculo,
+          plate: plate,
+          modelo: foundVehicle.modelo,
+          ano: foundVehicle.ano,
+          mileage: '0',
+        };
+
+        onVehicleAdd(vehicle);
+        navigation.goBack();
+      }
+      return;
+    }
+
+    // Criar novo veículo - validações completas
     // Validar modelo
     if (!modelo.trim()) {
       Alert.alert('Atenção', 'O modelo é obrigatório');
@@ -235,7 +337,7 @@ const VehicleFormScreen = ({ navigation, route }: VehicleFormScreenProps) => {
       >
         {/* Header */}
         <ModalHeader
-          title="Dados do Veículo"
+          title={isExistingVehicle ? 'Selecionar Veículo' : 'Dados do Veículo'}
           onClose={() => navigation.goBack()}
         />
         <ScrollView style={styles.scrollView}>
@@ -289,40 +391,56 @@ const VehicleFormScreen = ({ navigation, route }: VehicleFormScreenProps) => {
           {/* Campo Modelo */}
           <View style={styles.fieldContainer}>
             <Text style={styles.label}>
-              Modelo <Text style={styles.required}>*</Text>
+              Modelo {!isExistingVehicle && <Text style={styles.required}>*</Text>}
             </Text>
             <TextInput
-              style={styles.input}
+              style={[
+                styles.input,
+                isExistingVehicle && styles.inputDisabled,
+              ]}
               placeholder="Ex: KICKS, CIVIC, GOL"
               placeholderTextColor="#999"
               value={modelo}
               onChangeText={setModelo}
               autoCapitalize="characters"
-              editable={!searching && !saving}
+              editable={!searching && !saving && !isExistingVehicle}
             />
+            {isExistingVehicle && (
+              <Text style={styles.helperText}>
+                Campo não editável para veículo existente
+              </Text>
+            )}
           </View>
 
           {/* Campo Ano */}
           <View style={styles.fieldContainer}>
             <Text style={styles.label}>
-              Ano <Text style={styles.required}>*</Text>
+              Ano {!isExistingVehicle && <Text style={styles.required}>*</Text>}
             </Text>
             <TextInput
-              style={styles.input}
+              style={[
+                styles.input,
+                isExistingVehicle && styles.inputDisabled,
+              ]}
               placeholder="Ex: 2020"
               placeholderTextColor="#999"
               value={ano}
               onChangeText={setAno}
               keyboardType="numeric"
               maxLength={4}
-              editable={!searching && !saving}
+              editable={!searching && !saving && !isExistingVehicle}
             />
+            {isExistingVehicle && (
+              <Text style={styles.helperText}>
+                Campo não editável para veículo existente
+              </Text>
+            )}
           </View>
 
           {/* Campo Quilometragem */}
           <View style={styles.fieldContainer}>
             <Text style={styles.label}>
-              Quilometragem (km) <Text style={styles.required}>*</Text>
+              Quilometragem (km) {!isExistingVehicle && <Text style={styles.required}>*</Text>}
             </Text>
             <TextInput
               style={styles.input}
@@ -334,12 +452,14 @@ const VehicleFormScreen = ({ navigation, route }: VehicleFormScreenProps) => {
               editable={!searching && !saving}
             />
             <Text style={styles.helperText}>
-              Informe a quilometragem atual do veículo
+              {isExistingVehicle 
+                ? 'Opcional: Informe para atualizar a quilometragem atual'
+                : 'Informe a quilometragem atual do veículo'}
             </Text>
           </View>
 
           {/* Informação sobre a placa capturada */}
-          {initialPlate && (
+          {initialPlate && !isExistingVehicle && (
             <View style={styles.infoBox}>
               <Text style={styles.infoText}>
                 ✓ Placa detectada automaticamente
@@ -350,14 +470,26 @@ const VehicleFormScreen = ({ navigation, route }: VehicleFormScreenProps) => {
             </View>
           )}
 
-          {/* Informação sobre dados preenchidos automaticamente */}
-          {autoFilled && (
+          {/* Informação sobre veículo encontrado */}
+          {isExistingVehicle && foundVehicle && (
             <View style={[styles.infoBox, styles.successBox]}>
               <Text style={styles.infoText}>
-                ✓ Dados preenchidos automaticamente
+                ✓ Veículo encontrado na base de dados
               </Text>
               <Text style={styles.infoSubtext}>
-                Você pode editá-los se necessário
+                Modelo e ano não podem ser editados. Você pode atualizar apenas a quilometragem.
+              </Text>
+            </View>
+          )}
+
+          {/* Informação sobre dados preenchidos automaticamente */}
+          {autoFilled && !isExistingVehicle && (
+            <View style={[styles.infoBox, styles.warningBox]}>
+              <Text style={styles.infoText}>
+                ⚠ Criando novo cadastro
+              </Text>
+              <Text style={styles.infoSubtext}>
+                Você optou por criar um novo veículo com esta placa. Preencha todos os dados.
               </Text>
             </View>
           )}
@@ -374,7 +506,9 @@ const VehicleFormScreen = ({ navigation, route }: VehicleFormScreenProps) => {
             {saving ? (
               <ActivityIndicator size="small" color="#fff" />
             ) : (
-              <Text style={styles.saveButtonText}>Salvar Veículo</Text>
+              <Text style={styles.saveButtonText}>
+                {isExistingVehicle ? 'Selecionar Veículo' : 'Salvar Veículo'}
+              </Text>
             )}
           </TouchableOpacity>
         </View>
@@ -420,6 +554,10 @@ const styles = StyleSheet.create({
     color: '#000',
     borderWidth: 1,
     borderColor: '#e0e0e0',
+  },
+  inputDisabled: {
+    backgroundColor: '#e8e8e8',
+    color: '#666',
   },
   plateInputContainer: {
     flexDirection: 'row',
@@ -467,6 +605,10 @@ const styles = StyleSheet.create({
   successBox: {
     backgroundColor: '#e3f2fd',
     borderLeftColor: '#2196f3',
+  },
+  warningBox: {
+    backgroundColor: '#fff3e0',
+    borderLeftColor: '#ff9800',
   },
   infoText: {
     fontSize: 16,

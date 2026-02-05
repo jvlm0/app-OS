@@ -32,7 +32,7 @@ function Index() {
   useEffect(() => {
     if (Platform.OS === 'android') {
       NavigationBar.setStyle("light");
-
+      
     }
   }, [isFocuse]);
 

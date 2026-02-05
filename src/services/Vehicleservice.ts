@@ -1,7 +1,7 @@
 // services/vehicleService.ts
 // Serviço para consultar dados de veículos por placa
 
-import type { VehicleCreate, VehicleCreateResult, VehicleQueryResult } from '../types/vehicle.types';
+import type { VehicleCreate, VehicleCreateResult, VehicleQueryResult, VehicleUpdate, VehicleUpdateResult } from '../types/vehicle.types';
 
 const API_BASE_URL = 'http://100.67.122.72:8000';
 
@@ -82,6 +82,44 @@ export const createVehicle = async (vehicleData: VehicleCreate): Promise<Vehicle
     };
   } catch (error) {
     console.error('Erro ao cadastrar veículo:', error);
+    return {
+      success: false,
+      error: 'Erro ao conectar com o servidor',
+    };
+  }
+};
+
+/**
+ * Atualiza dados de um veículo existente
+ * @param vehicleData - Dados do veículo para atualização
+ * @returns Status da atualização
+ */
+export const updateVehicle = async (vehicleData: VehicleUpdate): Promise<VehicleUpdateResult> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/veiculos`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(vehicleData),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      return {
+        success: false,
+        error: errorData.detail || `Erro ao atualizar veículo: ${response.status}`,
+      };
+    }
+
+    const data = await response.json();
+
+    return {
+      success: true,
+      data,
+    };
+  } catch (error) {
+    console.error('Erro ao atualizar veículo:', error);
     return {
       success: false,
       error: 'Erro ao conectar com o servidor',
