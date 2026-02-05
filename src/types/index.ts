@@ -22,13 +22,17 @@ export type {
 export type {
     OrderCreate,
     OrderCreateResponse,
-    OrderCreateResult
+    OrderCreateResult,
+    OrderUpdate,
+    OrderUpdateResponse,
+    OrderUpdateResult
 } from './order.types';
 
 // Tipos de listagem de ordens
 export type {
     Order,
-    OrderClient, OrderListResult, OrderVehicle
+    OrderListResult,
+    OrderVehicle
 } from './order-list.types';
 
 // Tipos de navegação
