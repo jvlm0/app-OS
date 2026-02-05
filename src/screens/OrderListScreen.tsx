@@ -3,13 +3,14 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { FileText, Plus, RefreshCw } from 'lucide-react-native';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    FlatList,
-    RefreshControl,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  FlatList,
+  RefreshControl,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getOrders } from '../services/orderListService';
@@ -175,7 +176,8 @@ const OrderListScreen = ({ navigation }: OrderListScreenProps) => {
 
   return (
     
-    <View style={{flex: 1, backgroundColor: '#f5f5f5', paddingBottom: insets.bottom}}>
+    <View style={{flex: 1, backgroundColor: '#f5f5f5'}}>
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       <View style={[styles.header, { paddingTop: insets.top}]}>
         <Text style={styles.headerTitle}>Ordens de Serviço</Text>
       </View>
@@ -186,6 +188,7 @@ const OrderListScreen = ({ navigation }: OrderListScreenProps) => {
         keyExtractor={(item) => item.cod_ordem.toString()}
         contentContainerStyle={[
           styles.listContainer,
+          {paddingBottom: 20+insets.bottom},
           orders.length === 0 && styles.emptyListContainer,
         ]}
         ListEmptyComponent={renderEmptyState}
@@ -195,7 +198,7 @@ const OrderListScreen = ({ navigation }: OrderListScreenProps) => {
       />
 
       <TouchableOpacity
-        style={[styles.fab, { bottom: insets.bottom + 20 }]}
+        style={[styles.fab, { bottom: insets.bottom + 60 }]}
         onPress={() => navigation.navigate('ServiceForm')}
         activeOpacity={0.8}
       >

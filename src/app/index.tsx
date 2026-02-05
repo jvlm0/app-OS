@@ -9,12 +9,32 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 
+
 import ClientFormScreen from '@/screens/ClientFormScreen';
 import { RootStackParamList } from '@/types/navigation.types';
 
+import { useIsFocused } from '@react-navigation/native';
+import * as NavigationBar from 'expo-navigation-bar';
+import { useEffect } from 'react';
+import { Platform } from 'react-native';
+
+
+
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
+
+
 function Index() {
+
+  const isFocuse = useIsFocused();
+
+  useEffect(() => {
+  if (Platform.OS === 'android') {
+    NavigationBar.setStyle("light"); // fundo da barra
+    
+  }
+}, [isFocuse]);
+
   return (
     <SafeAreaProvider>
       <Stack.Navigator initialRouteName="OrderList">
@@ -32,6 +52,7 @@ function Index() {
           name="ServiceForm"
           component={ServiceForm}
           options={{
+           
             title: 'Nova Ordem de Serviço',
           }}
         />
