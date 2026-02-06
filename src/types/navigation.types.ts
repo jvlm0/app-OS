@@ -7,6 +7,12 @@ export interface Client {
   telefone: string;
 }
 
+// Eventos personalizados para comunicação entre telas
+export type NavigationEvents = {
+  clientSelected: { client: Client };
+  clientAdded: { client: Client };
+  vehicleAdded: { vehicle: Vehicle };
+};
 
 export type RootStackParamList = {
   OrderList: undefined;
@@ -15,22 +21,16 @@ export type RootStackParamList = {
     order?: Order;
   } | undefined;
 
-  ClientSearch: {
-    onSelectClient: (client: Client) => void;
-  };
+  ClientSearch: undefined;
 
   CameraScreen: {
     cod_cliente: number;
-    onVehicleAdd: (vehicle: Vehicle) => void;
   };
 
-  ClientForm: {
-    onClientAdd: (client: Client) => void;
-  };
+  ClientForm: undefined;
 
   VehicleForm: {
     plate?: string;
     cod_cliente: number;
-    onVehicleAdd: (vehicle: Vehicle) => void;
   };
 };

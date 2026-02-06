@@ -23,7 +23,7 @@ const CameraScreen = ({ navigation, route }: CameraScreenProps) => {
     const [processing, setProcessing] = useState(false);
     const cameraRef = useRef<any>(null);
 
-    const { cod_cliente, onVehicleAdd } = route.params;
+    const { cod_cliente } = route.params;
 
     if (!permission) {
         return <View style={styles.container} />;
@@ -94,7 +94,6 @@ const CameraScreen = ({ navigation, route }: CameraScreenProps) => {
                                 navigation.replace('VehicleForm', {
                                     plate: undefined,
                                     cod_cliente,
-                                    onVehicleAdd
                                 });
                             },
                         },
@@ -107,7 +106,6 @@ const CameraScreen = ({ navigation, route }: CameraScreenProps) => {
             navigation.replace('VehicleForm', {
                 plate,
                 cod_cliente,
-                onVehicleAdd
             });
             setProcessing(false);
         } catch (error) {
@@ -194,7 +192,6 @@ const CameraScreen = ({ navigation, route }: CameraScreenProps) => {
                                     navigation.replace('VehicleForm', {
                                         plate: undefined,
                                         cod_cliente,
-                                        onVehicleAdd,
                                     })
                                 }
                             >

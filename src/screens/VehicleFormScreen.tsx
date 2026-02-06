@@ -6,6 +6,7 @@ import { PlateInput } from '@/components/vehicle-form/PlateInput';
 import { VehicleInfoBox } from '@/components/vehicle-form/VehicleInfoBox';
 import { VehicleModelInput } from '@/components/vehicle-form/VehicleModelInput';
 import { VehicleYearInput } from '@/components/vehicle-form/VehicleYearInput';
+import { useFormData } from '@/contexts/FormDataContext';
 import { useVehicleForm } from '@/hooks/useVehicleForm';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React from 'react';
@@ -22,7 +23,10 @@ import type { RootStackParamList } from '../types/navigation.types';
 type VehicleFormScreenProps = NativeStackScreenProps<RootStackParamList, 'VehicleForm'>;
 
 const VehicleFormScreen = ({ navigation, route }: VehicleFormScreenProps) => {
-  const { plate: initialPlate, cod_cliente, onVehicleAdd } = route.params;
+  const { plate: initialPlate, cod_cliente } = route.params;
+  
+  // ✅ Usar context ao invés de callback
+  const { setSelectedVehicle } = useFormData();
 
   const {
     plate,
@@ -44,7 +48,9 @@ const VehicleFormScreen = ({ navigation, route }: VehicleFormScreenProps) => {
   } = useVehicleForm({
     initialPlate,
     cod_cliente,
-    onVehicleAdd,
+    onVehicleAdd: (vehicle) => {
+      setSelectedVehicle(vehicle); // ✅ Atualiza context
+    },
     onClose: () => navigation.goBack(),
   });
 
@@ -61,7 +67,6 @@ const VehicleFormScreen = ({ navigation, route }: VehicleFormScreenProps) => {
 
         <ScrollView style={styles.scrollView} keyboardShouldPersistTaps="handled">
           <View style={styles.formContainer}>
-            {/* Campo Placa */}
             <FormField
               label="Placa"
               required
@@ -79,7 +84,6 @@ const VehicleFormScreen = ({ navigation, route }: VehicleFormScreenProps) => {
               />
             </FormField>
 
-            {/* Campo Modelo */}
             <FormField
               label="Modelo"
               required={!isExistingVehicle}
@@ -97,7 +101,6 @@ const VehicleFormScreen = ({ navigation, route }: VehicleFormScreenProps) => {
               />
             </FormField>
 
-            {/* Campo Ano */}
             <FormField
               label="Ano"
               required={!isExistingVehicle}
@@ -115,7 +118,6 @@ const VehicleFormScreen = ({ navigation, route }: VehicleFormScreenProps) => {
               />
             </FormField>
 
-            {/* Campo Quilometragem */}
             <FormField
               label="Quilometragem (km)"
               required={!isExistingVehicle}
@@ -132,7 +134,6 @@ const VehicleFormScreen = ({ navigation, route }: VehicleFormScreenProps) => {
               />
             </FormField>
 
-            {/* Info Boxes */}
             {initialPlate && !isExistingVehicle && (
               <VehicleInfoBox
                 type="info"
@@ -171,19 +172,10 @@ const VehicleFormScreen = ({ navigation, route }: VehicleFormScreenProps) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  keyboardView: {
-    flex: 1,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  formContainer: {
-    padding: 20,
-  },
+  container: { flex: 1, backgroundColor: '#fff' },
+  keyboardView: { flex: 1 },
+  scrollView: { flex: 1 },
+  formContainer: { padding: 20 },
 });
 
 export default VehicleFormScreen;

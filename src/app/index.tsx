@@ -1,5 +1,6 @@
 // app/index.tsx
 
+import { FormDataProvider } from '@/contexts/FormDataContext';
 import CameraScreen from '@/screens/CameraScreen';
 import ClientSearchScreen from '@/screens/ClientSearchScreen';
 import OrderListScreen from '@/screens/OrderListScreen';
@@ -7,7 +8,6 @@ import ServiceForm from '@/screens/ServiceForm';
 import VehicleFormScreen from '@/screens/VehicleFormScreen';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-
 
 
 import ClientFormScreen from '@/screens/ClientFormScreen';
@@ -37,6 +37,7 @@ function Index() {
   }, [isFocuse]);
 
   return (
+    <FormDataProvider>
     <SafeAreaProvider>
       <Stack.Navigator initialRouteName="OrderList">
         {/* Tela principal - Lista de ordens */}
@@ -99,6 +100,7 @@ function Index() {
         />
       </Stack.Navigator>
     </SafeAreaProvider>
+    </FormDataProvider>
   );
 }
 

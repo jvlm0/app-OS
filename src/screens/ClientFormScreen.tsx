@@ -5,6 +5,7 @@ import { PersonTypeSelector } from '@/components/client-form/PersonTypesSelector
 import { PhoneInput } from '@/components/client-form/PhoneInput';
 import { SaveButton } from '@/components/client-form/SaveButton';
 import { FormField } from '@/components/form/FormField';
+import { useFormData } from '@/contexts/FormDataContext';
 import { useClientForm } from '@/hooks/useClientForm';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React from 'react';
@@ -20,9 +21,10 @@ import type { RootStackParamList } from '../types/navigation.types';
 
 type ClientFormScreenProps = NativeStackScreenProps<RootStackParamList, 'ClientForm'>;
 
-const ClientFormScreen = ({ navigation, route }: ClientFormScreenProps) => {
-  const { onClientAdd } = route.params;
-
+const ClientFormScreen = ({ navigation }: ClientFormScreenProps) => {
+  // ✅ Usar context ao invés de callback
+  const { setSelectedClient } = useFormData();
+  
   const {
     personType,
     name,
@@ -38,7 +40,9 @@ const ClientFormScreen = ({ navigation, route }: ClientFormScreenProps) => {
     handlePersonTypeChange,
     validateAndSave,
   } = useClientForm({
-    onClientAdd,
+    onClientAdd: (client) => {
+      setSelectedClient(client); // ✅ Atualiza context
+    },
     onClose: () => navigation.goBack(),
   });
 
@@ -55,7 +59,6 @@ const ClientFormScreen = ({ navigation, route }: ClientFormScreenProps) => {
 
         <ScrollView style={styles.scrollView} keyboardShouldPersistTaps="handled">
           <View style={styles.formContainer}>
-            {/* Seletor de Tipo de Pessoa */}
             <FormField label="Tipo de Pessoa" required>
               <PersonTypeSelector
                 value={personType}
@@ -64,7 +67,6 @@ const ClientFormScreen = ({ navigation, route }: ClientFormScreenProps) => {
               />
             </FormField>
 
-            {/* Campo Nome */}
             <FormField
               label={personType === 'PF' ? 'Nome Completo' : 'Razão Social'}
               required
@@ -79,7 +81,6 @@ const ClientFormScreen = ({ navigation, route }: ClientFormScreenProps) => {
               />
             </FormField>
 
-            {/* Campo Telefone */}
             <FormField
               label="Telefone"
               required
@@ -93,7 +94,6 @@ const ClientFormScreen = ({ navigation, route }: ClientFormScreenProps) => {
               />
             </FormField>
 
-            {/* Campo CPF/CNPJ */}
             <FormField
               label={personType === 'PF' ? 'CPF' : 'CNPJ'}
               required
@@ -114,7 +114,6 @@ const ClientFormScreen = ({ navigation, route }: ClientFormScreenProps) => {
           </View>
         </ScrollView>
 
-        {/* Botão Salvar */}
         <SaveButton onPress={validateAndSave} loading={saving} />
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -122,19 +121,10 @@ const ClientFormScreen = ({ navigation, route }: ClientFormScreenProps) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  keyboardView: {
-    flex: 1,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  formContainer: {
-    padding: 20,
-  },
+  container: { flex: 1, backgroundColor: '#fff' },
+  keyboardView: { flex: 1 },
+  scrollView: { flex: 1 },
+  formContainer: { padding: 20 },
 });
 
 export default ClientFormScreen;
