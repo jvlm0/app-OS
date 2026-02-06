@@ -1,5 +1,5 @@
-// screens/ClientSearchScreen.tsx
 import ModalHeader from '@/components/ModalHeader';
+import { useFormData } from '@/contexts/FormDataContext';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Plus, Search, UserPlus } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
@@ -30,9 +30,10 @@ interface PaginatedResponse {
   data: Client[];
 }
 
-const ClientSearchScreen = ({ navigation, route }: ClientSearchScreenProps) => {
-  const { onSelectClient } = route.params;
-
+const ClientSearchScreen = ({ navigation }: ClientSearchScreenProps) => {
+  // ✅ Usar context ao invés de callback
+  const { setSelectedClient } = useFormData();
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -41,7 +42,6 @@ const ClientSearchScreen = ({ navigation, route }: ClientSearchScreenProps) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  // Debounce para não fazer requisição a cada letra digitada
   useEffect(() => {
     if (!searchQuery.trim()) {
       setClients([]);
@@ -52,11 +52,10 @@ const ClientSearchScreen = ({ navigation, route }: ClientSearchScreenProps) => {
     }
 
     const timer = setTimeout(() => {
-      // Reseta a paginação quando a busca muda
       setCurrentPage(1);
       setClients([]);
       searchClients(searchQuery, 1);
-    }, 500); // Aguarda 500ms após parar de digitar
+    }, 500);
 
     return () => clearTimeout(timer);
   }, [searchQuery]);
@@ -64,7 +63,6 @@ const ClientSearchScreen = ({ navigation, route }: ClientSearchScreenProps) => {
   const searchClients = async (query: string, page: number = 1) => {
     if (!query.trim()) return;
 
-    // Define o estado de loading apropriado
     if (page === 1) {
       setLoading(true);
     } else {
@@ -94,18 +92,14 @@ const ClientSearchScreen = ({ navigation, route }: ClientSearchScreenProps) => {
 
       const data: PaginatedResponse = await response.json();
       
-      // Atualiza o total de páginas
       setTotalPages(data.total_pages);
       
-      // Se for a primeira página, substitui os clientes
-      // Se for uma página subsequente, adiciona aos existentes
       if (page === 1) {
         setClients(data.data);
       } else {
         setClients(prevClients => [...prevClients, ...data.data]);
       }
       
-      // Atualiza a página atual
       setCurrentPage(page);
       
     } catch (error) {
@@ -124,28 +118,19 @@ const ClientSearchScreen = ({ navigation, route }: ClientSearchScreenProps) => {
   };
 
   const handleSelectClient = (client: Client) => {
-    onSelectClient(client);
-    navigation.goBack();
+    setSelectedClient(client); // ✅ Atualiza context
+    navigation.goBack(); // ✅ ServiceForm re-renderiza automaticamente
   };
 
   const handleAddClient = () => {
-    navigation.navigate('ClientForm', {
-      onClientAdd: (client: Client) => {
-        // Adiciona o novo cliente à lista
-        setClients([client, ...clients]);
-        // Seleciona automaticamente
-        onSelectClient(client);
-      },
-    });
+    navigation.navigate('ClientForm');
   };
 
   const handleLoadMore = () => {
-    // Verifica se já está carregando ou se já chegou na última página
     if (loadingMore || loading || currentPage >= totalPages) {
       return;
     }
     
-    // Carrega a próxima página
     const nextPage = currentPage + 1;
     searchClients(searchQuery, nextPage);
   };
@@ -193,7 +178,6 @@ const ClientSearchScreen = ({ navigation, route }: ClientSearchScreenProps) => {
     }
 
     if (searchQuery.trim() && hasSearched) {
-      // Nenhum resultado encontrado
       return (
         <View style={styles.emptyContainer}>
           <UserPlus size={64} color="#ccc" />
@@ -211,7 +195,6 @@ const ClientSearchScreen = ({ navigation, route }: ClientSearchScreenProps) => {
       );
     }
 
-    // Estado inicial - sem busca
     return (
       <View style={styles.emptyContainer}>
         <Search size={64} color="#ccc" />
@@ -223,178 +206,83 @@ const ClientSearchScreen = ({ navigation, route }: ClientSearchScreenProps) => {
     );
   };
 
-  // Não mostra o botão de adicionar quando está digitando
   const showAddButton = !searchQuery.trim() && clients.length === 0 && !hasSearched;
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
-      
       <KeyboardAvoidingView
-              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-              style={styles.keyboardView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.keyboardView}
+      >
+        <ModalHeader
+          title="Buscar Cliente"
+          onClose={() => navigation.goBack()}
+        />
+
+        <View style={styles.searchContainer}>
+          <View style={styles.searchInputContainer}>
+            <Search size={20} color="#666" />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Buscar por nome ou telefone"
+              placeholderTextColor="#999"
+              value={searchQuery}
+              onChangeText={handleSearch}
+              autoFocus
+            />
+          </View>
+        </View>
+
+        <FlatList
+          data={clients}
+          renderItem={renderClientItem}
+          keyExtractor={item => item.COD_PESSOA.toString()}
+          contentContainerStyle={styles.listContainer}
+          ListEmptyComponent={renderEmptyState}
+          ListFooterComponent={renderFooter}
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.5}
+          keyboardShouldPersistTaps="handled"
+        />
+
+        {showAddButton && (
+          <View style={styles.footer}>
+            <TouchableOpacity
+              style={styles.addButton}
+              onPress={handleAddClient}
             >
-      <ModalHeader
-        title="Buscar Cliente"
-        onClose={() => navigation.goBack()}
-      />
-
-      {/* Search Bar */}
-      <View style={styles.searchContainer}>
-        <View style={styles.searchInputContainer}>
-          <Search size={20} color="#666" />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Buscar por nome ou telefone"
-            placeholderTextColor="#999"
-            value={searchQuery}
-            onChangeText={handleSearch}
-            autoFocus
-          />
-        </View>
-      </View>
-
-      {/* Lista de Clientes */}
-      <FlatList
-        data={clients}
-        renderItem={renderClientItem}
-        keyExtractor={item => item.COD_PESSOA.toString()}
-        contentContainerStyle={styles.listContainer}
-        ListEmptyComponent={renderEmptyState}
-        ListFooterComponent={renderFooter}
-        onEndReached={handleLoadMore}
-        onEndReachedThreshold={0.5}
-        keyboardShouldPersistTaps="handled"
-      />
-
-      {/* Botão Adicionar Cliente (aparece apenas no estado inicial) */}
-      {showAddButton && (
-        <View style={styles.footer}>
-          <TouchableOpacity
-            style={styles.addButton}
-            onPress={handleAddClient}
-          >
-            <Plus size={20} color="#fff" />
-            <Text style={styles.addButtonText}>Adicionar Cliente</Text>
-          </TouchableOpacity>
-        </View>
-      )}
+              <Plus size={20} color="#fff" />
+              <Text style={styles.addButtonText}>Adicionar Cliente</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  keyboardView: {
-    flex: 1
-  },
-  searchContainer: {
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-  },
-  searchInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f5f5f5',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    gap: 12,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 16,
-    color: '#000',
-    paddingVertical: 12,
-  },
-  listContainer: {
-    flexGrow: 1,
-  },
-  clientItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  clientInfo: {
-    flex: 1,
-  },
-  clientName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#000',
-    marginBottom: 4,
-  },
-  clientPhone: {
-    fontSize: 14,
-    color: '#666',
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 40,
-  },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  emptyText: {
-    fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
-    marginBottom: 24,
-  },
-  loadingText: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 12,
-  },
-  loadingFooter: {
-    paddingVertical: 20,
-    alignItems: 'center',
-    gap: 8,
-  },
-  loadingFooterText: {
-    fontSize: 12,
-    color: '#666',
-  },
-  linkButton: {
-    paddingVertical: 8,
-  },
-  linkButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#000',
-    textDecorationLine: 'underline',
-  },
-  footer: {
-    padding: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
-  },
-  addButton: {
-    backgroundColor: '#000',
-    borderRadius: 8,
-    padding: 18,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  addButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#fff',
-  },
+  container: { flex: 1, backgroundColor: '#fff' },
+  keyboardView: { flex: 1 },
+  searchContainer: { padding: 20, borderBottomWidth: 1, borderBottomColor: '#e0e0e0' },
+  searchInputContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f5f5f5', borderRadius: 8, paddingHorizontal: 16, gap: 12 },
+  searchInput: { flex: 1, fontSize: 16, color: '#000', paddingVertical: 12 },
+  listContainer: { flexGrow: 1 },
+  clientItem: { flexDirection: 'row', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' },
+  clientInfo: { flex: 1 },
+  clientName: { fontSize: 16, fontWeight: '600', color: '#000', marginBottom: 4 },
+  clientPhone: { fontSize: 14, color: '#666' },
+  emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40 },
+  emptyTitle: { fontSize: 18, fontWeight: '600', color: '#333', marginTop: 16, marginBottom: 8 },
+  emptyText: { fontSize: 14, color: '#666', textAlign: 'center', marginBottom: 24 },
+  loadingText: { fontSize: 14, color: '#666', marginTop: 12 },
+  loadingFooter: { paddingVertical: 20, alignItems: 'center', gap: 8 },
+  loadingFooterText: { fontSize: 12, color: '#666' },
+  linkButton: { paddingVertical: 8 },
+  linkButtonText: { fontSize: 16, fontWeight: '600', color: '#000', textDecorationLine: 'underline' },
+  footer: { padding: 20, borderTopWidth: 1, borderTopColor: '#e0e0e0' },
+  addButton: { backgroundColor: '#000', borderRadius: 8, padding: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  addButtonText: { fontSize: 16, fontWeight: '600', color: '#fff' },
 });
 
 export default ClientSearchScreen;
