@@ -31,10 +31,10 @@ type ServiceFormProps = NativeStackScreenProps<RootStackParamList, 'ServiceForm'
 const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
   const insets = useSafeAreaInsets();
   const { order } = route.params || {};
-
+  
   // ✅ Usar context ao invés de callbacks
-  const { selectedClient, selectedVehicle, clearFormData } = useFormData();
-
+  const { selectedClient, selectedVehicle, setSelectedClient, setSelectedVehicle, clearFormData } = useFormData();
+  
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [servicesExpanded, setServicesExpanded] = useState(false);
@@ -43,29 +43,53 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
   const [saving, setSaving] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
 
-  // Limpar dados ao montar/desmontar
+  // ✅ CORREÇÃO: Limpar context ao montar a tela (antes de carregar os dados)
   useEffect(() => {
-    return () => {
-      // Limpar ao sair da tela (opcional)
-      // clearFormData();
-    };
-  }, []);
-
-  // Preencher campos quando uma ordem é passada para edição
-  useEffect(() => {
+    // Limpar dados antigos primeiro
+    clearFormData();
+    
+    // Se for edição, carregar dados da ordem
     if (order) {
       setIsEditMode(true);
       setTitle(order.titulo);
       setDescription(order.descricao || '');
+      
+      // Atualizar cliente no context
+      setSelectedClient({
+        COD_PESSOA: order.cliente.COD_PESSOA,
+        nome: order.cliente.nome,
+        telefone: order.cliente.telefone,
+        cpfcnpj: order.cliente.cpfcnpj,
+      });
+      
+      // Atualizar veículo no context
+      setSelectedVehicle({
+        cod_veiculo: order.veiculo.cod_veiculo,
+        plate: order.veiculo.placa,
+        modelo: order.veiculo.modelo,
+        ano: order.veiculo.ano,
+        mileage: (order.veiculo.kmatual != null) ? order.veiculo.kmatual.toString() : "",
+      });
+    } else {
+      // Se for criação, garantir que está limpo
+      setIsEditMode(false);
+      setTitle('');
+      setDescription('');
+      setServices([]);
     }
-  }, [order]);
+    
+    // Limpar ao desmontar
+    return () => {
+      clearFormData();
+    };
+  }, [order]); // Dependência: order
 
   const handleClientSelect = () => {
-    navigation.navigate('ClientSearch'); // ✅ Sem callback
+    navigation.navigate('ClientSearch');
   };
 
   const handleAddClient = () => {
-    navigation.navigate('ClientForm'); // ✅ Sem callback
+    navigation.navigate('ClientForm');
   };
 
   const handleVehicleAdd = () => {
@@ -80,7 +104,7 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
 
     navigation.navigate('CameraScreen', {
       cod_cliente: selectedClient.COD_PESSOA,
-    }); // ✅ Sem callback
+    });
   };
 
   const addService = () => {
@@ -226,9 +250,9 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={{ flex: 1 }}
+      style={{flex:1}}
     >
-      <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 50 + insets.bottom }} keyboardShouldPersistTaps="handled">
+      <ScrollView style={styles.container} contentContainerStyle = {{paddingBottom: 50+insets.bottom}} keyboardShouldPersistTaps="handled">
         <View style={styles.formContainer}>
           {isEditMode && (
             <View style={styles.editModeBanner}>
@@ -273,7 +297,7 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
                   )}
                 </View>
               </TouchableOpacity>
-
+              
               <TouchableOpacity
                 style={styles.addClientButton}
                 onPress={handleAddClient}
