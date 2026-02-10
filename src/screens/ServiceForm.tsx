@@ -1,3 +1,4 @@
+import ModalHeader from '@/components/ModalHeader';
 import SelectField from '@/components/SelectField';
 import { useFormData } from '@/contexts/FormDataContext';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -252,6 +253,11 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={{flex:1}}
     >
+      <ModalHeader
+          title="Novo Serviço"
+          onClose={() => navigation.goBack()}
+          insetsTop={insets.top}
+        />
       <ScrollView style={styles.container} contentContainerStyle = {{paddingBottom: 50+insets.bottom}} keyboardShouldPersistTaps="handled">
         <View style={styles.formContainer}>
           {isEditMode && (
@@ -455,6 +461,19 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
   formContainer: { padding: 20 },
+  header: {
+    backgroundColor: '#fff',
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+    alignItems:'center'
+  },
+  headerTitle: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#000',
+  },
   editModeBanner: { backgroundColor: '#2196F3', padding: 12, borderRadius: 8, marginBottom: 20 },
   editModeText: { color: '#fff', fontSize: 14, fontWeight: '600', textAlign: 'center' },
   fieldContainer: { marginBottom: 24 },

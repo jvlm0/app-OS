@@ -12,11 +12,15 @@ interface ModalHeaderProps {
   title: string;
   onClose: () => void;
   rightElement?: React.ReactNode;
+  insetsTop?: number
 }
 
-const ModalHeader = ({ title, onClose, rightElement }: ModalHeaderProps) => {
+const ModalHeader = ({ title, onClose, rightElement, insetsTop }: ModalHeaderProps) => {
+  
+  const insets = (insetsTop) ? insetsTop : 0
+  
   return (
-    <View style={styles.header}>
+    <View style={[styles.header, {paddingTop: insets}]}>
       <TouchableOpacity
         style={styles.backButton}
         onPress={onClose}
