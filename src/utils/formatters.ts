@@ -1,5 +1,6 @@
 export const formatPhone = (text: string): string => {
   // Remove tudo que não é número
+  if (!text) return "";
   const numbers = text.replace(/\D/g, '');
   
   // Limita a 11 dígitos

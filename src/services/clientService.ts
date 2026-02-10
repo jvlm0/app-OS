@@ -1,7 +1,7 @@
 // services/clientService.ts
 // Serviço para gerenciar clientes
 
-import type { ClientCreate, ClientCreateResult } from '../types/client.types';
+import type { Client, ClientCreate, ClientCreateResult } from '../types/client.types';
 import { getAccessToken } from './authService';
 
 const API_BASE_URL = 'http://100.67.122.72:8000';
@@ -27,6 +27,7 @@ export const createClient = async (clientData: ClientCreate): Promise<ClientCrea
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify(clientData),
     });
@@ -53,3 +54,51 @@ export const createClient = async (clientData: ClientCreate): Promise<ClientCrea
     };
   }
 };
+
+
+export interface PaginatedResponse {
+  page: number;
+  page_size: number;
+  total_pages: number;
+  data: Client[];
+}
+
+export interface FetchClientsParams {
+  query: string;
+  page: number;
+  pageSize?: number;
+}
+
+export async function fetchClients({
+  query,
+  page,
+  pageSize = 20,
+}: FetchClientsParams): Promise<PaginatedResponse> {
+
+  const token = await getAccessToken();
+    
+  if (!token) {
+    return {
+      page: 0,
+      page_size: 0,
+      total_pages: 0,
+      data: []
+    };
+    }
+
+  const url = `${API_BASE_URL}/clientes?q=${encodeURIComponent(query)}&page=${page}&page_size=${pageSize}`;
+
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json',
+               'Authorization': `Bearer ${token}`,
+     },
+    
+  });
+
+  if (!response.ok) {
+    throw new Error(`Erro ao buscar clientes: ${response.status}`);
+  }
+
+  return response.json();
+}
