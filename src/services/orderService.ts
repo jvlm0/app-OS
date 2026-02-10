@@ -2,6 +2,7 @@
 // Serviço para gerenciar ordens de serviço
 
 import type { OrderCreate, OrderCreateResult, OrderUpdate, OrderUpdateResult } from '../types/order.types';
+import { getAccessToken } from './authService';
 
 const API_BASE_URL = 'http://100.67.122.72:8000';
 
@@ -12,10 +13,21 @@ const API_BASE_URL = 'http://100.67.122.72:8000';
  */
 export const createOrder = async (orderData: OrderCreate): Promise<OrderCreateResult> => {
   try {
+
+    const token = await getAccessToken();
+    
+    if (!token) {
+      return {
+        success: false,
+        error: 'Não autenticado',
+      };
+    }
+
     const response = await fetch(`${API_BASE_URL}/ordens`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify(orderData),
     });

@@ -2,6 +2,7 @@
 // Serviço para consultar dados de veículos por placa
 
 import type { VehicleCreate, VehicleCreateResult, VehicleQueryResult, VehicleUpdate, VehicleUpdateResult } from '../types/vehicle.types';
+import { getAccessToken } from './authService';
 
 const API_BASE_URL = 'http://100.67.122.72:8000';
 
@@ -12,6 +13,17 @@ const API_BASE_URL = 'http://100.67.122.72:8000';
  */
 export const getVehicleByPlate = async (plate: string): Promise<VehicleQueryResult> => {
   try {
+
+    const token = await getAccessToken();
+        
+    if (!token) {
+      return {
+        success: false,
+        error: 'Não autenticado',
+      };
+    }
+
+
     // Remove caracteres especiais da placa para enviar na URL
     const cleanPlate = plate.replace(/[^A-Z0-9]/gi, '').toUpperCase();
 
@@ -19,6 +31,7 @@ export const getVehicleByPlate = async (plate: string): Promise<VehicleQueryResu
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
       },
     });
 
@@ -58,10 +71,21 @@ export const getVehicleByPlate = async (plate: string): Promise<VehicleQueryResu
  */
 export const createVehicle = async (vehicleData: VehicleCreate): Promise<VehicleCreateResult> => {
   try {
+
+    const token = await getAccessToken();
+    
+    if (!token) {
+      return {
+        success: false,
+        error: 'Não autenticado',
+      };
+    }
+
     const response = await fetch(`${API_BASE_URL}/veiculos`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify(vehicleData),
     });
@@ -96,10 +120,21 @@ export const createVehicle = async (vehicleData: VehicleCreate): Promise<Vehicle
  */
 export const updateVehicle = async (vehicleData: VehicleUpdate): Promise<VehicleUpdateResult> => {
   try {
+    
+    const token = await getAccessToken();
+    
+    if (!token) {
+      return {
+        success: false,
+        error: 'Não autenticado',
+      };
+    }
+    
     const response = await fetch(`${API_BASE_URL}/veiculos`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify(vehicleData),
     });
