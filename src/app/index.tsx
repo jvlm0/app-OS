@@ -1,106 +1,120 @@
 // app/index.tsx
+// Versão adaptada mantendo sua estrutura original com autenticação
 
+import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { FormDataProvider } from '@/contexts/FormDataContext';
 import CameraScreen from '@/screens/CameraScreen';
+import ClientFormScreen from '@/screens/ClientFormScreen';
 import ClientSearchScreen from '@/screens/ClientSearchScreen';
+import LoadingScreen from '@/screens/LoadingScreen';
+import LoginScreen from '@/screens/LoginScreen';
 import OrderListScreen from '@/screens/OrderListScreen';
 import ServiceForm from '@/screens/ServiceForm';
 import VehicleFormScreen from '@/screens/VehicleFormScreen';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-
-
-import ClientFormScreen from '@/screens/ClientFormScreen';
-import { RootStackParamList } from '@/types/navigation.types';
-
+import type { RootStackParamList } from '@/types/navigation.types';
 import { useIsFocused } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as NavigationBar from 'expo-navigation-bar';
 import { useEffect } from 'react';
 import { Platform } from 'react-native';
-
-
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-
-
-function Index() {
-
-  const isFocuse = useIsFocused();
-
+// Componente interno que usa o hook useAuth
+function AppNavigator() {
+  const isFocused = useIsFocused();
+  const { isAuthenticated, isLoading } = useAuth();
 
   useEffect(() => {
     if (Platform.OS === 'android') {
-      NavigationBar.setStyle("light");
-      
+      NavigationBar.setStyle('light');
     }
-  }, [isFocuse]);
+  }, [isFocused]);
+
+  // Mostra loading enquanto verifica autenticação
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
 
   return (
-    <FormDataProvider>
-    <SafeAreaProvider>
-      <Stack.Navigator initialRouteName="OrderList">
-        {/* Tela principal - Lista de ordens */}
+    <Stack.Navigator
+      initialRouteName={isAuthenticated ? 'OrderList' : 'Login'}
+      screenOptions={{ headerShown: false }}
+    >
+      {!isAuthenticated ? (
+        // Telas não autenticadas
         <Stack.Screen
-          name="OrderList"
-          component={OrderListScreen}
-          options={{
-            headerShown: false,
-          }}
+          name="Login"
+          component={LoginScreen}
+          options={{ headerShown: false }}
         />
+      ) : (
+        // Telas autenticadas
+        <>
+          <Stack.Screen
+            name="OrderList"
+            component={OrderListScreen}
+            options={{ headerShown: false }}
+          />
 
-        {/* Tela de cadastro de ordem de serviço */}
-        <Stack.Screen
-          name="ServiceForm"
-          component={ServiceForm}
-          options={{
+          <Stack.Screen
+            name="ServiceForm"
+            component={ServiceForm}
+            options={{ title: 'Nova Ordem de Serviço' }}
+          />
 
-            title: 'Nova Ordem de Serviço',
-          }}
-        />
+          <Stack.Screen
+            name="ClientSearch"
+            component={ClientSearchScreen}
+            options={{
+              headerShown: false,
+              presentation: 'modal',
+            }}
+          />
 
-        {/* Tela de busca de cliente */}
-        <Stack.Screen
-          name="ClientSearch"
-          component={ClientSearchScreen}
-          options={{
-            headerShown: false,
-            presentation: 'modal',
-          }}
-        />
+          <Stack.Screen
+            name="CameraScreen"
+            component={CameraScreen}
+            options={{
+              headerShown: false,
+              presentation: 'fullScreenModal',
+            }}
+          />
 
-        {/* Tela de câmera para capturar placa */}
-        <Stack.Screen
-          name="CameraScreen"
-          component={CameraScreen}
-          options={{
-            headerShown: false,
-            presentation: 'fullScreenModal',
-          }}
-        />
+          <Stack.Screen
+            name="VehicleForm"
+            component={VehicleFormScreen}
+            options={{
+              headerShown: false,
+              presentation: 'modal',
+            }}
+          />
 
-        {/* Tela de formulário de veículo */}
-        <Stack.Screen
-          name="VehicleForm"
-          component={VehicleFormScreen}
-          options={{
-            headerShown: false,
-            presentation: 'modal',
-          }}
-        />
+          <Stack.Screen
+            name="ClientForm"
+            component={ClientFormScreen}
+            options={{
+              headerShown: false,
+              presentation: 'modal',
+            }}
+          />
+        </>
+      )}
+    </Stack.Navigator>
+  );
+}
 
-        {/* Tela de formulário de cliente */}
-        <Stack.Screen
-          name="ClientForm"
-          component={ClientFormScreen}
-          options={{
-            headerShown: false,
-            presentation: 'modal',
-          }}
-        />
-      </Stack.Navigator>
-    </SafeAreaProvider>
-    </FormDataProvider>
+// Componente principal com providers
+function Index() {
+  return (
+    <AuthProvider>
+      <FormDataProvider>
+        <SafeAreaProvider>
+          <AppNavigator />
+        </SafeAreaProvider>
+      </FormDataProvider>
+    </AuthProvider>
   );
 }
 

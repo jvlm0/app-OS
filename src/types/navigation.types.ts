@@ -17,6 +17,8 @@ export type NavigationEvents = {
 export type RootStackParamList = {
   OrderList: undefined;
 
+  Login: undefined;
+
   ServiceForm: {
     order?: Order;
   } | undefined;

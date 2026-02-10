@@ -2,6 +2,7 @@
 // Serviço para gerenciar clientes
 
 import type { ClientCreate, ClientCreateResult } from '../types/client.types';
+import { getAccessToken } from './authService';
 
 const API_BASE_URL = 'http://100.67.122.72:8000';
 
@@ -12,6 +13,16 @@ const API_BASE_URL = 'http://100.67.122.72:8000';
  */
 export const createClient = async (clientData: ClientCreate): Promise<ClientCreateResult> => {
   try {
+
+    const token = await getAccessToken();
+    
+    if (!token) {
+      return {
+        success: false,
+        error: 'Não autenticado',
+      };
+    }
+
     const response = await fetch(`${API_BASE_URL}/clientes`, {
       method: 'POST',
       headers: {
