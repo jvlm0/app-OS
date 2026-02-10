@@ -258,7 +258,7 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
           onClose={() => navigation.goBack()}
           insetsTop={insets.top}
         />
-      <ScrollView style={styles.container} contentContainerStyle = {{paddingBottom: 50+insets.bottom}} keyboardShouldPersistTaps="handled">
+      <ScrollView style={styles.container} contentContainerStyle = {{paddingBottom: insets.bottom}} keyboardShouldPersistTaps="handled">
         <View style={styles.formContainer}>
           {isEditMode && (
             <View style={styles.editModeBanner}>
