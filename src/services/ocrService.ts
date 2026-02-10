@@ -1,11 +1,12 @@
 // services/ocrService.ts
 // Serviço para fazer OCR usando API externa
 
+import { ENV } from '@/config/env';
 import * as FileSystem from 'expo-file-system/legacy';
 import { resizeImageForOCR } from '../utils/resizeImageForOCR';
 
 // API Key gratuita do OCR.space (você pode criar sua própria em https://ocr.space/ocrapi)
-const OCR_API_KEY = 'K87899142388957'; // Key gratuita, recomendo criar a sua
+const OCR_API_KEY = ENV.API_OCR; // Key gratuita, recomendo criar a sua
 
 interface OCRResult {
   success: boolean;
@@ -225,7 +226,7 @@ export const extractTextFromImage = async (imageUri: string): Promise<OCRResult>
     formData.append('isOverlayRequired', 'false');
     formData.append('OCREngine', '2'); // Engine 2 é melhor para placas
 
-    const response = await fetch('https://api.ocr.space/parse/image', {
+    const response = await fetch(ENV.API_OCR, {
       method: 'POST',
       headers: {
         'apikey': OCR_API_KEY,

@@ -1,10 +1,11 @@
 // services/orderListService.ts
 // Serviço para listar ordens de serviço
 
+import { ENV } from '@/config/env';
 import type { Order, OrderListResult } from '../types/order-list.types';
 import { getAccessToken } from './authService';
 
-const API_BASE_URL = 'http://100.67.122.72:8000';
+const API_BASE_URL = ENV.API_URL;
 
 /**
  * Busca todas as ordens de serviço

@@ -1,10 +1,11 @@
 // services/authService.ts
 // Serviço para gerenciar autenticação
 
+import { ENV } from '@/config/env';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { LoginCredentials, LoginResult, RefreshTokenResult } from '../types/auth.types';
 
-const API_BASE_URL = 'http://100.67.122.72:8000';
+const API_BASE_URL = ENV.API_URL;
 
 // Chaves para o AsyncStorage
 const STORAGE_KEYS = {

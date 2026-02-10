@@ -1,10 +1,11 @@
 // services/vehicleService.ts
 // Serviço para consultar dados de veículos por placa
 
+import { ENV } from '@/config/env';
 import type { VehicleCreate, VehicleCreateResult, VehicleQueryResult, VehicleUpdate, VehicleUpdateResult } from '../types/vehicle.types';
 import { getAccessToken } from './authService';
 
-const API_BASE_URL = 'http://100.67.122.72:8000';
+const API_BASE_URL = ENV.API_URL;
 
 /**
  * Consulta dados do veículo pela placa

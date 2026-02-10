@@ -1,10 +1,11 @@
 // services/orderService.ts
 // Serviço para gerenciar ordens de serviço
 
+import { ENV } from '@/config/env';
 import type { OrderCreate, OrderCreateResult, OrderUpdate, OrderUpdateResult } from '../types/order.types';
 import { getAccessToken } from './authService';
 
-const API_BASE_URL = 'http://100.67.122.72:8000';
+const API_BASE_URL = ENV.API_URL;
 
 /**
  * Cadastra uma nova ordem de serviço
