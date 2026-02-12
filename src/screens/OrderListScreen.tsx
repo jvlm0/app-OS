@@ -1,6 +1,7 @@
 // screens/OrderListScreen.tsx
+import { useAuth } from '@/contexts/AuthContext';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { FileText, Plus, RefreshCw } from 'lucide-react-native';
+import { FileText, LogOut, Plus, RefreshCw } from 'lucide-react-native';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -21,6 +22,7 @@ type OrderListScreenProps = NativeStackScreenProps<RootStackParamList, 'OrderLis
 
 const OrderListScreen = ({ navigation }: OrderListScreenProps) => {
   const insets = useSafeAreaInsets();
+  const { logout } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -54,9 +56,24 @@ const OrderListScreen = ({ navigation }: OrderListScreenProps) => {
     setRefreshing(false);
   }, []);
 
+  // Carregar ordens ao montar o componente
   useEffect(() => {
     loadOrders();
   }, []);
+
+  // Recarregar ordens quando a tela ganhar foco (voltar de ServiceForm)
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      console.log('OrderList ganhou foco - recarregando ordens...');
+      loadOrders();
+    });
+
+    return unsubscribe;
+  }, [navigation]);
+
+  const handleLogout = async () => {
+    await logout();
+  };
 
   const formatPlate = (plate: string) => {
     if (!plate) return '';
@@ -176,11 +193,19 @@ const OrderListScreen = ({ navigation }: OrderListScreenProps) => {
   };
 
   return (
-    
     <View style={{flex: 1, backgroundColor: '#f5f5f5', paddingBottom: insets.bottom}}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       <View style={[styles.header, { paddingTop: insets.top}]}>
         <Text style={styles.headerTitle}>Ordens de Serviço</Text>
+        
+        {/* Botão de Logout */}
+        <TouchableOpacity
+          style={styles.logoutButton}
+          onPress={handleLogout}
+          activeOpacity={0.7}
+        >
+          <LogOut size={24} color="#000" />
+        </TouchableOpacity>
       </View>
 
       <FlatList
@@ -220,11 +245,19 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   headerTitle: {
     fontSize: 28,
     fontWeight: '700',
     color: '#000',
+  },
+  logoutButton: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: '#fff',
   },
   listContainer: {
     padding: 16,
