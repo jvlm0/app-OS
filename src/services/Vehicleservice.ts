@@ -1,11 +1,8 @@
 // services/vehicleService.ts
-// Serviço para consultar dados de veículos por placa
+// Serviço para consultar dados de veículos por placa - ATUALIZADO com apiClient
 
-import { ENV } from '@/config/env';
 import type { VehicleCreate, VehicleCreateResult, VehicleQueryResult, VehicleUpdate, VehicleUpdateResult } from '../types/vehicle.types';
-import { getAccessToken } from './authService';
-
-const API_BASE_URL = ENV.API_URL;
+import { api } from '../utils/apiClient';
 
 /**
  * Consulta dados do veículo pela placa
@@ -14,27 +11,10 @@ const API_BASE_URL = ENV.API_URL;
  */
 export const getVehicleByPlate = async (plate: string): Promise<VehicleQueryResult> => {
   try {
-
-    const token = await getAccessToken();
-        
-    if (!token) {
-      return {
-        success: false,
-        error: 'Não autenticado',
-      };
-    }
-
-
     // Remove caracteres especiais da placa para enviar na URL
     const cleanPlate = plate.replace(/[^A-Z0-9]/gi, '').toUpperCase();
 
-    const response = await fetch(`${API_BASE_URL}/veiculos/${cleanPlate}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-    });
+    const response = await api.get(`/veiculos/${cleanPlate}`);
 
     if (!response.ok) {
       if (response.status === 404) {
@@ -72,24 +52,7 @@ export const getVehicleByPlate = async (plate: string): Promise<VehicleQueryResu
  */
 export const createVehicle = async (vehicleData: VehicleCreate): Promise<VehicleCreateResult> => {
   try {
-
-    const token = await getAccessToken();
-    
-    if (!token) {
-      return {
-        success: false,
-        error: 'Não autenticado',
-      };
-    }
-
-    const response = await fetch(`${API_BASE_URL}/veiculos`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify(vehicleData),
-    });
+    const response = await api.post('/veiculos', vehicleData);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
@@ -121,24 +84,7 @@ export const createVehicle = async (vehicleData: VehicleCreate): Promise<Vehicle
  */
 export const updateVehicle = async (vehicleData: VehicleUpdate): Promise<VehicleUpdateResult> => {
   try {
-    
-    const token = await getAccessToken();
-    
-    if (!token) {
-      return {
-        success: false,
-        error: 'Não autenticado',
-      };
-    }
-    
-    const response = await fetch(`${API_BASE_URL}/veiculos`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify(vehicleData),
-    });
+    const response = await api.patch('/veiculos', vehicleData);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));

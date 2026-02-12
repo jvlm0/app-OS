@@ -1,11 +1,8 @@
 // services/orderListService.ts
-// Serviço para listar ordens de serviço
+// Serviço para listar ordens de serviço - ATUALIZADO com apiClient
 
-import { ENV } from '@/config/env';
 import type { Order, OrderListResult } from '../types/order-list.types';
-import { getAccessToken } from './authService';
-
-const API_BASE_URL = ENV.API_URL;
+import { api } from '../utils/apiClient';
 
 /**
  * Busca todas as ordens de serviço
@@ -13,25 +10,11 @@ const API_BASE_URL = ENV.API_URL;
  */
 export const getOrders = async (): Promise<OrderListResult> => {
   try {
-    const token = await getAccessToken();
-
-    if (!token) {
-      return {
-        success: false,
-        error: 'Não autenticado',
-      };
-    }
-
-    const response = await fetch(`${API_BASE_URL}/ordens`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-    });
+    const response = await api.get('/ordens');
 
     if (!response.ok) {
       // Se retornar 401, o token pode ter expirado
+      // Mas o apiClient já tentou renovar automaticamente
       if (response.status === 401) {
         return {
           success: false,
