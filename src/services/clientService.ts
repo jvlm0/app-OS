@@ -1,11 +1,8 @@
 // services/clientService.ts
-// Serviço para gerenciar clientes
+// Serviço para gerenciar clientes - ATUALIZADO com apiClient
 
-import { ENV } from '@/config/env';
 import type { Client, ClientCreate, ClientCreateResult } from '../types/client.types';
-import { getAccessToken } from './authService';
-
-const API_BASE_URL = ENV.API_URL;
+import { api } from '../utils/apiClient';
 
 /**
  * Cadastra um novo cliente
@@ -14,24 +11,7 @@ const API_BASE_URL = ENV.API_URL;
  */
 export const createClient = async (clientData: ClientCreate): Promise<ClientCreateResult> => {
   try {
-
-    const token = await getAccessToken();
-    
-    if (!token) {
-      return {
-        success: false,
-        error: 'Não autenticado',
-      };
-    }
-
-    const response = await fetch(`${API_BASE_URL}/clientes`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify(clientData),
-    });
+    const response = await api.post('/clientes', clientData);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
@@ -56,7 +36,6 @@ export const createClient = async (clientData: ClientCreate): Promise<ClientCrea
   }
 };
 
-
 export interface PaginatedResponse {
   page: number;
   page_size: number;
@@ -75,31 +54,22 @@ export async function fetchClients({
   page,
   pageSize = 20,
 }: FetchClientsParams): Promise<PaginatedResponse> {
+  try {
+    const url = `/clientes?q=${encodeURIComponent(query)}&page=${page}&page_size=${pageSize}`;
+    const response = await api.get(url);
 
-  const token = await getAccessToken();
-    
-  if (!token) {
+    if (!response.ok) {
+      throw new Error(`Erro ao buscar clientes: ${response.status}`);
+    }
+
+    return response.json();
+  } catch (error) {
+    console.error('Erro ao buscar clientes:', error);
     return {
       page: 0,
       page_size: 0,
       total_pages: 0,
       data: []
     };
-    }
-
-  const url = `${API_BASE_URL}/clientes?q=${encodeURIComponent(query)}&page=${page}&page_size=${pageSize}`;
-
-  const response = await fetch(url, {
-    method: 'GET',
-    headers: { 'Content-Type': 'application/json',
-               'Authorization': `Bearer ${token}`,
-     },
-    
-  });
-
-  if (!response.ok) {
-    throw new Error(`Erro ao buscar clientes: ${response.status}`);
   }
-
-  return response.json();
 }

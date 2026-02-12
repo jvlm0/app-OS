@@ -1,5 +1,6 @@
 // services/authService.ts
 // Serviço para gerenciar autenticação
+// NOTA: Este serviço NÃO usa apiClient pois é responsável por fornecer os tokens
 
 import { ENV } from '@/config/env';
 import AsyncStorage from '@react-native-async-storage/async-storage';
