@@ -1,6 +1,6 @@
 // src/screens/LoginScreen.tsx
 import { useAuth } from '@/contexts/AuthContext';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   ActivityIndicator,
   Alert,

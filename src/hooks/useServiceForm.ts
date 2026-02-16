@@ -1,3 +1,4 @@
+import { ServiceData } from '@/components/service-form/ReadOnlyServiceCard';
 import { useFormData } from '@/contexts/FormDataContext';
 import { createOrder, updateOrder } from '@/services/orderService';
 import type { RootStackParamList } from '@/types/navigation.types';
@@ -29,7 +30,7 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [services, setServices] = useState<Service[]>([]);
+  const [services, setServices] = useState<ServiceData[]>([]);
   const [saving, setSaving] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [servicesExpanded, setServicesExpanded] = useState(false);
@@ -88,19 +89,11 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
 
   // ─── Serviços ─────────────────────────────────────────────────────────────
 
-  const addService = () => {
-    const newService: Service = {
-      id: Date.now().toString(),
-      description: '',
-      quantity: '0',
-      unitValue: 'R$ 0,00',
-    };
-    setServices(prev => [...prev, newService]);
-    setServicesExpanded(true);
-  };
+  
 
-  const removeService = (id: string) =>
+  const removeService = (id: string) => {
     setServices(prev => prev.filter(s => s.id !== id));
+  };
 
   const updateService = (id: string, field: keyof Service, value: string) =>
     setServices(prev =>
@@ -239,7 +232,6 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
     setServicesExpanded,
     detailsExpanded,
     setDetailsExpanded,
-    addService,
     removeService,
     updateService,
     formatCurrency,

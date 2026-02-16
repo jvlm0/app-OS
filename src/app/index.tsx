@@ -3,6 +3,7 @@
 
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { FormDataProvider } from '@/contexts/FormDataContext';
+import AddServiceScreen from '@/screens/AddServiceScreen';
 import CameraScreen from '@/screens/CameraScreen';
 import ClientFormScreen from '@/screens/ClientFormScreen';
 import ClientSearchScreen from '@/screens/ClientSearchScreen';
@@ -94,6 +95,14 @@ function AppNavigator() {
           <Stack.Screen
             name="ClientForm"
             component={ClientFormScreen}
+            options={{
+              headerShown: false,
+              presentation: 'modal',
+            }}
+          />
+          <Stack.Screen
+            name="AddService"
+            component={AddServiceScreen}
             options={{
               headerShown: false,
               presentation: 'modal',
