@@ -6,7 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "nortusmobile",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/images/splash-icon.png",
@@ -33,18 +33,10 @@
       "permissions": [
         "CAMERA",
         "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO",
-        "CAMERA",
-        "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO"
       ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      },
-      "navigationBar": {
-        "visible": true,
-        "barStyle": "dark-content",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
@@ -78,6 +70,20 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "expo-navigation-bar": {
+        "backgroundColor": "#0f172a",
+        "barStyle": "light",
+        "borderColor": "#1f2937",
+        "visibility": "visible",
+        "behavior": "inset-swipe",
+        "position": "relative"
+      },
+      "eas": {
+        "projectId": "0e96d57d-8ec1-4cf3-88eb-b0eae27a7b97"
+      }
     }
   }
 }

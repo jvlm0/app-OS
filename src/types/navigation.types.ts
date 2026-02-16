@@ -1,3 +1,5 @@
+// src/types/navigation.types.ts
+
 import type { Order } from './order-list.types';
 import type { Vehicle } from './vehicle.types';
 
@@ -7,7 +9,6 @@ export interface Client {
   telefone: string;
 }
 
-// Eventos personalizados para comunicação entre telas
 export type NavigationEvents = {
   clientSelected: { client: Client };
   clientAdded: { client: Client };
@@ -16,23 +17,18 @@ export type NavigationEvents = {
 
 export type RootStackParamList = {
   OrderList: undefined;
-
   Login: undefined;
-
   ServiceForm: {
     order?: Order;
   } | undefined;
-
   ClientSearch: undefined;
-
   CameraScreen: {
     cod_cliente: number;
   };
-
   ClientForm: undefined;
-
   VehicleForm: {
     plate?: string;
     cod_cliente: number;
   };
+  AddService: undefined
 };

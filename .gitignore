@@ -41,7 +41,7 @@ yarn-error.*
 /ios
 /android
 
-
-
 todo.txt
 todo.sql
+
+eas.json

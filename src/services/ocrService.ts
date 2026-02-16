@@ -6,7 +6,7 @@ import * as FileSystem from 'expo-file-system/legacy';
 import { resizeImageForOCR } from '../utils/resizeImageForOCR';
 
 // API Key gratuita do OCR.space (você pode criar sua própria em https://ocr.space/ocrapi)
-const OCR_API_KEY = ENV.API_OCR; // Key gratuita, recomendo criar a sua
+const OCR_API_KEY = ENV.OCR_KEY; 
 
 interface OCRResult {
   success: boolean;
@@ -235,6 +235,9 @@ export const extractTextFromImage = async (imageUri: string): Promise<OCRResult>
     });
 
     const result = await response.json();
+
+    //console.log("código req ocr : "+response.status);
+    //console.log("corpo req ocr : "+result);
 
     if (result.IsErroredOnProcessing) {
       return {

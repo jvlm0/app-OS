@@ -1,17 +1,16 @@
-import type { Service } from '@/hooks/useServiceForm';
+// src/components/service-form/ServicesSection.tsx
+
 import { ChevronDown, ChevronUp } from 'lucide-react-native';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import ServiceCard from './ServiceCard';
+import ReadOnlyServiceCard, { type ServiceData } from './ReadOnlyServiceCard';
 
 interface ServicesSectionProps {
-  services: Service[];
+  services: ServiceData[];
   expanded: boolean;
   onToggle: (expanded: boolean) => void;
   onAdd: () => void;
   onRemove: (id: string) => void;
-  onUpdate: (id: string, field: keyof Service, value: string) => void;
-  formatCurrency: (value: string) => string;
 }
 
 const ServicesSection = ({
@@ -20,8 +19,6 @@ const ServicesSection = ({
   onToggle,
   onAdd,
   onRemove,
-  onUpdate,
-  formatCurrency,
 }: ServicesSectionProps) => (
   <View style={styles.container}>
     <TouchableOpacity style={styles.header} onPress={() => onToggle(!expanded)}>
@@ -32,18 +29,16 @@ const ServicesSection = ({
     {expanded && (
       <View style={styles.content}>
         {services.map((service, index) => (
-          <ServiceCard
+          <ReadOnlyServiceCard
             key={service.id}
             service={service}
             index={index}
             onRemove={onRemove}
-            onUpdate={onUpdate}
-            formatCurrency={formatCurrency}
           />
         ))}
 
         <TouchableOpacity style={styles.addButton} onPress={onAdd}>
-          <Text style={styles.addText}>+ Adicionar outro serviço</Text>
+          <Text style={styles.addText}>+ Adicionar serviço</Text>
         </TouchableOpacity>
       </View>
     )}

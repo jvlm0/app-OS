@@ -1,9 +1,12 @@
+// src/screens/ServiceForm.tsx
+
 import ModalHeader from '@/components/ModalHeader';
 import SelectField from '@/components/SelectField';
 import ClientField from '@/components/service-form/ClientField';
 import DetailsSection from '@/components/service-form/DetailsSection';
 import EditModeBanner from '@/components/service-form/EditModeBanner';
 import ServicesSection from '@/components/service-form/ServicesSection';
+import { useFormData } from '@/contexts/FormDataContext';
 import { useServiceForm } from '@/hooks/useServiceForm';
 import type { RootStackParamList } from '@/types/navigation.types';
 import { useIsFocused } from '@react-navigation/native';
@@ -23,17 +26,16 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-
 type ServiceFormProps = NativeStackScreenProps<RootStackParamList, 'ServiceForm'>;
 
 const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
   const insets = useSafeAreaInsets();
   const isFocused = useIsFocused();
   const { order } = route.params || {};
+  const { services, removeService } = useFormData();
 
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
-  // Reseta o estado do teclado ao voltar para esta tela
   useEffect(() => {
     if (!isFocused) return;
 
@@ -58,20 +60,20 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
     isEditMode,
     selectedClient,
     selectedVehicle,
-    services,
     servicesExpanded,
     setServicesExpanded,
     detailsExpanded,
     setDetailsExpanded,
-    addService,
-    removeService,
-    updateService,
-    formatCurrency,
     handleClientSelect,
     handleAddClient,
     handleVehicleAdd,
     handleSave,
   } = useServiceForm({ order, navigation });
+
+  const handleAddService = () => {
+    navigation.navigate('AddService');
+    setServicesExpanded(true);
+  };
 
   return (
     <KeyboardAvoidingView
@@ -148,10 +150,8 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
             services={services}
             expanded={servicesExpanded}
             onToggle={setServicesExpanded}
-            onAdd={addService}
+            onAdd={handleAddService}
             onRemove={removeService}
-            onUpdate={updateService}
-            formatCurrency={formatCurrency}
           />
 
           {/* Detalhes */}
