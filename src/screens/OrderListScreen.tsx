@@ -1,8 +1,9 @@
 // screens/OrderListScreen.tsx
 import { useAuth } from '@/contexts/AuthContext';
+import { useOrderList } from '@/hooks/useOrderList';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { FileText, LogOut, Plus, RefreshCw } from 'lucide-react-native';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -14,7 +15,6 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { getOrders } from '../services/orderListService';
 import type { RootStackParamList } from '../types/navigation.types';
 import type { Order } from '../types/order-list.types';
 
@@ -23,53 +23,17 @@ type OrderListScreenProps = NativeStackScreenProps<RootStackParamList, 'OrderLis
 const OrderListScreen = ({ navigation }: OrderListScreenProps) => {
   const insets = useSafeAreaInsets();
   const { logout } = useAuth();
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  const loadOrders = async () => {
-    setLoading(true);
-    setError(null);
+  const { orders, loading, loadingMore, refreshing, error, loadMore, refresh } = useOrderList();
 
-    try {
-      const result = await getOrders();
-
-      if (!result.success) {
-        setError(result.error || 'Erro ao carregar ordens');
-        setOrders([]);
-      } else {
-        setOrders(result.data || []);
-      }
-    } catch (err) {
-      console.error('Erro ao carregar ordens:', err);
-      setError('Erro ao carregar ordens');
-      setOrders([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await loadOrders();
-    setRefreshing(false);
-  }, []);
-
-  // Carregar ordens ao montar o componente
-  useEffect(() => {
-    loadOrders();
-  }, []);
-
-  // Recarregar ordens quando a tela ganhar foco (voltar de ServiceForm)
+  // Recarregar ao ganhar foco (ex: voltar do ServiceForm)
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       console.log('OrderList ganhou foco - recarregando ordens...');
-      loadOrders();
+      refresh();
     });
-
     return unsubscribe;
-  }, [navigation]);
+  }, [navigation, refresh]);
 
   const handleLogout = async () => {
     await logout();
@@ -79,11 +43,9 @@ const OrderListScreen = ({ navigation }: OrderListScreenProps) => {
     if (!plate) return '';
     const cleanPlate = plate.replace(/[^A-Z0-9]/gi, '');
     if (cleanPlate.length === 7) {
-      // Formato antigo: ABC-1234
       if (/[A-Z]{3}[0-9]{4}/i.test(cleanPlate)) {
         return `${cleanPlate.substring(0, 3)}-${cleanPlate.substring(3)}`;
       }
-      // Formato Mercosul: ABC1D23
       return cleanPlate;
     }
     return plate;
@@ -91,6 +53,24 @@ const OrderListScreen = ({ navigation }: OrderListScreenProps) => {
 
   const handleOrderPress = (order: Order) => {
     navigation.navigate('ServiceForm', { order });
+  };
+
+  const getStatusStyle = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'aberto':
+      case 'pendente':
+        return styles.statusPending;
+      case 'em andamento':
+      case 'em_andamento':
+        return styles.statusInProgress;
+      case 'concluído':
+      case 'concluido':
+        return styles.statusCompleted;
+      case 'cancelado':
+        return styles.statusCancelled;
+      default:
+        return styles.statusDefault;
+    }
   };
 
   const renderOrderCard = ({ item }: { item: Order }) => (
@@ -104,9 +84,7 @@ const OrderListScreen = ({ navigation }: OrderListScreenProps) => {
           <Text style={styles.orderTitle} numberOfLines={1}>
             {item.titulo}
           </Text>
-          <Text style={styles.orderNumber}>
-            OS #{item.cod_ordem}
-          </Text>
+          <Text style={styles.orderNumber}>OS #{item.cod_ordem}</Text>
         </View>
         <View style={[styles.statusBadge, getStatusStyle(item.status)]}>
           <Text style={styles.statusText}>{item.status}</Text>
@@ -139,22 +117,13 @@ const OrderListScreen = ({ navigation }: OrderListScreenProps) => {
     </TouchableOpacity>
   );
 
-  const getStatusStyle = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'aberto':
-      case 'pendente':
-        return styles.statusPending;
-      case 'em andamento':
-      case 'em_andamento':
-        return styles.statusInProgress;
-      case 'concluído':
-      case 'concluido':
-        return styles.statusCompleted;
-      case 'cancelado':
-        return styles.statusCancelled;
-      default:
-        return styles.statusDefault;
-    }
+  const renderFooter = () => {
+    if (!loadingMore) return null;
+    return (
+      <View style={styles.footerLoader}>
+        <ActivityIndicator size="small" color="#000" />
+      </View>
+    );
   };
 
   const renderEmptyState = () => {
@@ -173,7 +142,7 @@ const OrderListScreen = ({ navigation }: OrderListScreenProps) => {
           <FileText size={64} color="#ccc" />
           <Text style={styles.emptyTitle}>Erro ao carregar</Text>
           <Text style={styles.emptyText}>{error}</Text>
-          <TouchableOpacity style={styles.retryButton} onPress={loadOrders}>
+          <TouchableOpacity style={styles.retryButton} onPress={refresh}>
             <RefreshCw size={20} color="#fff" />
             <Text style={styles.retryButtonText}>Tentar novamente</Text>
           </TouchableOpacity>
@@ -193,12 +162,10 @@ const OrderListScreen = ({ navigation }: OrderListScreenProps) => {
   };
 
   return (
-    <View style={{flex: 1, backgroundColor: '#f5f5f5', paddingBottom: insets.bottom}}>
+    <View style={{ flex: 1, backgroundColor: '#f5f5f5', paddingBottom: insets.bottom }}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
-      <View style={[styles.header, { paddingTop: insets.top}]}>
+      <View style={[styles.header, { paddingTop: insets.top }]}>
         <Text style={styles.headerTitle}>Ordens de Serviço</Text>
-        
-        {/* Botão de Logout */}
         <TouchableOpacity
           style={styles.logoutButton}
           onPress={handleLogout}
@@ -211,15 +178,18 @@ const OrderListScreen = ({ navigation }: OrderListScreenProps) => {
       <FlatList
         data={orders}
         renderItem={renderOrderCard}
-        keyExtractor={(item) => item.cod_ordem.toString()}
+        keyExtractor={item => item.cod_ordem.toString()}
         contentContainerStyle={[
           styles.listContainer,
-          {paddingBottom: 20+insets.bottom},
+          { paddingBottom: 20 + insets.bottom },
           orders.length === 0 && styles.emptyListContainer,
         ]}
         ListEmptyComponent={renderEmptyState}
+        ListFooterComponent={renderFooter}
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.5}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl refreshing={refreshing} onRefresh={refresh} />
         }
       />
 
@@ -410,6 +380,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#fff',
+  },
+  footerLoader: {
+    paddingVertical: 20,
+    alignItems: 'center',
   },
   fab: {
     position: 'absolute',
