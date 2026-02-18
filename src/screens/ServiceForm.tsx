@@ -1,5 +1,6 @@
 // src/screens/ServiceForm.tsx
 
+import { SaveButton } from '@/components/client-form/SaveButton';
 import ModalHeader from '@/components/ModalHeader';
 import SelectField from '@/components/SelectField';
 import ClientField from '@/components/service-form/ClientField';
@@ -13,7 +14,6 @@ import { useIsFocused } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React, { useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
@@ -21,20 +21,19 @@ import {
   StyleSheet,
   Text,
   TextInput,
-  TouchableOpacity,
-  View,
+  View
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 type ServiceFormProps = NativeStackScreenProps<RootStackParamList, 'ServiceForm'>;
 
 const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
-  const insets = useSafeAreaInsets();
   const isFocused = useIsFocused();
   const { order } = route.params || {};
   const { services, removeService } = useFormData();
 
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+  const [isButtonVisible, setIsButtonVisible] = useState(false);
 
   useEffect(() => {
     if (!isFocused) return;
@@ -76,107 +75,106 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      enabled={isKeyboardVisible}
-      style={styles.flex}
-    >
-      <ModalHeader
-        title="Novo Serviço"
-        onClose={() => navigation.goBack()}
-        insetsTop={insets.top}
-      />
-
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={{ paddingBottom: insets.bottom }}
-        keyboardShouldPersistTaps="handled"
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        
+        style={styles.flex}
       >
-        <View style={styles.formContainer}>
-          {isEditMode && order && <EditModeBanner orderCode={order.cod_ordem} />}
+        <ModalHeader
+          title="Novo Serviço"
+          onClose={() => navigation.goBack()}
 
-          {/* Título */}
-          <View style={styles.fieldContainer}>
-            <Text style={styles.label}>
-              Título <Text style={styles.required}>*</Text>
-            </Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Ex.: Manutenção de ar condicionado"
-              placeholderTextColor="#999"
-              value={title}
-              onChangeText={setTitle}
-            />
-          </View>
+        />
 
-          {/* Cliente */}
-          <ClientField
-            selectedClient={selectedClient}
-            onSelect={handleClientSelect}
-            onAdd={handleAddClient}
-          />
+        <ScrollView
+          style={styles.container}
 
-          {/* Veículo */}
-          <SelectField
-            label="Veículo"
-            required
-            placeholder="Adicionar veículo"
-            selectedValue={selectedVehicle?.plate}
-            selectedSubtitle={
-              selectedVehicle
-                ? `${selectedVehicle.modelo} - ${selectedVehicle.ano} | ${selectedVehicle.mileage} km`
-                : undefined
-            }
-            helperText="Tire uma foto da placa ou digite manualmente"
-            onPress={handleVehicleAdd}
-          />
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.formContainer}>
+            {isEditMode && order && <EditModeBanner orderCode={order.cod_ordem} />}
 
-          {/* Descrição */}
-          <View style={styles.fieldContainer}>
-            <Text style={styles.label}>Descrição (opcional)</Text>
-            <TextInput
-              style={[styles.input, styles.textArea]}
-              placeholder="Detalhes adicionais, instruções especiais, etc."
-              placeholderTextColor="#999"
-              multiline
-              numberOfLines={4}
-              value={description}
-              onChangeText={setDescription}
-            />
-          </View>
-
-          {/* Serviços */}
-          <ServicesSection
-            services={services}
-            expanded={servicesExpanded}
-            onToggle={setServicesExpanded}
-            onAdd={handleAddService}
-            onRemove={removeService}
-          />
-
-          {/* Detalhes */}
-          <DetailsSection
-            expanded={detailsExpanded}
-            onToggle={setDetailsExpanded}
-          />
-
-          {/* Submit */}
-          <TouchableOpacity
-            style={[styles.submitButton, saving && styles.submitButtonDisabled]}
-            onPress={handleSave}
-            disabled={saving}
-          >
-            {saving ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              <Text style={styles.submitButtonText}>
-                {isEditMode ? 'Atualizar' : 'Salvar'}
+            {/* Título */}
+            <View style={styles.fieldContainer}>
+              <Text style={styles.label}>
+                Título <Text style={styles.required}>*</Text>
               </Text>
-            )}
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+              <TextInput
+                style={styles.input}
+                placeholder="Ex.: Manutenção de ar condicionado"
+                placeholderTextColor="#999"
+                value={title}
+                onChangeText={setTitle}
+              />
+            </View>
+
+            {/* Cliente */}
+            <ClientField
+              selectedClient={selectedClient}
+              onSelect={handleClientSelect}
+              onAdd={handleAddClient}
+            />
+
+            {/* Veículo */}
+            <SelectField
+              label="Veículo"
+              required
+              placeholder="Adicionar veículo"
+              selectedValue={selectedVehicle?.plate}
+              selectedSubtitle={
+                selectedVehicle
+                  ? `${selectedVehicle.modelo} - ${selectedVehicle.ano} | ${selectedVehicle.mileage} km`
+                  : undefined
+              }
+              helperText="Tire uma foto da placa ou digite manualmente"
+              onPress={handleVehicleAdd}
+            />
+
+            {/* Descrição */}
+            <View style={styles.fieldContainer}>
+              <Text style={styles.label}>Descrição (opcional)</Text>
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                placeholder="Detalhes adicionais, instruções especiais, etc."
+                placeholderTextColor="#999"
+                multiline
+                numberOfLines={4}
+                value={description}
+                onChangeText={setDescription}
+              />
+            </View>
+
+            {/* Serviços */}
+            <ServicesSection
+              services={services}
+              expanded={servicesExpanded}
+              onToggle={setServicesExpanded}
+              onAdd={handleAddService}
+              onRemove={removeService}
+            />
+
+            {/* Detalhes */}
+            <DetailsSection
+              expanded={detailsExpanded}
+              onToggle={setDetailsExpanded}
+            />
+
+
+          </View>
+        </ScrollView>
+
+        
+      </KeyboardAvoidingView>
+      {!isKeyboardVisible && (
+          <SaveButton
+            onPress={handleSave}
+            loading={saving}
+            disabled={saving}
+            text={isEditMode ? 'Atualizar' : 'Salvar'}
+          />
+        )}
+    </SafeAreaView>
   );
 };
 
