@@ -25,6 +25,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+
+
 type ServiceFormProps = NativeStackScreenProps<RootStackParamList, 'ServiceForm'>;
 
 const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
@@ -42,7 +44,9 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
     setIsKeyboardVisible(false);
 
     const showSub = Keyboard.addListener('keyboardDidShow', () => setIsKeyboardVisible(true));
-    const hideSub = Keyboard.addListener('keyboardDidHide', () => setIsKeyboardVisible(false));
+    const hideSub = Keyboard.addListener('keyboardDidHide', () => {
+      setTimeout(() => setIsKeyboardVisible(false), 50);
+    });
 
     return () => {
       showSub.remove();
@@ -74,11 +78,13 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
     setServicesExpanded(true);
   };
 
+
+
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }} edges={['top', 'left', 'right']}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        
+
         style={styles.flex}
       >
         <ModalHeader
@@ -164,16 +170,18 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
           </View>
         </ScrollView>
 
-        
+
       </KeyboardAvoidingView>
-      {!isKeyboardVisible && (
-          <SaveButton
-            onPress={handleSave}
-            loading={saving}
-            disabled={saving}
-            text={isEditMode ? 'Atualizar' : 'Salvar'}
-          />
-        )}
+
+
+      <SaveButton
+        onPress={handleSave}
+        loading={saving}
+        disabled={saving}
+        text={isEditMode ? 'Atualizar' : 'Salvar'}
+      />
+
+
     </SafeAreaView>
   );
 };
