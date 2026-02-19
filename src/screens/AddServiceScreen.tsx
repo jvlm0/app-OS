@@ -2,43 +2,37 @@
 
 import ModalHeader from '@/components/ModalHeader';
 import { useFormData } from '@/contexts/FormDataContext';
+import { fetchEquipes, fetchVendedores } from '@/services/teamVendorService';
 import type { RootStackParamList } from '@/types/navigation.types';
+import type { Equipe, Vendedor } from '@/types/team-vendor.types';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ChevronDown } from 'lucide-react-native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type AddServiceScreenProps = NativeStackScreenProps<RootStackParamList, 'AddService'>;
 
-// Mock data - substituir por dados reais da API
-const EQUIPES = [
-  { id: 1, nome: 'Equipe A' },
-  { id: 2, nome: 'Equipe B' },
-  { id: 3, nome: 'Equipe C' },
-];
-
-const VENDEDORES = [
-  { id: 1, nome: 'João Silva' },
-  { id: 2, nome: 'Maria Santos' },
-  { id: 3, nome: 'Pedro Oliveira' },
-  { id: 4, nome: 'Ana Costa' },
-];
+// Altura fixa de cada item — deve bater com o style dropdownItem (height: ITEM_HEIGHT)
+const ITEM_HEIGHT = 53;
+// Quantos itens aparecem antes de precisar rolar
+const VISIBLE_ITEMS = 4;
 
 const AddServiceScreen = ({ navigation }: AddServiceScreenProps) => {
   const insets = useSafeAreaInsets();
   const { addService } = useFormData();
-  
+
   const [descricao, setDescricao] = useState('');
   const [quantidade, setQuantidade] = useState('');
   const [valorUnitario, setValorUnitario] = useState('');
@@ -46,14 +40,44 @@ const AddServiceScreen = ({ navigation }: AddServiceScreenProps) => {
   const [equipeId, setEquipeId] = useState<number | null>(null);
   const [vendedoresSelecionados, setVendedoresSelecionados] = useState<number[]>([]);
   const [saving, setSaving] = useState(false);
-  
+
+  const [equipes, setEquipes] = useState<Equipe[]>([]);
+  const [vendedores, setVendedores] = useState<Vendedor[]>([]);
+  const [loadingEquipes, setLoadingEquipes] = useState(true);
+  const [loadingVendedores, setLoadingVendedores] = useState(true);
+
   const [showEquipeDropdown, setShowEquipeDropdown] = useState(false);
   const [showVendedoresDropdown, setShowVendedoresDropdown] = useState(false);
+
+  useEffect(() => {
+    const loadData = async () => {
+      const [equipesResult, vendedoresResult] = await Promise.all([
+        fetchEquipes(),
+        fetchVendedores(),
+      ]);
+
+      if (equipesResult.success && equipesResult.data) {
+        setEquipes(equipesResult.data);
+      } else {
+        Alert.alert('Atenção', equipesResult.error || 'Não foi possível carregar as equipes.');
+      }
+
+      if (vendedoresResult.success && vendedoresResult.data) {
+        setVendedores(vendedoresResult.data);
+      } else {
+        Alert.alert('Atenção', vendedoresResult.error || 'Não foi possível carregar os vendedores.');
+      }
+
+      setLoadingEquipes(false);
+      setLoadingVendedores(false);
+    };
+
+    loadData();
+  }, []);
 
   const formatCurrency = (value: string): string => {
     const numbers = value.replace(/\D/g, '');
     if (!numbers) return '';
-    
     const amount = parseInt(numbers, 10) / 100;
     return amount.toLocaleString('pt-BR', {
       minimumFractionDigits: 2,
@@ -64,70 +88,70 @@ const AddServiceScreen = ({ navigation }: AddServiceScreenProps) => {
   const formatPercentage = (value: string): string => {
     const numbers = value.replace(/\D/g, '');
     if (!numbers) return '';
-    
     const num = parseInt(numbers, 10);
     if (num > 100) return '100';
     return num.toString();
   };
 
   const toggleVendedor = (id: number) => {
-    setVendedoresSelecionados(prev => {
-      if (prev.includes(id)) {
-        return prev.filter(v => v !== id);
-      }
-      return [...prev, id];
-    });
+    setVendedoresSelecionados(prev =>
+      prev.includes(id) ? prev.filter(v => v !== id) : [...prev, id]
+    );
   };
 
   const handleSave = () => {
     if (!descricao.trim()) {
-      alert('Por favor, preencha a descrição do serviço');
+      Alert.alert('Atenção', 'Por favor, preencha a descrição do serviço');
       return;
     }
-    
     if (!quantidade.trim() || parseFloat(quantidade) <= 0) {
-      alert('Por favor, preencha uma quantidade válida');
+      Alert.alert('Atenção', 'Por favor, preencha uma quantidade válida');
       return;
     }
-    
     if (!valorUnitario.trim()) {
-      alert('Por favor, preencha o valor unitário');
+      Alert.alert('Atenção', 'Por favor, preencha o valor unitário');
       return;
     }
-    
     if (!equipeId) {
-      alert('Por favor, selecione uma equipe');
+      Alert.alert('Atenção', 'Por favor, selecione uma equipe');
       return;
     }
-    
     if (vendedoresSelecionados.length === 0) {
-      alert('Por favor, selecione pelo menos um vendedor');
+      Alert.alert('Atenção', 'Por favor, selecione pelo menos um vendedor');
       return;
     }
 
-    const equipe = EQUIPES.find(e => e.id === equipeId);
-    const vendedores = VENDEDORES.filter(v => vendedoresSelecionados.includes(v.id));
-    
+    const equipe = equipes.find(e => e.cod_equipe === equipeId);
+    const vendedoresFiltrados = vendedores.filter(v =>
+      vendedoresSelecionados.includes(v.cod_vendedor)
+    );
+
     const serviceData = {
       id: Date.now().toString(),
       descricao,
       quantidade: parseFloat(quantidade),
       valorUnitario: parseFloat(valorUnitario.replace(/\./g, '').replace(',', '.')),
       desconto: desconto ? parseFloat(desconto) : 0,
+      cod_equipe: equipeId,
       equipe: equipe?.nome || '',
-      vendedores: vendedores.map(v => v.nome),
+      cod_vendedores: vendedoresSelecionados,
+      vendedores: vendedoresFiltrados.map(v => v.nome),
     };
-    
-    // Adiciona o serviço através do contexto
+
     addService(serviceData);
     navigation.goBack();
   };
 
-  const equipeNome = equipeId ? EQUIPES.find(e => e.id === equipeId)?.nome : '';
-  const vendedoresNomes = VENDEDORES
-    .filter(v => vendedoresSelecionados.includes(v.id))
+  const equipeNome = equipeId
+    ? equipes.find(e => e.cod_equipe === equipeId)?.nome
+    : '';
+
+  const vendedoresNomes = vendedores
+    .filter(v => vendedoresSelecionados.includes(v.cod_vendedor))
     .map(v => v.nome)
     .join(', ');
+
+  const isLoading = loadingEquipes || loadingVendedores;
 
   return (
     <KeyboardAvoidingView
@@ -140,170 +164,212 @@ const AddServiceScreen = ({ navigation }: AddServiceScreenProps) => {
         insetsTop={insets.top}
       />
 
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}
-        keyboardShouldPersistTaps="handled"
-      >
-        <View style={styles.formContainer}>
-          <View style={styles.fieldContainer}>
-            <Text style={styles.label}>
-              Descrição <Text style={styles.required}>*</Text>
-            </Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Ex.: Mão de obra"
-              placeholderTextColor="#999"
-              value={descricao}
-              onChangeText={setDescricao}
-            />
-          </View>
+      {isLoading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#000" />
+          <Text style={styles.loadingText}>Carregando dados...</Text>
+        </View>
+      ) : (
+        <ScrollView
+          style={styles.container}
+          contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}
+          keyboardShouldPersistTaps="handled"
+          nestedScrollEnabled
+        >
+          <View style={styles.formContainer}>
 
-          <View style={styles.row}>
-            <View style={styles.halfField}>
+            {/* Descrição */}
+            <View style={styles.fieldContainer}>
               <Text style={styles.label}>
-                Quantidade (horas) <Text style={styles.required}>*</Text>
+                Descrição <Text style={styles.required}>*</Text>
               </Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Ex.: Mão de obra"
+                placeholderTextColor="#999"
+                value={descricao}
+                onChangeText={setDescricao}
+              />
+            </View>
+
+            {/* Quantidade e Valor Unitário */}
+            <View style={styles.row}>
+              <View style={styles.halfField}>
+                <Text style={styles.label}>
+                  Quantidade (horas) <Text style={styles.required}>*</Text>
+                </Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="0"
+                  placeholderTextColor="#999"
+                  keyboardType="decimal-pad"
+                  value={quantidade}
+                  onChangeText={setQuantidade}
+                />
+              </View>
+
+              <View style={styles.halfField}>
+                <Text style={styles.label}>
+                  Valor Unitário <Text style={styles.required}>*</Text>
+                </Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="0,00"
+                  placeholderTextColor="#999"
+                  keyboardType="decimal-pad"
+                  value={valorUnitario}
+                  onChangeText={value => setValorUnitario(formatCurrency(value))}
+                />
+              </View>
+            </View>
+
+            {/* Desconto */}
+            <View style={styles.fieldContainer}>
+              <Text style={styles.label}>Desconto (%)</Text>
               <TextInput
                 style={styles.input}
                 placeholder="0"
                 placeholderTextColor="#999"
-                keyboardType="decimal-pad"
-                value={quantidade}
-                onChangeText={setQuantidade}
+                keyboardType="number-pad"
+                value={desconto}
+                onChangeText={value => setDesconto(formatPercentage(value))}
+                maxLength={3}
               />
             </View>
 
-            <View style={styles.halfField}>
+            {/* Dropdown Equipe */}
+            <View style={styles.fieldContainer}>
               <Text style={styles.label}>
-                Valor Unitário <Text style={styles.required}>*</Text>
+                Equipe Responsável <Text style={styles.required}>*</Text>
               </Text>
-              <TextInput
-                style={styles.input}
-                placeholder="0,00"
-                placeholderTextColor="#999"
-                keyboardType="decimal-pad"
-                value={valorUnitario}
-                onChangeText={value => setValorUnitario(formatCurrency(value))}
-              />
-            </View>
-          </View>
+              <TouchableOpacity
+                style={styles.dropdown}
+                onPress={() => {
+                  setShowEquipeDropdown(prev => !prev);
+                  setShowVendedoresDropdown(false);
+                }}
+              >
+                <Text style={[styles.dropdownText, !equipeNome && styles.placeholder]}>
+                  {equipeNome || 'Selecione uma equipe'}
+                </Text>
+                <ChevronDown size={20} color="#666" />
+              </TouchableOpacity>
 
-          <View style={styles.fieldContainer}>
-            <Text style={styles.label}>Desconto (%)</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="0"
-              placeholderTextColor="#999"
-              keyboardType="number-pad"
-              value={desconto}
-              onChangeText={value => setDesconto(formatPercentage(value))}
-              maxLength={3}
-            />
-          </View>
-
-          <View style={styles.fieldContainer}>
-            <Text style={styles.label}>
-              Equipe Responsável <Text style={styles.required}>*</Text>
-            </Text>
-            <TouchableOpacity
-              style={styles.dropdown}
-              onPress={() => setShowEquipeDropdown(!showEquipeDropdown)}
-            >
-              <Text style={[styles.dropdownText, !equipeNome && styles.placeholder]}>
-                {equipeNome || 'Selecione uma equipe'}
-              </Text>
-              <ChevronDown size={20} color="#666" />
-            </TouchableOpacity>
-            
-            {showEquipeDropdown && (
-              <View style={styles.dropdownList}>
-                {EQUIPES.map(equipe => (
-                  <TouchableOpacity
-                    key={equipe.id}
-                    style={[
-                      styles.dropdownItem,
-                      equipeId === equipe.id && styles.dropdownItemSelected,
-                    ]}
-                    onPress={() => {
-                      setEquipeId(equipe.id);
-                      setShowEquipeDropdown(false);
-                    }}
+              {showEquipeDropdown && (
+                <View style={[
+                  styles.dropdownList,
+                  { height: Math.min(equipes.length, VISIBLE_ITEMS) * ITEM_HEIGHT },
+                ]}>
+                  <ScrollView
+                    nestedScrollEnabled
+                    bounces={false}
+                    showsVerticalScrollIndicator={equipes.length > VISIBLE_ITEMS}
+                    keyboardShouldPersistTaps="handled"
                   >
-                    <Text
-                      style={[
-                        styles.dropdownItemText,
-                        equipeId === equipe.id && styles.dropdownItemTextSelected,
-                      ]}
-                    >
-                      {equipe.nome}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
-          </View>
-
-          <View style={styles.fieldContainer}>
-            <Text style={styles.label}>
-              Vendedor(es) <Text style={styles.required}>*</Text>
-            </Text>
-            <TouchableOpacity
-              style={styles.dropdown}
-              onPress={() => setShowVendedoresDropdown(!showVendedoresDropdown)}
-            >
-              <Text style={[styles.dropdownText, !vendedoresNomes && styles.placeholder]}>
-                {vendedoresNomes || 'Selecione um ou mais vendedores'}
-              </Text>
-              <ChevronDown size={20} color="#666" />
-            </TouchableOpacity>
-            
-            {showVendedoresDropdown && (
-              <View style={styles.dropdownList}>
-                {VENDEDORES.map(vendedor => {
-                  const isSelected = vendedoresSelecionados.includes(vendedor.id);
-                  return (
-                    <TouchableOpacity
-                      key={vendedor.id}
-                      style={[
-                        styles.dropdownItem,
-                        isSelected && styles.dropdownItemSelected,
-                      ]}
-                      onPress={() => toggleVendedor(vendedor.id)}
-                    >
-                      <View style={styles.checkboxContainer}>
-                        <View style={[styles.checkbox, isSelected && styles.checkboxChecked]}>
-                          {isSelected && <Text style={styles.checkmark}>✓</Text>}
-                        </View>
+                    {equipes.map(equipe => (
+                      <TouchableOpacity
+                        key={equipe.cod_equipe}
+                        style={[
+                          styles.dropdownItem,
+                          equipeId === equipe.cod_equipe && styles.dropdownItemSelected,
+                        ]}
+                        onPress={() => {
+                          setEquipeId(equipe.cod_equipe);
+                          setShowEquipeDropdown(false);
+                        }}
+                      >
                         <Text
                           style={[
                             styles.dropdownItemText,
-                            isSelected && styles.dropdownItemTextSelected,
+                            equipeId === equipe.cod_equipe && styles.dropdownItemTextSelected,
                           ]}
                         >
-                          {vendedor.nome}
+                          {equipe.nome}
                         </Text>
-                      </View>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            )}
-          </View>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              )}
+            </View>
 
-          <TouchableOpacity
-            style={[styles.submitButton, saving && styles.submitButtonDisabled]}
-            onPress={handleSave}
-            disabled={saving}
-          >
-            {saving ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              <Text style={styles.submitButtonText}>Adicionar Serviço</Text>
-            )}
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
+            {/* Dropdown Vendedores */}
+            <View style={styles.fieldContainer}>
+              <Text style={styles.label}>
+                Vendedor(es) <Text style={styles.required}>*</Text>
+              </Text>
+              <TouchableOpacity
+                style={styles.dropdown}
+                onPress={() => {
+                  setShowVendedoresDropdown(prev => !prev);
+                  setShowEquipeDropdown(false);
+                }}
+              >
+                <Text style={[styles.dropdownText, !vendedoresNomes && styles.placeholder]}>
+                  {vendedoresNomes || 'Selecione um ou mais vendedores'}
+                </Text>
+                <ChevronDown size={20} color="#666" />
+              </TouchableOpacity>
+
+              {showVendedoresDropdown && (
+                <View style={[
+                  styles.dropdownList,
+                  { height: Math.min(vendedores.length, VISIBLE_ITEMS) * ITEM_HEIGHT },
+                ]}>
+                  <ScrollView
+                    nestedScrollEnabled
+                    bounces={false}
+                    showsVerticalScrollIndicator={vendedores.length > VISIBLE_ITEMS}
+                    keyboardShouldPersistTaps="handled"
+                  >
+                    {vendedores.map(vendedor => {
+                      const isSelected = vendedoresSelecionados.includes(vendedor.cod_vendedor);
+                      return (
+                        <TouchableOpacity
+                          key={vendedor.cod_vendedor}
+                          style={[
+                            styles.dropdownItem,
+                            isSelected && styles.dropdownItemSelected,
+                          ]}
+                          onPress={() => toggleVendedor(vendedor.cod_vendedor)}
+                        >
+                          <View style={styles.checkboxContainer}>
+                            <View style={[styles.checkbox, isSelected && styles.checkboxChecked]}>
+                              {isSelected && <Text style={styles.checkmark}>✓</Text>}
+                            </View>
+                            <Text
+                              style={[
+                                styles.dropdownItemText,
+                                isSelected && styles.dropdownItemTextSelected,
+                              ]}
+                            >
+                              {vendedor.nome}
+                            </Text>
+                          </View>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </ScrollView>
+                </View>
+              )}
+            </View>
+
+            {/* Botão Salvar */}
+            <TouchableOpacity
+              style={[styles.submitButton, saving && styles.submitButtonDisabled]}
+              onPress={handleSave}
+              disabled={saving}
+            >
+              {saving ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Text style={styles.submitButtonText}>Adicionar Serviço</Text>
+              )}
+            </TouchableOpacity>
+
+          </View>
+        </ScrollView>
+      )}
     </KeyboardAvoidingView>
   );
 };
@@ -311,6 +377,16 @@ const AddServiceScreen = ({ navigation }: AddServiceScreenProps) => {
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   container: { flex: 1, backgroundColor: '#fff' },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 12,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#666',
+  },
   formContainer: { padding: 20 },
   fieldContainer: { marginBottom: 24 },
   label: { fontSize: 16, fontWeight: '600', color: '#000', marginBottom: 8 },
@@ -356,10 +432,12 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#e0e0e0',
-    maxHeight: 200,
+    overflow: 'hidden',
   },
   dropdownItem: {
-    padding: 16,
+    height: ITEM_HEIGHT,
+    paddingHorizontal: 16,
+    justifyContent: 'center',
     borderBottomWidth: 1,
     borderBottomColor: '#f0f0f0',
   },
