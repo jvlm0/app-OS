@@ -17,7 +17,7 @@ export const SaveButton = ({
 }: SaveButtonProps) => {
   const insets = useSafeAreaInsets();
   return (
-    <View style={[styles.footer, { paddingBottom: insets.bottom || 20}]}>
+    <View style={styles.footer}>
       <TouchableOpacity
         style={[
           styles.saveButton, 

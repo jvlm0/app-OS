@@ -62,7 +62,9 @@ function AppNavigator() {
           <Stack.Screen
             name="ServiceForm"
             component={ServiceForm}
-            options={{ title: 'Nova Ordem de Serviço' }}
+            options={{ title: 'Nova Ordem de Serviço', 
+                      presentation: 'modal'
+            }}
           />
 
           <Stack.Screen
@@ -117,13 +119,15 @@ function AppNavigator() {
 // Componente principal com providers
 function Index() {
   return (
-    <AuthProvider>
-      <FormDataProvider>
-        <SafeAreaProvider>
+    <SafeAreaProvider>
+      <AuthProvider>
+        <FormDataProvider>
+
           <AppNavigator />
-        </SafeAreaProvider>
-      </FormDataProvider>
-    </AuthProvider>
+
+        </FormDataProvider>
+      </AuthProvider>
+    </SafeAreaProvider>
   );
 }
 
