@@ -1,5 +1,6 @@
 import React from 'react';
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface SaveButtonProps {
   onPress: () => void;
@@ -14,8 +15,9 @@ export const SaveButton = ({
   disabled = false,
   text = 'Salvar Cliente' 
 }: SaveButtonProps) => {
+  const insets = useSafeAreaInsets();
   return (
-    <View style={styles.footer}>
+    <View style={[styles.footer, { paddingBottom: insets.bottom || 20}]}>
       <TouchableOpacity
         style={[
           styles.saveButton, 
