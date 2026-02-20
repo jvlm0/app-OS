@@ -30,5 +30,6 @@ export type RootStackParamList = {
     plate?: string;
     cod_cliente: number;
   };
-  AddService: undefined
+  AddService: undefined;
+  ProductSearch: undefined;
 };
