@@ -2,6 +2,18 @@
 // Tipos e interfaces relacionados a ordens de serviço
 
 /**
+ * Dados de um serviço para envio na criação da ordem
+ */
+export interface ServicoCreate {
+  descricao: string;
+  quantidade: number;
+  valorUnitario: number;
+  desconto: number;
+  cod_equipe: number;
+  cods_vendedores: number[];
+}
+
+/**
  * Dados para criar uma ordem de serviço na API
  */
 export interface OrderCreate {
@@ -9,6 +21,7 @@ export interface OrderCreate {
   descricao: string;
   cod_veiculo: number;
   cod_cliente: number;
+  servicos?: ServicoCreate[];
 }
 
 /**
