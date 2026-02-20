@@ -114,7 +114,7 @@ const ClientFormScreen = ({ navigation }: ClientFormScreenProps) => {
           </View>
         </ScrollView>
 
-        <SaveButton onPress={validateAndSave} loading={saving} />
+        <SaveButton onPress={validateAndSave} loading={saving} floating={false} />
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

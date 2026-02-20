@@ -7,17 +7,24 @@ interface SaveButtonProps {
   loading?: boolean;
   disabled?: boolean;
   text?: string;
+  floating?: boolean;
 }
 
 export const SaveButton = ({ 
   onPress, 
   loading = false, 
   disabled = false,
-  text = 'Salvar Cliente' 
+  text = 'Salvar Cliente',
+  floating = true 
 }: SaveButtonProps) => {
   const insets = useSafeAreaInsets();
+  
+  
+
+
   return (
-    <View style={styles.footer}>
+    <View style={[ floating ? styles.footerFloat : styles.footerNormal, 
+                  { paddingBottom: floating ?  insets.bottom + 20 : 20}]}>
       <TouchableOpacity
         style={[
           styles.saveButton, 
@@ -37,7 +44,18 @@ export const SaveButton = ({
 };
 
 const styles = StyleSheet.create({
-  footer: {
+    footerFloat: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,  // ancora no fundo
+    padding: 20,
+    paddingBottom: 20, // sobrescrito inline pelo insets
+    backgroundColor: '#fff',
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+  },
+  footerNormal: {
     padding: 20,
     borderTopWidth: 1,
     borderTopColor: '#e0e0e0',

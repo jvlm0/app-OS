@@ -25,11 +25,13 @@
       "translucent": false
     },
     "androidNavigationBar": {
-      "visible": "leanback",
+      "visible": "sticky-immersive",
       "barStyle": "dark-content",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#ffffff",
+      "position": "absolute"
     },
     "android": {
+      "softwareKeyboardLayoutMode": "resize",
       "permissions": [
         "CAMERA",
         "android.permission.CAMERA",
@@ -64,7 +66,7 @@
           "borderColor": "#1f2937",
           "visibility": "visible",
           "behavior": "inset-swipe",
-          "position": "relative"
+          "position": "absolute"
         }
       ]
     ],
@@ -79,7 +81,7 @@
         "borderColor": "#1f2937",
         "visibility": "visible",
         "behavior": "inset-swipe",
-        "position": "relative"
+        "position": "absolute"
       },
       "eas": {
         "projectId": "0e96d57d-8ec1-4cf3-88eb-b0eae27a7b97"

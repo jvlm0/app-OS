@@ -165,6 +165,7 @@ const VehicleFormScreen = ({ navigation, route }: VehicleFormScreenProps) => {
           loading={saving}
           disabled={searching}
           text={isExistingVehicle ? 'Selecionar Veículo' : 'Salvar Veículo'}
+          floating={false}
         />
       </KeyboardAvoidingView>
     </SafeAreaView>
