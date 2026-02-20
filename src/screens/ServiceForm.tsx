@@ -44,7 +44,9 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
     setIsKeyboardVisible(false);
 
     const showSub = Keyboard.addListener('keyboardDidShow', () => setIsKeyboardVisible(true));
-    const hideSub = Keyboard.addListener('keyboardDidHide', () => setIsKeyboardVisible(false));
+    const hideSub = Keyboard.addListener('keyboardDidHide', () =>
+      setIsKeyboardVisible(false)
+    );
 
     return () => {
       showSub.remove();
@@ -79,7 +81,7 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
 
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }} >
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
 
@@ -93,7 +95,7 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
 
         <ScrollView
           style={styles.container}
-
+            contentContainerStyle={{ paddingBottom: !isKeyboardVisible ? 100 : 0 }}
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.formContainer}>
@@ -166,20 +168,36 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
 
 
           </View>
+
+          {isKeyboardVisible && (
+            <SaveButton
+              onPress={handleSave}
+              loading={saving}
+              disabled={saving}
+              text={isEditMode ? 'Atualizar' : 'Salvar'}
+              floating={false}
+            />
+          )}
+
         </ScrollView>
+
+        
 
         
 
       </KeyboardAvoidingView>
 
-      
-        <SaveButton
+
+          {!isKeyboardVisible && (
+          <SaveButton
             onPress={handleSave}
             loading={saving}
             disabled={saving}
             text={isEditMode ? 'Atualizar' : 'Salvar'}
-         />
+          />
+        )}
 
+        
 
     </SafeAreaView>
   );
