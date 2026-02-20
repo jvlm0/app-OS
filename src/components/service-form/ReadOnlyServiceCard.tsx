@@ -5,7 +5,7 @@ import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 // Taxa de impostos (15%)
-const TAX_RATE = 0.15;
+const TAX_RATE = 0.05;
 
 export interface ServiceData {
   id: string;
@@ -13,8 +13,10 @@ export interface ServiceData {
   quantidade: number;
   valorUnitario: number;
   desconto: number;
+  cod_equipe: number;
   equipe: string;
   vendedores: string[];
+  cod_vendedores: number[]
 }
 
 interface ReadOnlyServiceCardProps {

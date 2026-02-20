@@ -3,6 +3,7 @@ import { useFormData } from '@/contexts/FormDataContext';
 import { createOrder, updateOrder } from '@/services/orderService';
 import type { RootStackParamList } from '@/types/navigation.types';
 import type { Order } from '@/types/order-list.types';
+import type { ServicoCreate } from '@/types/order.types';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useEffect, useState } from 'react';
 import { Alert } from 'react-native';
@@ -25,12 +26,12 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
     selectedVehicle,
     setSelectedClient,
     setSelectedVehicle,
+    services,
     clearFormData,
   } = useFormData();
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [services, setServices] = useState<ServiceData[]>([]);
   const [saving, setSaving] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [servicesExpanded, setServicesExpanded] = useState(false);
@@ -63,7 +64,6 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
       setIsEditMode(false);
       setTitle('');
       setDescription('');
-      setServices([]);
     }
 
     return () => {
@@ -87,18 +87,23 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
     navigation.navigate('CameraScreen', { cod_cliente: selectedClient.COD_PESSOA });
   };
 
+  // ─── Mapeamento de serviços ───────────────────────────────────────────────
+
+  const mapServicesToPayload = (serviceList: ServiceData[]): ServicoCreate[] =>
+    serviceList.map(s => ({
+      descricao: s.descricao,
+      quantidade: s.quantidade,
+      valorUnitario: s.valorUnitario,
+      desconto: s.desconto ?? 0,
+      cod_equipe: s.cod_equipe,
+      cods_vendedores: s.cod_vendedores,
+    }));
+
   // ─── Serviços ─────────────────────────────────────────────────────────────
 
-  
-
-  const removeService = (id: string) => {
-    setServices(prev => prev.filter(s => s.id !== id));
+  const updateService = (id: string, field: keyof Service, value: string) => {
+    // Mantido por compatibilidade, serviços são gerenciados pelo context
   };
-
-  const updateService = (id: string, field: keyof Service, value: string) =>
-    setServices(prev =>
-      prev.map(s => (s.id === id ? { ...s, [field]: value } : s))
-    );
 
   const formatCurrency = (value: string) => {
     const numbers = value.replace(/\D/g, '');
@@ -109,7 +114,7 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
   // ─── Validação ────────────────────────────────────────────────────────────
 
   const validate = (): boolean => {
-    if (title===null || !title.trim()) {
+    if (title === null || !title.trim()) {
       Alert.alert('Atenção', 'O título é obrigatório');
       return false;
     }
@@ -184,6 +189,7 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
       descricao: description.trim() || '',
       cod_veiculo: selectedVehicle!.cod_veiculo!,
       cod_cliente: selectedClient!.COD_PESSOA,
+      servicos: services.length > 0 ? mapServicesToPayload(services) : undefined,
     });
 
     if (!result.success) {
@@ -204,7 +210,6 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
           onPress: () => {
             setTitle('');
             setDescription('');
-            setServices([]);
             clearFormData();
             navigation.goBack();
           },
@@ -226,13 +231,12 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
     selectedClient,
     selectedVehicle,
 
-    // Serviços
+    // Serviços (do context)
     services,
     servicesExpanded,
     setServicesExpanded,
     detailsExpanded,
     setDetailsExpanded,
-    removeService,
     updateService,
     formatCurrency,
 

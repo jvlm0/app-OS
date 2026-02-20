@@ -25,7 +25,8 @@ export type {
     OrderCreateResult,
     OrderUpdate,
     OrderUpdateResponse,
-    OrderUpdateResult
+    OrderUpdateResult,
+    ServicoCreate
 } from './order.types';
 
 // Tipos de listagem de ordens
