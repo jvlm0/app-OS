@@ -14,6 +14,18 @@ export interface ServicoCreate {
 }
 
 /**
+ * Dados de um produto para envio na criação da ordem
+ */
+export interface ItemProdutoCreate {
+  cod_subproduto: number;
+  quantidade: number;
+  valorUnitario: number;
+  desconto: number;
+  cod_equipe: number;
+  cods_vendedores: number[];
+}
+
+/**
  * Dados para criar uma ordem de serviço na API
  */
 export interface OrderCreate {
@@ -22,6 +34,7 @@ export interface OrderCreate {
   cod_veiculo: number;
   cod_cliente: number;
   servicos?: ServicoCreate[];
+  produtos?: ItemProdutoCreate[];
 }
 
 /**

@@ -7,6 +7,7 @@ import { ListFooterLoader } from '@/components/search/ListFooterLoader';
 import { SearchBar } from '@/components/search/SearchBar';
 import type { FetchFn } from '@/hooks/useGenericSearch';
 import { useGenericSearch } from '@/hooks/useGenericSearch';
+import { UserPlus } from 'lucide-react-native';
 import React from 'react';
 import {
     FlatList,
@@ -34,6 +35,11 @@ interface GenericSearchScreenProps<T> {
 
   // Texto do botão de adicionar (default: "Adicionar")
   addButtonLabel?: string;
+
+  objectName?: string;
+  searchParam?: string;
+
+  icon?: React.ComponentType<{ size?: number; color?: string }>;
 }
 
 export function GenericSearchScreen<T>({
@@ -45,6 +51,10 @@ export function GenericSearchScreen<T>({
   onClose,
   onAdd,
   addButtonLabel,
+  objectName = 'cliente',
+  searchParam = 'nome ou telefone',
+  icon: Icon = UserPlus,
+  
 }: GenericSearchScreenProps<T>) {
   const {
     items,
@@ -86,6 +96,9 @@ export function GenericSearchScreen<T>({
               hasSearched={hasSearched}
               searchQuery={searchQuery}
               onAddClient={onAdd ?? (() => {})}
+              objectName={objectName}
+              searchParam={searchParam}
+              icon={Icon}
             />
           }
           ListFooterComponent={<ListFooterLoader visible={loadingMore} />}

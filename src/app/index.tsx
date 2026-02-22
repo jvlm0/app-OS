@@ -3,6 +3,7 @@
 
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { FormDataProvider } from '@/contexts/FormDataContext';
+import AddProductScreen from '@/screens/AddProductScreen';
 import AddServiceScreen from '@/screens/AddServiceScreen';
 import CameraScreen from '@/screens/CameraScreen';
 import ClientFormScreen from '@/screens/ClientFormScreen';
@@ -10,6 +11,7 @@ import ClientSearchScreen from '@/screens/ClientSearchScreen';
 import LoadingScreen from '@/screens/LoadingScreen';
 import LoginScreen from '@/screens/LoginScreen';
 import OrderListScreen from '@/screens/OrderListScreen';
+import ProductSearchScreen from '@/screens/ProductSearchScreen';
 import ServiceForm from '@/screens/ServiceForm';
 import VehicleFormScreen from '@/screens/VehicleFormScreen';
 import type { RootStackParamList } from '@/types/navigation.types';
@@ -77,6 +79,15 @@ function AppNavigator() {
           />
 
           <Stack.Screen
+            name="ProductSearch"
+            component={ProductSearchScreen}
+            options={{
+              headerShown: false,
+              presentation: 'modal',
+            }}
+          />
+
+          <Stack.Screen
             name="CameraScreen"
             component={CameraScreen}
             options={{
@@ -105,6 +116,15 @@ function AppNavigator() {
           <Stack.Screen
             name="AddService"
             component={AddServiceScreen}
+            options={{
+              headerShown: false,
+              presentation: 'modal',
+            }}
+          />
+
+          <Stack.Screen
+            name="AddProduct"
+            component={AddProductScreen}
             options={{
               headerShown: false,
               presentation: 'modal',
