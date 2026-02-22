@@ -1,9 +1,12 @@
+// src/hooks/useServiceForm.ts
+
+import type { ProductData } from '@/components/service-form/ReadOnlyProductCard';
 import { ServiceData } from '@/components/service-form/ReadOnlyServiceCard';
 import { useFormData } from '@/contexts/FormDataContext';
 import { createOrder, updateOrder } from '@/services/orderService';
 import type { RootStackParamList } from '@/types/navigation.types';
 import type { Order } from '@/types/order-list.types';
-import type { ServicoCreate } from '@/types/order.types';
+import type { ItemProdutoCreate, ServicoCreate } from '@/types/order.types';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useEffect, useState } from 'react';
 import { Alert } from 'react-native';
@@ -27,6 +30,7 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
     setSelectedClient,
     setSelectedVehicle,
     services,
+    products,
     clearFormData,
   } = useFormData();
 
@@ -35,9 +39,9 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
   const [saving, setSaving] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [servicesExpanded, setServicesExpanded] = useState(false);
+  const [productsExpanded, setProductsExpanded] = useState(false);
   const [detailsExpanded, setDetailsExpanded] = useState(false);
 
-  // Inicialização / limpeza ao montar e desmontar
   useEffect(() => {
     clearFormData();
 
@@ -74,7 +78,6 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
   // ─── Navegação ────────────────────────────────────────────────────────────
 
   const handleClientSelect = () => navigation.navigate('ClientSearch');
-
   const handleAddClient = () => navigation.navigate('ClientForm');
 
   const handleVehicleAdd = () => {
@@ -99,11 +102,21 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
       cods_vendedores: s.cod_vendedores,
     }));
 
-  // ─── Serviços ─────────────────────────────────────────────────────────────
+  // ─── Mapeamento de produtos ───────────────────────────────────────────────
 
-  const updateService = (id: string, field: keyof Service, value: string) => {
-    // Mantido por compatibilidade, serviços são gerenciados pelo context
-  };
+  const mapProductsToPayload = (productList: ProductData[]): ItemProdutoCreate[] =>
+    productList.map(p => ({
+      cod_subproduto: p.cod_subproduto,
+      quantidade: p.quantidade,
+      valorUnitario: p.valorUnitario,
+      desconto: p.desconto ?? 0,
+      cod_equipe: p.cod_equipe,
+      cods_vendedores: p.cod_vendedores,
+    }));
+
+  // ─── Serviços (compatibilidade) ───────────────────────────────────────────
+
+  const updateService = (_id: string, _field: keyof Service, _value: string) => {};
 
   const formatCurrency = (value: string) => {
     const numbers = value.replace(/\D/g, '');
@@ -130,7 +143,7 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
       Alert.alert(
         'Erro',
         'O veículo não possui um código válido. Por favor, cadastre o veículo novamente.',
-        [{ text: 'OK' }]
+        [{ text: 'OK' }],
       );
       return false;
     }
@@ -173,7 +186,7 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
       Alert.alert(
         'Erro ao atualizar',
         result.error || 'Não foi possível atualizar a ordem de serviço. Tente novamente.',
-        [{ text: 'OK' }]
+        [{ text: 'OK' }],
       );
       return;
     }
@@ -190,13 +203,14 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
       cod_veiculo: selectedVehicle!.cod_veiculo!,
       cod_cliente: selectedClient!.COD_PESSOA,
       servicos: services.length > 0 ? mapServicesToPayload(services) : undefined,
+      produtos: products.length > 0 ? mapProductsToPayload(products) : undefined,
     });
 
     if (!result.success) {
       Alert.alert(
         'Erro ao salvar',
         result.error || 'Não foi possível salvar a ordem de serviço. Tente novamente.',
-        [{ text: 'OK' }]
+        [{ text: 'OK' }],
       );
       return;
     }
@@ -214,7 +228,7 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
             navigation.goBack();
           },
         },
-      ]
+      ],
     );
   };
 
@@ -235,6 +249,12 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
     services,
     servicesExpanded,
     setServicesExpanded,
+
+    // Produtos (do context)
+    products,
+    productsExpanded,
+    setProductsExpanded,
+
     detailsExpanded,
     setDetailsExpanded,
     updateService,

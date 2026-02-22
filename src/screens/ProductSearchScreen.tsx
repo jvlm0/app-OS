@@ -1,20 +1,25 @@
 // src/screens/ProductSearchScreen.tsx
 
 import { ProductItem } from '@/components/search/ProductItem';
+import { useFormData } from '@/contexts/FormDataContext';
 import { GenericSearchScreen } from '@/screens/GenericSearchScreen';
 import { fetchProducts } from '@/services/productService';
 import type { RootStackParamList } from '@/types/navigation.types';
 import type { Product } from '@/types/product.types';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { PackagePlus } from 'lucide-react-native';
 import React from 'react';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ProductSearch'>;
 
 const ProductSearchScreen = ({ navigation }: Props) => {
+  const { setPendingProduct } = useFormData();
+
   const handleSelectProduct = (product: Product) => {
-    // Faça o que precisar com o produto selecionado
-    // ex.: navigation.goBack() + passar via contexto ou params
-    console.log('Produto selecionado:', product);
+    setPendingProduct({
+      cod_subproduto: product.cod_subproduto,
+      nome: product.nome,
+    });
     navigation.goBack();
   };
 
@@ -22,6 +27,9 @@ const ProductSearchScreen = ({ navigation }: Props) => {
     <GenericSearchScreen<Product>
       title="Buscar Produto"
       searchPlaceholder="Buscar por nome do produto"
+      searchParam='nome'
+      objectName='produto'
+      icon={PackagePlus}
       fetchFn={fetchProducts}
       keyExtractor={item => item.cod_subproduto.toString()}
       renderItem={item => (

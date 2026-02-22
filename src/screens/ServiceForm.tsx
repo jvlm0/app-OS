@@ -6,6 +6,7 @@ import SelectField from '@/components/SelectField';
 import ClientField from '@/components/service-form/ClientField';
 import DetailsSection from '@/components/service-form/DetailsSection';
 import EditModeBanner from '@/components/service-form/EditModeBanner';
+import ProductsSection from '@/components/service-form/ProductsSection';
 import ServicesSection from '@/components/service-form/ServicesSection';
 import { useFormData } from '@/contexts/FormDataContext';
 import { useServiceForm } from '@/hooks/useServiceForm';
@@ -21,21 +22,18 @@ import {
   StyleSheet,
   Text,
   TextInput,
-  View
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
-
 
 type ServiceFormProps = NativeStackScreenProps<RootStackParamList, 'ServiceForm'>;
 
 const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
   const isFocused = useIsFocused();
   const { order } = route.params || {};
-  const { services, removeService } = useFormData();
+  const { services, removeService, products, removeProduct } = useFormData();
 
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
-  const [isButtonVisible, setIsButtonVisible] = useState(false);
 
   useEffect(() => {
     if (!isFocused) return;
@@ -44,9 +42,7 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
     setIsKeyboardVisible(false);
 
     const showSub = Keyboard.addListener('keyboardDidShow', () => setIsKeyboardVisible(true));
-    const hideSub = Keyboard.addListener('keyboardDidHide', () =>
-      setIsKeyboardVisible(false)
-    );
+    const hideSub = Keyboard.addListener('keyboardDidHide', () => setIsKeyboardVisible(false));
 
     return () => {
       showSub.remove();
@@ -65,6 +61,8 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
     selectedVehicle,
     servicesExpanded,
     setServicesExpanded,
+    productsExpanded,
+    setProductsExpanded,
     detailsExpanded,
     setDetailsExpanded,
     handleClientSelect,
@@ -78,24 +76,25 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
     setServicesExpanded(true);
   };
 
-
+  const handleAddProduct = () => {
+    navigation.navigate('AddProduct');
+    setProductsExpanded(true);
+  };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }} >
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-
         style={styles.flex}
       >
         <ModalHeader
           title="Novo Serviço"
           onClose={() => navigation.goBack()}
-
         />
 
         <ScrollView
           style={styles.container}
-            contentContainerStyle={{ paddingBottom: !isKeyboardVisible ? 100 : 0 }}
+          contentContainerStyle={{ paddingBottom: !isKeyboardVisible ? 100 : 0 }}
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.formContainer}>
@@ -160,13 +159,20 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
               onRemove={removeService}
             />
 
+            {/* Produtos */}
+            <ProductsSection
+              products={products}
+              expanded={productsExpanded}
+              onToggle={setProductsExpanded}
+              onAdd={handleAddProduct}
+              onRemove={removeProduct}
+            />
+
             {/* Detalhes */}
             <DetailsSection
               expanded={detailsExpanded}
               onToggle={setDetailsExpanded}
             />
-
-
           </View>
 
           {isKeyboardVisible && (
@@ -178,27 +184,17 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
               floating={false}
             />
           )}
-
         </ScrollView>
-
-        
-
-        
-
       </KeyboardAvoidingView>
 
-
-          {!isKeyboardVisible && (
-          <SaveButton
-            onPress={handleSave}
-            loading={saving}
-            disabled={saving}
-            text={isEditMode ? 'Atualizar' : 'Salvar'}
-          />
-        )}
-
-        
-
+      {!isKeyboardVisible && (
+        <SaveButton
+          onPress={handleSave}
+          loading={saving}
+          disabled={saving}
+          text={isEditMode ? 'Atualizar' : 'Salvar'}
+        />
+      )}
     </SafeAreaView>
   );
 };
@@ -220,15 +216,6 @@ const styles = StyleSheet.create({
     borderColor: '#e0e0e0',
   },
   textArea: { height: 120, textAlignVertical: 'top' },
-  submitButton: {
-    backgroundColor: '#000',
-    borderRadius: 8,
-    padding: 18,
-    alignItems: 'center',
-    marginTop: 16,
-  },
-  submitButtonDisabled: { backgroundColor: '#666' },
-  submitButtonText: { fontSize: 16, fontWeight: '600', color: '#fff' },
 });
 
 export default ServiceForm;
