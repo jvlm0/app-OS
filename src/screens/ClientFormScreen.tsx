@@ -8,6 +8,7 @@ import { FormField } from '@/components/form/FormField';
 import { useFormData } from '@/contexts/FormDataContext';
 import { useClientForm } from '@/hooks/useClientForm';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useRouter } from 'expo-router';
 import React from 'react';
 import {
   KeyboardAvoidingView,
@@ -24,7 +25,8 @@ type ClientFormScreenProps = NativeStackScreenProps<RootStackParamList, 'ClientF
 const ClientFormScreen = ({ navigation }: ClientFormScreenProps) => {
   // ✅ Usar context ao invés de callback
   const { setSelectedClient } = useFormData();
-  
+  const router = useRouter();
+
   const {
     personType,
     name,
@@ -43,7 +45,20 @@ const ClientFormScreen = ({ navigation }: ClientFormScreenProps) => {
     onClientAdd: (client) => {
       setSelectedClient(client); // ✅ Atualiza context
     },
-    onClose: () => navigation.goBack(),
+    onClose: () => {
+      const state = navigation.getState();
+      const currentIndex = state.index;
+
+      // Encontra o índice do ServiceForm na stack
+      const serviceFormIndex = state.routes.findIndex(r => r.name === 'ServiceForm');
+
+      if (serviceFormIndex !== -1) {
+        const stepsBack = currentIndex - serviceFormIndex;
+        router.dismiss(stepsBack);
+      } else {
+        router.dismiss(1); // fallback
+      }
+    },
   });
 
   return (

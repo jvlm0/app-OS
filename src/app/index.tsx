@@ -64,9 +64,7 @@ function AppNavigator() {
           <Stack.Screen
             name="ServiceForm"
             component={ServiceForm}
-            options={{ title: 'Nova Ordem de Serviço', 
-                      presentation: 'modal'
-            }}
+            options={{ headerShown: false }}
           />
 
           <Stack.Screen

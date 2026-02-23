@@ -3,10 +3,10 @@ import { isValidPlate } from '@/services/ocrService';
 import type { Vehicle, VehicleData } from '@/types/vehicle.types';
 import { cleanMileage, cleanPlate } from '@/utils/vehicleFormatters';
 import {
-    validateMileage,
-    validateModel,
-    validatePlate,
-    validateYear
+  validateMileage,
+  validateModel,
+  validatePlate,
+  validateYear
 } from '@/utils/vehicleValidators';
 import { useEffect, useState } from 'react';
 import { Alert } from 'react-native';
@@ -76,7 +76,8 @@ export const useVehicleForm = ({
         setModelo(result.data.modelo);
         setAno(result.data.ano);
         setAutoFilled(true);
-        
+        setIsExistingVehicle(true)
+        /*
         Alert.alert(
           'Veículo encontrado!',
           `${result.data.modelo} - ${result.data.ano}\n\nEste veículo já está cadastrado. Deseja selecioná-lo ou criar um novo cadastro?`,
@@ -103,6 +104,7 @@ export const useVehicleForm = ({
             },
           ]
         );
+        */
       } else {
         setFoundVehicle(null);
         setIsExistingVehicle(false);
