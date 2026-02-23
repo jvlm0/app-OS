@@ -4,6 +4,7 @@ import type { ProductData } from '@/components/service-form/ReadOnlyProductCard'
 import type { ServiceData } from '@/components/service-form/ReadOnlyServiceCard';
 import React, { createContext, useContext, useState } from 'react';
 import type { Client } from '../types/client.types';
+import type { Order } from '../types/order-list.types';
 import type { Vehicle } from '../types/vehicle.types';
 
 interface FormDataContextType {
@@ -28,6 +29,10 @@ interface FormDataContextType {
   // Produto pendente (selecionado na busca, aguardando preenchimento do form)
   pendingProduct: { cod_subproduto: number; nome: string } | null;
   setPendingProduct: (p: { cod_subproduto: number; nome: string } | null) => void;
+  // Ordem atualizada — preenchida pelo ServiceForm após update bem-sucedido,
+  // consumida e limpa pelo OrderDetailScreen ao ganhar foco
+  updatedOrder: Order | null;
+  setUpdatedOrder: (order: Order | null) => void;
   // Geral
   clearFormData: () => void;
 }
@@ -45,6 +50,7 @@ export const FormDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     cod_subproduto: number;
     nome: string;
   } | null>(null);
+  const [updatedOrder, setUpdatedOrder] = useState<Order | null>(null);
 
   // ─── Serviços ─────────────────────────────────────────────────────────────
 
@@ -104,6 +110,7 @@ export const FormDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setRemovedServiceIds([]);
     setRemovedProductIds([]);
     setPendingProduct(null);
+    // Não limpa updatedOrder aqui — é responsabilidade do OrderDetailScreen
   };
 
   return (
@@ -127,6 +134,8 @@ export const FormDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         removedProductIds,
         pendingProduct,
         setPendingProduct,
+        updatedOrder,
+        setUpdatedOrder,
         clearFormData,
       }}
     >

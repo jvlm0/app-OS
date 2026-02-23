@@ -1,6 +1,8 @@
 // types/order.types.ts
 // Tipos e interfaces relacionados a ordens de serviço
 
+import type { Order } from './order-list.types';
+
 /**
  * Dados de um serviço para envio na criação/atualização da ordem
  */
@@ -21,7 +23,6 @@ export interface ItemProdutoCreate {
   quantidade: number;
   valorUnitario: number;
   desconto: number;
-  cod_equipe: number;
   cods_vendedores: number[];
 }
 
@@ -70,17 +71,11 @@ export interface OrderUpdate {
 }
 
 /**
- * Resposta da API ao atualizar ordem de serviço
- */
-export interface OrderUpdateResponse {
-  status: string;
-}
-
-/**
- * Resultado da atualização de ordem de serviço
+ * Resultado da atualização de ordem de serviço.
+ * A API retorna a ordem completa atualizada (mesmo shape de GET /ordens/{id}).
  */
 export interface OrderUpdateResult {
   success: boolean;
-  data?: OrderUpdateResponse;
+  data?: Order;
   error?: string;
 }

@@ -135,8 +135,6 @@ const AddProductScreen = ({ navigation }: AddProductScreenProps) => {
       quantidade: parseFloat(quantidade),
       valorUnitario: parseFloat(valorUnitario.replace(/\./g, '').replace(',', '.')),
       desconto: desconto ? parseFloat(desconto) : 0,
-      cod_equipe: equipeId,
-      equipe: equipe?.nome || '',
       cod_vendedores: vendedoresSelecionados,
       vendedores: vendedoresFiltrados.map(v => v.nome),
     });

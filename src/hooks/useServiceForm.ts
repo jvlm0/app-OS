@@ -35,6 +35,7 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
     setProducts,
     removedServiceIds,
     removedProductIds,
+    setUpdatedOrder,
     clearFormData,
   } = useFormData();
 
@@ -154,7 +155,6 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
         quantidade: p.quantidade,
         valorUnitario: p.valorUnitario,
         desconto: p.desconto ?? 0,
-        cod_equipe: p.cod_equipe,
         cods_vendedores: p.cod_vendedores,
       }));
 
@@ -178,7 +178,6 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
       quantidade: p.quantidade,
       valorUnitario: p.valorUnitario,
       desconto: p.desconto ?? 0,
-      cod_equipe: p.cod_equipe,
       cods_vendedores: p.cod_vendedores,
     }));
 
@@ -249,10 +248,8 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
       descricao: description.trim() || '',
       cod_veiculo: selectedVehicle!.cod_veiculo!,
       cod_cliente: selectedClient!.COD_PESSOA,
-      // Envia apenas os novos (sem ID da API); undefined se vazio
       servicos: newServices.length > 0 ? newServices : undefined,
       produtos: newProducts.length > 0 ? newProducts : undefined,
-      // IDs dos serviços/produtos removidos durante a edição
       servicosRemovidos: removedServiceIds.length > 0 ? removedServiceIds : undefined,
       produtosRemovidos: removedProductIds.length > 0 ? removedProductIds : undefined,
     });
@@ -270,6 +267,8 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
       {
         text: 'OK',
         onPress: () => {
+          // Armazena a ordem atualizada no context para o OrderDetailScreen consumir
+          setUpdatedOrder(result.data!);
           clearFormData();
           navigation.goBack();
         },

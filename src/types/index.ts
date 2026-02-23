@@ -23,7 +23,6 @@ export type {
     OrderCreateResponse,
     OrderCreateResult,
     OrderUpdate,
-    OrderUpdateResponse,
     OrderUpdateResult,
     ServicoCreate
 } from './order.types';
@@ -44,3 +43,4 @@ export type {
 export type {
     RootStackParamList
 } from './navigation.types';
+
