@@ -1,5 +1,4 @@
 // hooks/useOrderDetail.ts
-// Hook para buscar os detalhes de uma ordem de serviço
 
 import { useCallback, useEffect, useState } from 'react';
 import { getOrderDetail } from '../services/orderDetailService';
@@ -7,6 +6,7 @@ import type { Order } from '../types/order-list.types';
 
 interface UseOrderDetailReturn {
   order: Order | null;
+  setOrder: (order: Order) => void;
   loading: boolean;
   error: string | null;
   refresh: () => Promise<void>;
@@ -45,6 +45,7 @@ export function useOrderDetail(cod_ordem: number): UseOrderDetailReturn {
 
   return {
     order,
+    setOrder,
     loading,
     error,
     refresh: fetchOrder,

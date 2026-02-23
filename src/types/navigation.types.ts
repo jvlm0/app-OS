@@ -1,6 +1,6 @@
 // src/types/navigation.types.ts
 
-import type { Order } from './order-list.types';
+import { Order } from './order-list.types';
 import type { Vehicle } from './vehicle.types';
 
 export interface Client {

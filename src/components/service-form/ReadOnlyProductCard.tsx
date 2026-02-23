@@ -14,8 +14,6 @@ export interface ProductData {
   quantidade: number;
   valorUnitario: number;
   desconto: number;
-  cod_equipe: number;
-  equipe: string;
   vendedores: string[];
   cod_vendedores: number[];
 }
@@ -62,10 +60,7 @@ const ReadOnlyProductCard = ({ product, index, onRemove }: ReadOnlyProductCardPr
         </View>
       </View>
 
-      <View style={styles.infoRow}>
-        <Text style={styles.infoLabel}>Equipe:</Text>
-        <Text style={styles.infoValue}>{product.equipe}</Text>
-      </View>
+      
 
       <View style={styles.infoRow}>
         <Text style={styles.infoLabel}>Vendedor(es):</Text>

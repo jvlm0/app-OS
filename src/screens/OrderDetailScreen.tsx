@@ -1,6 +1,7 @@
 // src/screens/OrderDetailScreen.tsx
 
 import ModalHeader from '@/components/ModalHeader';
+import { useFormData } from '@/contexts/FormDataContext';
 import type { RootStackParamList } from '@/types/navigation.types';
 import type { ItemProdutoResponse, ServicoResponse } from '@/types/order-list.types';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -20,14 +21,20 @@ type OrderDetailProps = NativeStackScreenProps<RootStackParamList, 'OrderDetail'
 
 const OrderDetailScreen = ({ navigation, route }: OrderDetailProps) => {
   const { cod_ordem } = route.params;
-  const { order, loading, error, refresh } = useOrderDetail(cod_ordem);
+  const { updatedOrder, setUpdatedOrder } = useFormData();
+  const { order, setOrder, loading, error, refresh } = useOrderDetail(cod_ordem);
 
+  // Ao voltar do ServiceForm, o context já tem a ordem atualizada —
+  // aplica direto no estado local e limpa o context, sem novo GET
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
-      refresh();
+      if (updatedOrder) {
+        setOrder(updatedOrder);
+        setUpdatedOrder(null);
+      }
     });
     return unsubscribe;
-  }, [navigation, refresh]);
+  }, [navigation, updatedOrder]);
 
   const handleEdit = () => {
     if (!order) return;
@@ -194,7 +201,6 @@ const OrderDetailScreen = ({ navigation, route }: OrderDetailProps) => {
                     <Text style={styles.itemValue}>{formatCurrency(Number(p.desconto))}</Text>
                   </View>
                 ) : null}
-                
                 {p.vendedores.length > 0 ? (
                   <View style={styles.itemRow}>
                     <Text style={styles.itemLabel}>Vendedores:</Text>
