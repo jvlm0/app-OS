@@ -5,8 +5,7 @@ import { ENV } from '@/config/env';
 import * as FileSystem from 'expo-file-system/legacy';
 import { resizeImageForOCR } from '../utils/resizeImageForOCR';
 
-// API Key gratuita do OCR.space (você pode criar sua própria em https://ocr.space/ocrapi)
-const OCR_API_KEY = ENV.OCR_KEY; 
+const OCR_API_KEY = ENV.OCR_KEY;
 
 interface OCRResult {
   success: boolean;
@@ -43,188 +42,149 @@ const NUMBER_TO_LETTER: Record<string, string> = {
 };
 
 /**
+ * Remove todos os prefixos e sufixos conhecidos de placas brasileiras
+ * Cobre: BRASIL, BRAZIL, BR, MERCOSUL, MERCOSUR e variações com erros de OCR
+ * Também cobre casos onde o OCR cola "BR" direto na placa (ex: "BRMGO5E23")
+ */
+const stripKnownPrefixesSuffixes = (text: string): string => {
+  let result = text.toUpperCase();
+
+  // Remove variações de BRASIL/BRAZIL/MERCOSUL (com possíveis erros de OCR)
+  const wordPatterns = [
+    /MERCOS[UU]L/g,
+    /MERCOS[UU]R/g,
+    /BRAZ?[15I!]L/g,   // cobre BRASIL, BRAS1L, BRAZIL, BRA5IL, BRAZ1L, etc.
+    /8RAZ?[15I!]L/g,   // B→8
+  ];
+
+  for (const pattern of wordPatterns) {
+    result = result.replace(pattern, ' ');
+  }
+
+  // Remove "BR" ou "8R" quando aparece isolado (separado por não-alfanumérico)
+  result = result.replace(/(?<![A-Z0-9])(BR|8R)(?![A-Z0-9])/g, ' ');
+
+  return result;
+};
+
+/**
  * Detecta se o texto contém indicação de placa Mercosul
- * Procura por "BRASIL", "BR" ou variações com erros de OCR
  */
 const detectMercosulIndicator = (text: string): boolean => {
-  const upperText = text.toUpperCase();
-  
-  // Padrões para detectar "BRASIL" com possíveis erros de OCR
-  const brasilPatterns = [
-    /BRASIL/i,
-    /BRAS1L/i,  // I confundido com 1
-    /BRAS!L/i,  // I confundido com !
-    /8RASIL/i,  // B confundido com 8
-    /BRA5IL/i,  // S confundido com 5
-    /BRAZ1L/i,  // S confundido com Z, I com 1
-    /BRAZIL/i,  // S confundido com Z
-    /BRA51L/i,  // S confundido com 5, I com 1
-    /8RA51L/i,  // B→8, S→5, I→1
-    /8RAZIL/i,  // B→8, S→Z
-  ];
-  
-  // Verifica padrões de BRASIL
-  for (const pattern of brasilPatterns) {
-    if (pattern.test(upperText)) {
-      return true;
-    }
-  }
-  
-  // Verifica "BR" no início do texto (comum em placas Mercosul)
-  if (/^[\s\W]*BR[\s\W]/i.test(upperText)) {
-    return true;
-  }
-  
-  // Verifica "BR" em linha separada
-  const lines = text.split(/[\n\r]+/);
-  for (const line of lines) {
-    const cleanLine = line.trim().toUpperCase();
-    if (cleanLine === 'BR' || cleanLine === '8R' || /^BR$/i.test(cleanLine)) {
-      return true;
-    }
-  }
-  
+  const upper = text.toUpperCase();
+
+  // Presença de BRASIL/BRAZIL e variantes
+  if (/BRAZ?[15I!]L/i.test(upper) || /8RAZ?[15I!]L/i.test(upper)) return true;
+
+  // "BR" ou "8R" isolado em qualquer posição (linha própria ou separado)
+  if (/(?<![A-Z0-9])(BR|8R)(?![A-Z0-9])/i.test(upper)) return true;
+
   return false;
 };
 
 /**
- * Extrai possíveis candidatos a placa do texto
- * Remove prefixos como "BR", "BRASIL", etc.
+ * Extrai sequências de 7 caracteres alfanuméricos candidatas a placa
+ * após remover prefixos conhecidos
  */
 const extractPlateCandidates = (text: string): string[] => {
-  const cleanText = text.toUpperCase();
+  const stripped = stripKnownPrefixesSuffixes(text);
+  const alphanumeric = stripped.replace(/[^A-Z0-9]/g, '');
   const candidates: string[] = [];
-  
-  // Remove palavras conhecidas que não são parte da placa
-  let processed = cleanText
-    .replace(/BRASIL/gi, ' ')
-    .replace(/BRAZIL/gi, ' ')
-    .replace(/BRAS1L/gi, ' ')
-    .replace(/BRA5IL/gi, ' ')
-    .replace(/8RASIL/gi, ' ')
-    .replace(/8RA51L/gi, ' ')
-    .replace(/MERCOSUL/gi, ' ')
-    .replace(/MERCOSUR/gi, ' ');
-  
-  // Remove "BR" quando aparece isolado ou no início
-  processed = processed.replace(/^[\s\W]*BR[\s\W]+/i, ' ');
-  processed = processed.replace(/[\s\W]+BR[\s\W]+/i, ' ');
-  
-  // Remove todos os caracteres não alfanuméricos
-  const alphanumeric = processed.replace(/[^A-Z0-9]/g, '');
-  
-  // Procura sequências de 7 caracteres
+
   for (let i = 0; i <= alphanumeric.length - 7; i++) {
     const candidate = alphanumeric.substring(i, i + 7);
-    const hasLetters = /[A-Z]/.test(candidate);
-    const hasNumbers = /[0-9]/.test(candidate);
-    
-    if (hasLetters && hasNumbers) {
+    if (/[A-Z]/.test(candidate) && /[0-9]/.test(candidate)) {
       candidates.push(candidate);
     }
   }
-  
-  // Se não encontrou candidatos de 7 caracteres, procura em linhas separadas
-  if (candidates.length === 0) {
-    const lines = text.split(/[\n\r]+/);
-    for (const line of lines) {
-      const cleanLine = line.replace(/[^A-Z0-9]/gi, '').toUpperCase();
-      if (cleanLine.length >= 7) {
-        for (let i = 0; i <= cleanLine.length - 7; i++) {
-          const candidate = cleanLine.substring(i, i + 7);
-          const hasLetters = /[A-Z]/.test(candidate);
-          const hasNumbers = /[0-9]/.test(candidate);
-          
-          if (hasLetters && hasNumbers) {
-            candidates.push(candidate);
-          }
-        }
-      }
-    }
-  }
-  
+
   return candidates;
 };
 
 /**
  * Corrige confusões entre letras e números baseado na posição na placa
- * @param plate - Placa sem formatação (7 caracteres)
- * @param forceMercosul - Força tratamento como placa Mercosul
- * @returns Placa corrigida
+ *
+ * Formato antigo:   ABC 1234  → posições 0-2: letras | 3-6: números
+ * Formato Mercosul: ABC 1D23  → posições 0-2: letras | 3: número | 4: letra | 5-6: números
  */
 const correctOCRConfusions = (plate: string, forceMercosul: boolean = false): string => {
   if (plate.length !== 7) return plate;
 
   const chars = plate.split('');
-  
-  // Detecta se é formato antigo ou Mercosul
-  const isPossiblyOldFormat = /[0-9]/.test(chars[3]) && /[0-9]/.test(chars[4]) && /[0-9]/.test(chars[5]) && /[0-9]/.test(chars[6]);
-  const isPossiblyMercosulFormat = /[0-9]/.test(chars[3]) && /[A-Z]/.test(chars[4]) && /[0-9]/.test(chars[5]) && /[0-9]/.test(chars[6]);
-  
-  // Se detectou indicador Mercosul, força esse formato
-  const isMercosul = forceMercosul || isPossiblyMercosulFormat;
-  
-  // Posições 0, 1, 2 devem ser LETRAS (ambos formatos)
+
+  // Detecta o formato pelo conteúdo bruto
+  const looksLikeMercosul =
+    forceMercosul ||
+    (/[A-Z0-9]/.test(chars[3]) && /[A-Z]/.test(chars[4]));
+
+  // Posições 0-2: sempre LETRAS
   for (let i = 0; i < 3; i++) {
     if (/[0-9]/.test(chars[i]) && NUMBER_TO_LETTER[chars[i]]) {
       chars[i] = NUMBER_TO_LETTER[chars[i]];
     }
   }
-  
-  // Formato antigo: ABC-1234
-  // Posições 3, 4, 5, 6 devem ser NÚMEROS
-  if (!isMercosul && (isPossiblyOldFormat || !isPossiblyMercosulFormat)) {
+
+  if (looksLikeMercosul) {
+    // Posição 3: NÚMERO
+    if (/[A-Z]/.test(chars[3]) && LETTER_TO_NUMBER[chars[3]]) {
+      chars[3] = LETTER_TO_NUMBER[chars[3]];
+    }
+    // Posição 4: LETRA
+    if (/[0-9]/.test(chars[4]) && NUMBER_TO_LETTER[chars[4]]) {
+      chars[4] = NUMBER_TO_LETTER[chars[4]];
+    }
+    // Posições 5-6: NÚMEROS
+    for (let i = 5; i < 7; i++) {
+      if (/[A-Z]/.test(chars[i]) && LETTER_TO_NUMBER[chars[i]]) {
+        chars[i] = LETTER_TO_NUMBER[chars[i]];
+      }
+    }
+  } else {
+    // Formato antigo: posições 3-6 são NÚMEROS
     for (let i = 3; i < 7; i++) {
       if (/[A-Z]/.test(chars[i]) && LETTER_TO_NUMBER[chars[i]]) {
         chars[i] = LETTER_TO_NUMBER[chars[i]];
       }
     }
   }
-  // Formato Mercosul: ABC1D23
-  // Posição 3 deve ser NÚMERO
-  // Posição 4 deve ser LETRA
-  // Posições 5, 6 devem ser NÚMEROS
-  else {
-    // Posição 3: deve ser número
-    if (/[A-Z]/.test(chars[3]) && LETTER_TO_NUMBER[chars[3]]) {
-      chars[3] = LETTER_TO_NUMBER[chars[3]];
-    }
-    
-    // Posição 4: deve ser letra
-    if (/[0-9]/.test(chars[4]) && NUMBER_TO_LETTER[chars[4]]) {
-      chars[4] = NUMBER_TO_LETTER[chars[4]];
-    }
-    
-    // Posições 5 e 6: devem ser números
-    for (let i = 5; i < 7; i++) {
-      if (/[A-Z]/.test(chars[i]) && LETTER_TO_NUMBER[chars[i]]) {
-        chars[i] = LETTER_TO_NUMBER[chars[i]];
-      }
-    }
-  }
-  
+
   return chars.join('');
 };
 
 /**
+ * Valida se uma string é uma placa brasileira válida (sem formatação)
+ */
+const isValidRawPlate = (plate: string): boolean => {
+  return /^[A-Z]{3}[0-9]{4}$/.test(plate) || /^[A-Z]{3}[0-9][A-Z][0-9]{2}$/.test(plate);
+};
+
+/**
+ * Formata a placa no padrão brasileiro
+ * ABC1234 → ABC-1234
+ * ABC1D23 → ABC1D23 (Mercosul não usa hífen)
+ */
+const formatPlate = (plate: string): string => {
+  if (plate.length === 7 && /^[A-Z]{3}[0-9]{4}$/.test(plate)) {
+    return `${plate.substring(0, 3)}-${plate.substring(3)}`;
+  }
+  return plate;
+};
+
+/**
  * Extrai texto de uma imagem usando OCR
- * @param imageUri - URI da imagem capturada
- * @returns Texto extraído da imagem
  */
 export const extractTextFromImage = async (imageUri: string): Promise<OCRResult> => {
   try {
     const resizedUri = await resizeImageForOCR(imageUri);
-    // Ler a imagem como base64
     const base64 = await FileSystem.readAsStringAsync(resizedUri, {
       encoding: 'base64',
     });
 
-    // Fazer requisição para API de OCR
     const formData = new FormData();
     formData.append('base64Image', `data:image/jpeg;base64,${base64}`);
     formData.append('language', 'eng');
     formData.append('isOverlayRequired', 'false');
-    formData.append('OCREngine', '2'); // Engine 2 é melhor para placas
+    formData.append('OCREngine', '2');
 
     const response = await fetch(ENV.API_OCR, {
       method: 'POST',
@@ -235,9 +195,6 @@ export const extractTextFromImage = async (imageUri: string): Promise<OCRResult>
     });
 
     const result = await response.json();
-
-    //console.log("código req ocr : "+response.status);
-    //console.log("corpo req ocr : "+result);
 
     if (result.IsErroredOnProcessing) {
       return {
@@ -264,70 +221,56 @@ export const extractTextFromImage = async (imageUri: string): Promise<OCRResult>
 };
 
 /**
- * Processa o texto extraído para encontrar padrão de placa brasileira
- * Formatos aceitos:
- * - Antigo: ABC1234 (3 letras + 4 números)
- * - Mercosul: ABC1D23 (3 letras + 1 número + 1 letra + 2 números)
+ * Processa o texto extraído para encontrar padrão de placa brasileira.
+ *
+ * Estratégia (em ordem de prioridade):
+ * 1. Extrai candidatos após remover prefixos BR/BRASIL
+ * 2. Para cada candidato aplica correção de OCR e valida
+ * 3. Fallback: regex direto no texto limpo
  */
 export const extractPlateFromText = (text: string): string | null => {
-  // Detecta se é placa Mercosul pela presença de "BRASIL" ou "BR"
   const isMercosul = detectMercosulIndicator(text);
-  
-  // Extrai candidatos a placa removendo prefixos conhecidos
   const candidates = extractPlateCandidates(text);
-  
-  // Se detectou Mercosul, prioriza correção no formato Mercosul
-  if (isMercosul && candidates.length > 0) {
+
+  // --- Passo 1: tenta candidatos com prefixos removidos ---
+  // Se é Mercosul, tenta esse formato primeiro; senão tenta ambos
+  const formatsToTry = isMercosul
+    ? [true, false]   // Mercosul primeiro, depois antigo
+    : [false, true];  // antigo primeiro, depois Mercosul
+
+  for (const asMercosul of formatsToTry) {
     for (const candidate of candidates) {
-      const corrected = correctOCRConfusions(candidate, true);
-      if (/^[A-Z]{3}[0-9][A-Z][0-9]{2}$/.test(corrected)) {
+      const corrected = correctOCRConfusions(candidate, asMercosul);
+      if (isValidRawPlate(corrected)) {
         return formatPlate(corrected);
       }
     }
   }
-  
-  // Remove espaços e caracteres especiais do texto original
+
+  // --- Passo 2: fallback com regex no texto limpo (sem remoção de prefixos) ---
+  // Útil quando o texto não tem "BR" e a placa aparece limpa
   const cleanText = text.replace(/[^A-Z0-9]/gi, '').toUpperCase();
 
-  // Tenta padrão Mercosul
-  const mercosulPattern = /[A-Z]{3}[0-9][A-Z][0-9]{2}/g;
-  const mercosulMatch = cleanText.match(mercosulPattern);
+  const mercosulMatch = cleanText.match(/[A-Z]{3}[0-9][A-Z][0-9]{2}/);
   if (mercosulMatch) {
     const corrected = correctOCRConfusions(mercosulMatch[0], isMercosul);
-    return formatPlate(corrected);
+    if (isValidRawPlate(corrected)) return formatPlate(corrected);
   }
 
-  // Padrão antigo: ABC1234
-  const oldPattern = /[A-Z]{3}[0-9]{4}/g;
-  const oldMatch = cleanText.match(oldPattern);
+  const oldMatch = cleanText.match(/[A-Z]{3}[0-9]{4}/);
   if (oldMatch) {
     const corrected = correctOCRConfusions(oldMatch[0], isMercosul);
-    return formatPlate(corrected);
+    if (isValidRawPlate(corrected)) return formatPlate(corrected);
   }
 
-  // Tenta candidatos extraídos
-  for (const candidate of candidates) {
-    const corrected = correctOCRConfusions(candidate, isMercosul);
-    if (/^[A-Z]{3}[0-9]{4}$/.test(corrected) || /^[A-Z]{3}[0-9][A-Z][0-9]{2}$/.test(corrected)) {
-      return formatPlate(corrected);
-    }
-  }
-
-  // Se não encontrou padrão específico, tenta encontrar algo similar
-  // com 7 caracteres (letras e números) e aplica correções
-  if (cleanText.length >= 7) {
-    for (let i = 0; i <= cleanText.length - 7; i++) {
-      const candidate = cleanText.substring(i, i + 7);
-      const hasLetters = /[A-Z]/.test(candidate);
-      const hasNumbers = /[0-9]/.test(candidate);
-      
-      if (hasLetters && hasNumbers) {
-        const corrected = correctOCRConfusions(candidate, isMercosul);
-        
-        // Valida se após correção ficou em um formato válido
-        if (/^[A-Z]{3}[0-9]{4}$/.test(corrected) || /^[A-Z]{3}[0-9][A-Z][0-9]{2}$/.test(corrected)) {
-          return formatPlate(corrected);
-        }
+  // --- Passo 3: última tentativa — janela deslizante no texto limpo ---
+  for (let i = 0; i <= cleanText.length - 7; i++) {
+    const candidate = cleanText.substring(i, i + 7);
+    if (/[A-Z]/.test(candidate) && /[0-9]/.test(candidate)) {
+      // Tenta Mercosul primeiro se detectado, senão antigo
+      for (const asMercosul of formatsToTry) {
+        const corrected = correctOCRConfusions(candidate, asMercosul);
+        if (isValidRawPlate(corrected)) return formatPlate(corrected);
       }
     }
   }
@@ -336,33 +279,9 @@ export const extractPlateFromText = (text: string): string | null => {
 };
 
 /**
- * Formata a placa no padrão brasileiro
- * ABC1234 -> ABC-1234
- * ABC1D23 -> ABC1D23
- */
-const formatPlate = (plate: string): string => {
-  if (plate.length === 7) {
-    // Verifica se é formato antigo (ABC1234)
-    if (/[A-Z]{3}[0-9]{4}/.test(plate)) {
-      return `${plate.substring(0, 3)}-${plate.substring(3)}`;
-    }
-    // Formato Mercosul (ABC1D23) não usa hífen
-    return plate;
-  }
-  return plate;
-};
-
-/**
  * Valida se uma placa está no formato correto
  */
 export const isValidPlate = (plate: string): boolean => {
-  const cleanPlate = plate.replace(/[^A-Z0-9]/gi, '').toUpperCase();
-  
-  // Formato antigo: ABC1234
-  const oldFormat = /^[A-Z]{3}[0-9]{4}$/.test(cleanPlate);
-  
-  // Formato Mercosul: ABC1D23
-  const mercosulFormat = /^[A-Z]{3}[0-9][A-Z][0-9]{2}$/.test(cleanPlate);
-  
-  return oldFormat || mercosulFormat;
+  const clean = plate.replace(/[^A-Z0-9]/gi, '').toUpperCase();
+  return isValidRawPlate(clean);
 };

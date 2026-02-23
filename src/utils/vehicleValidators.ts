@@ -17,14 +17,22 @@ export const validatePlate = (plate: string): { isValid: boolean; error?: string
 };
 
 export const validateModel = (model: string): { isValid: boolean; error?: string } => {
+  
+
+  
   if (!model.trim()) {
-    return { isValid: false, error: 'O modelo é obrigatório' };
+    return { isValid: true}; // Permitir modelo vazio, pois não é obrigatório
   }
 
   return { isValid: true };
 };
 
 export const validateYear = (year: string): { isValid: boolean; error?: string } => {
+  
+  if (!year.trim()) {
+    return { isValid: true }; // Permitir ano vazio, pois não é obrigatório
+  }
+
   if (!year.trim()) {
     return { isValid: false, error: 'O ano é obrigatório' };
   }
@@ -43,6 +51,11 @@ export const validateMileage = (
   mileage: string,
   required: boolean = true
 ): { isValid: boolean; error?: string } => {
+  
+  if (!mileage.trim()) { 
+    return { isValid: true }; // Permitir campo vazio, pois não é obrigatório
+  }
+  
   if (!mileage.trim()) {
     if (required) {
       return { isValid: false, error: 'A quilometragem é obrigatória' };
