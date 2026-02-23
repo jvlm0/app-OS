@@ -74,7 +74,7 @@ const ClientFormScreen = ({ navigation }: ClientFormScreenProps) => {
 
         <ScrollView style={styles.scrollView} keyboardShouldPersistTaps="handled">
           <View style={styles.formContainer}>
-            <FormField label="Tipo de Pessoa" required>
+            <FormField label="Tipo de Pessoa" required = {true}>
               <PersonTypeSelector
                 value={personType}
                 onChange={handlePersonTypeChange}
@@ -84,7 +84,7 @@ const ClientFormScreen = ({ navigation }: ClientFormScreenProps) => {
 
             <FormField
               label={personType === 'PF' ? 'Nome Completo' : 'Razão Social'}
-              required
+              required = {true}
             >
               <ClientNameInput
                 value={name}
@@ -98,7 +98,7 @@ const ClientFormScreen = ({ navigation }: ClientFormScreenProps) => {
 
             <FormField
               label="Telefone"
-              required
+              required = {false}
               helperText="Telefone com DDD"
             >
               <PhoneInput
@@ -111,7 +111,7 @@ const ClientFormScreen = ({ navigation }: ClientFormScreenProps) => {
 
             <FormField
               label={personType === 'PF' ? 'CPF' : 'CNPJ'}
-              required
+              required = {false}
               helperText={
                 personType === 'PF'
                   ? 'Cadastro de Pessoa Física'

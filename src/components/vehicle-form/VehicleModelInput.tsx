@@ -14,6 +14,7 @@ export const VehicleModelInput = ({
   disabled, 
   readOnly 
 }: VehicleModelInputProps) => {
+  if (!value) readOnly = false; // Permitir edição se o campo estiver vazio, mesmo para veículo existente
   return (
     <TextInput
       style={[styles.input, readOnly && styles.inputDisabled]}

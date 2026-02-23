@@ -1,4 +1,7 @@
 export const validateCPF = (cpf: string): boolean => {
+  if (cpf.trim().length ===0) {
+    return true; // Permitir campo vazio
+  }
   const numbers = cpf.replace(/\D/g, '');
   
   if (numbers.length !== 11) return false;
@@ -27,6 +30,9 @@ export const validateCPF = (cpf: string): boolean => {
 };
 
 export const validateCNPJ = (cnpj: string): boolean => {
+  if (cnpj.trim().length ===0) {
+    return true; // Permitir campo vazio
+  }
   const numbers = cnpj.replace(/\D/g, '');
   
   if (numbers.length !== 14) return false;
@@ -78,6 +84,11 @@ export const validateName = (name: string): { isValid: boolean; error?: string }
 };
 
 export const validatePhone = (phone: string): { isValid: boolean; error?: string } => {
+  
+  if (phone.trim().length ===0) {
+    return { isValid: true };
+  }
+  
   if (!phone.trim()) {
     return { isValid: false, error: 'O telefone é obrigatório' };
   }
