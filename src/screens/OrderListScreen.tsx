@@ -52,7 +52,7 @@ const OrderListScreen = ({ navigation }: OrderListScreenProps) => {
   };
 
   const handleOrderPress = (order: Order) => {
-    navigation.navigate('ServiceForm', { order });
+    navigation.navigate('OrderDetail', { cod_ordem: order.cod_ordem });
   };
 
   const getStatusStyle = (status: string) => {
@@ -101,7 +101,7 @@ const OrderListScreen = ({ navigation }: OrderListScreenProps) => {
 
       <View style={styles.vehicleContainer}>
         <View style={styles.plateContainer}>
-          <Text style={styles.plate}>{formatPlate(item.veiculo.placa)}</Text>
+          <Text style={styles.plate}>{formatPlate(item.veiculo.placa ?? '')}</Text>
         </View>
         <Text style={styles.vehicleInfo}>
           {item.veiculo.modelo} • {item.veiculo.ano}

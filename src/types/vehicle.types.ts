@@ -5,11 +5,14 @@
  * Interface principal do veículo (unificada - usada em todo o app)
  */
 export interface Vehicle {
-  cod_veiculo?: number; // ID do veículo (vem do cadastro)
+  cod_veiculo?: number;
   plate: string;
   modelo: string;
   ano: string;
   mileage: string;
+  cor?: string;
+  chassi?: string;
+  marca?: string;
 }
 
 /**
@@ -20,6 +23,9 @@ export interface VehicleData {
   placa: string;
   modelo: string;
   ano: string;
+  cor?: string;
+  chassi?: string;
+  marca?: string;
 }
 
 /**
