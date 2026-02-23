@@ -4,11 +4,11 @@ import { Trash2 } from 'lucide-react-native';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-// Taxa de impostos (15%)
 const TAX_RATE = 0.05;
 
 export interface ServiceData {
   id: string;
+  cod_servico?: number; // presente apenas em serviços já salvos na API
   descricao: string;
   quantidade: number;
   valorUnitario: number;
@@ -16,7 +16,7 @@ export interface ServiceData {
   cod_equipe: number;
   equipe: string;
   vendedores: string[];
-  cod_vendedores: number[]
+  cod_vendedores: number[];
 }
 
 interface ReadOnlyServiceCardProps {
@@ -26,7 +26,6 @@ interface ReadOnlyServiceCardProps {
 }
 
 const ReadOnlyServiceCard = ({ service, index, onRemove }: ReadOnlyServiceCardProps) => {
-  // Cálculos
   const subtotal = service.quantidade * service.valorUnitario;
   const descontoValor = (subtotal * service.desconto) / 100;
   const subtotalComDesconto = subtotal - descontoValor;
@@ -34,12 +33,8 @@ const ReadOnlyServiceCard = ({ service, index, onRemove }: ReadOnlyServiceCardPr
   const total = subtotalComDesconto;
   const subtotalS = subtotal - impostos - descontoValor;
 
-  const formatMoney = (value: number) => {
-    return value.toLocaleString('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    });
-  };
+  const formatMoney = (value: number) =>
+    value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
   return (
     <View style={styles.card}>
@@ -50,13 +45,11 @@ const ReadOnlyServiceCard = ({ service, index, onRemove }: ReadOnlyServiceCardPr
         </TouchableOpacity>
       </View>
 
-      {/* Descrição */}
       <View style={styles.infoRow}>
         <Text style={styles.infoLabel}>Descrição:</Text>
         <Text style={styles.infoValue}>{service.descricao}</Text>
       </View>
 
-      {/* Quantidade e Valor */}
       <View style={styles.row}>
         <View style={styles.halfInfo}>
           <Text style={styles.infoLabel}>Quantidade:</Text>
@@ -68,7 +61,6 @@ const ReadOnlyServiceCard = ({ service, index, onRemove }: ReadOnlyServiceCardPr
         </View>
       </View>
 
-      {/* Equipe e Vendedores */}
       <View style={styles.infoRow}>
         <Text style={styles.infoLabel}>Equipe:</Text>
         <Text style={styles.infoValue}>{service.equipe}</Text>
@@ -79,10 +71,8 @@ const ReadOnlyServiceCard = ({ service, index, onRemove }: ReadOnlyServiceCardPr
         <Text style={styles.infoValue}>{service.vendedores.join(', ')}</Text>
       </View>
 
-      {/* Divisor */}
       <View style={styles.divider} />
 
-      {/* Cálculos */}
       <View style={styles.calculationRow}>
         <Text style={styles.calculationLabel}>Subtotal:</Text>
         <Text style={styles.calculationValue}>{formatMoney(subtotalS)}</Text>
@@ -102,7 +92,6 @@ const ReadOnlyServiceCard = ({ service, index, onRemove }: ReadOnlyServiceCardPr
         <Text style={styles.calculationValue}>{formatMoney(impostos)}</Text>
       </View>
 
-      {/* Total */}
       <View style={styles.totalRow}>
         <Text style={styles.totalLabel}>TOTAL:</Text>
         <Text style={styles.totalValue}>{formatMoney(total)}</Text>
@@ -132,30 +121,17 @@ const styles = StyleSheet.create({
     color: '#666',
     letterSpacing: 0.5,
   },
-  deleteButton: {
-    padding: 4,
-  },
-  infoRow: {
-    marginBottom: 12,
-  },
+  deleteButton: { padding: 4 },
+  infoRow: { marginBottom: 12 },
   infoLabel: {
     fontSize: 12,
     fontWeight: '600',
     color: '#666',
     marginBottom: 4,
   },
-  infoValue: {
-    fontSize: 15,
-    color: '#000',
-  },
-  row: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 12,
-  },
-  halfInfo: {
-    flex: 1,
-  },
+  infoValue: { fontSize: 15, color: '#000' },
+  row: { flexDirection: 'row', gap: 12, marginBottom: 12 },
+  halfInfo: { flex: 1 },
   divider: {
     height: 1,
     backgroundColor: '#e0e0e0',
@@ -166,18 +142,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 8,
   },
-  calculationLabel: {
-    fontSize: 14,
-    color: '#666',
-  },
-  calculationValue: {
-    fontSize: 14,
-    color: '#000',
-    fontWeight: '500',
-  },
-  discountText: {
-    color: '#22c55e',
-  },
+  calculationLabel: { fontSize: 14, color: '#666' },
+  calculationValue: { fontSize: 14, color: '#000', fontWeight: '500' },
+  discountText: { color: '#22c55e' },
   totalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -186,16 +153,8 @@ const styles = StyleSheet.create({
     borderTopWidth: 2,
     borderTopColor: '#000',
   },
-  totalLabel: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#000',
-  },
-  totalValue: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#000',
-  },
+  totalLabel: { fontSize: 16, fontWeight: '700', color: '#000' },
+  totalValue: { fontSize: 18, fontWeight: '700', color: '#000' },
 });
 
 export default ReadOnlyServiceCard;

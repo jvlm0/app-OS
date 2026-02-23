@@ -13,14 +13,18 @@ interface FormDataContextType {
   setSelectedVehicle: (vehicle: Vehicle | null) => void;
   // Serviços
   services: ServiceData[];
+  setServices: (services: ServiceData[]) => void;
   addService: (service: ServiceData) => void;
   removeService: (id: string) => void;
   clearServices: () => void;
+  removedServiceIds: number[];
   // Produtos
   products: ProductData[];
+  setProducts: (products: ProductData[]) => void;
   addProduct: (product: ProductData) => void;
   removeProduct: (id: string) => void;
   clearProducts: () => void;
+  removedProductIds: number[];
   // Produto pendente (selecionado na busca, aguardando preenchimento do form)
   pendingProduct: { cod_subproduto: number; nome: string } | null;
   setPendingProduct: (p: { cod_subproduto: number; nome: string } | null) => void;
@@ -33,26 +37,72 @@ const FormDataContext = createContext<FormDataContextType | undefined>(undefined
 export const FormDataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
-  const [services, setServices] = useState<ServiceData[]>([]);
-  const [products, setProducts] = useState<ProductData[]>([]);
+  const [services, setServicesState] = useState<ServiceData[]>([]);
+  const [products, setProductsState] = useState<ProductData[]>([]);
+  const [removedServiceIds, setRemovedServiceIds] = useState<number[]>([]);
+  const [removedProductIds, setRemovedProductIds] = useState<number[]>([]);
   const [pendingProduct, setPendingProduct] = useState<{
     cod_subproduto: number;
     nome: string;
   } | null>(null);
 
-  const addService = (service: ServiceData) => setServices(prev => [...prev, service]);
-  const removeService = (id: string) => setServices(prev => prev.filter(s => s.id !== id));
-  const clearServices = () => setServices([]);
+  // ─── Serviços ─────────────────────────────────────────────────────────────
 
-  const addProduct = (product: ProductData) => setProducts(prev => [...prev, product]);
-  const removeProduct = (id: string) => setProducts(prev => prev.filter(p => p.id !== id));
-  const clearProducts = () => setProducts([]);
+  // Usado para carregar a lista completa de uma vez (modo edição)
+  const setServices = (serviceList: ServiceData[]) => setServicesState(serviceList);
+
+  const addService = (service: ServiceData) =>
+    setServicesState(prev => [...prev, service]);
+
+  // Se o serviço veio da API (tem cod_servico), registra o ID para enviar em servicosRemovidos
+  const removeService = (id: string) => {
+    setServicesState(prev => {
+      const found = prev.find(s => s.id === id);
+      if (found?.cod_servico != null) {
+        setRemovedServiceIds(ids => [...ids, found.cod_servico!]);
+      }
+      return prev.filter(s => s.id !== id);
+    });
+  };
+
+  const clearServices = () => {
+    setServicesState([]);
+    setRemovedServiceIds([]);
+  };
+
+  // ─── Produtos ─────────────────────────────────────────────────────────────
+
+  // Usado para carregar a lista completa de uma vez (modo edição)
+  const setProducts = (productList: ProductData[]) => setProductsState(productList);
+
+  const addProduct = (product: ProductData) =>
+    setProductsState(prev => [...prev, product]);
+
+  // Se o produto veio da API (tem cod_itemProduto), registra o ID para enviar em produtosRemovidos
+  const removeProduct = (id: string) => {
+    setProductsState(prev => {
+      const found = prev.find(p => p.id === id);
+      if (found?.cod_itemProduto != null) {
+        setRemovedProductIds(ids => [...ids, found.cod_itemProduto!]);
+      }
+      return prev.filter(p => p.id !== id);
+    });
+  };
+
+  const clearProducts = () => {
+    setProductsState([]);
+    setRemovedProductIds([]);
+  };
+
+  // ─── Geral ────────────────────────────────────────────────────────────────
 
   const clearFormData = () => {
     setSelectedClient(null);
     setSelectedVehicle(null);
-    setServices([]);
-    setProducts([]);
+    setServicesState([]);
+    setProductsState([]);
+    setRemovedServiceIds([]);
+    setRemovedProductIds([]);
     setPendingProduct(null);
   };
 
@@ -64,13 +114,17 @@ export const FormDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         selectedVehicle,
         setSelectedVehicle,
         services,
+        setServices,
         addService,
         removeService,
         clearServices,
+        removedServiceIds,
         products,
+        setProducts,
         addProduct,
         removeProduct,
         clearProducts,
+        removedProductIds,
         pendingProduct,
         setPendingProduct,
         clearFormData,

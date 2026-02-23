@@ -2,7 +2,7 @@
 // Tipos e interfaces relacionados a ordens de serviço
 
 /**
- * Dados de um serviço para envio na criação da ordem
+ * Dados de um serviço para envio na criação/atualização da ordem
  */
 export interface ServicoCreate {
   descricao: string;
@@ -14,7 +14,7 @@ export interface ServicoCreate {
 }
 
 /**
- * Dados de um produto para envio na criação da ordem
+ * Dados de um produto para envio na criação/atualização da ordem
  */
 export interface ItemProdutoCreate {
   cod_subproduto: number;
@@ -59,10 +59,14 @@ export interface OrderCreateResult {
  */
 export interface OrderUpdate {
   cod_ordem: number;
-  titulo: string;
-  descricao: string;
-  cod_veiculo: number;
-  cod_cliente: number;
+  titulo?: string;
+  descricao?: string;
+  cod_veiculo?: number;
+  cod_cliente?: number;
+  servicos?: ServicoCreate[];
+  produtos?: ItemProdutoCreate[];
+  servicosRemovidos?: number[];
+  produtosRemovidos?: number[];
 }
 
 /**

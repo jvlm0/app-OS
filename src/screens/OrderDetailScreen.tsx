@@ -1,26 +1,33 @@
 // src/screens/OrderDetailScreen.tsx
 
 import ModalHeader from '@/components/ModalHeader';
-import { useOrderDetail } from '@/hooks/useOrderDetail';
 import type { RootStackParamList } from '@/types/navigation.types';
 import type { ItemProdutoResponse, ServicoResponse } from '@/types/order-list.types';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
-    ActivityIndicator,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useOrderDetail } from '../hooks/useOrderDetail';
 
 type OrderDetailProps = NativeStackScreenProps<RootStackParamList, 'OrderDetail'>;
 
 const OrderDetailScreen = ({ navigation, route }: OrderDetailProps) => {
   const { cod_ordem } = route.params;
   const { order, loading, error, refresh } = useOrderDetail(cod_ordem);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      refresh();
+    });
+    return unsubscribe;
+  }, [navigation, refresh]);
 
   const handleEdit = () => {
     if (!order) return;

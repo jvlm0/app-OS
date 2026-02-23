@@ -30,7 +30,11 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
     setSelectedClient,
     setSelectedVehicle,
     services,
+    setServices,
     products,
+    setProducts,
+    removedServiceIds,
+    removedProductIds,
     clearFormData,
   } = useFormData();
 
@@ -43,27 +47,63 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
   const [detailsExpanded, setDetailsExpanded] = useState(false);
 
   useEffect(() => {
+    // Limpa o estado anterior antes de popular o novo
     clearFormData();
 
     if (order) {
       setIsEditMode(true);
-      setTitle(order.titulo);
-      setDescription(order.descricao || '');
+      setTitle(order.titulo ?? '');
+      setDescription(order.descricao ?? '');
 
       setSelectedClient({
         COD_PESSOA: order.cliente.COD_PESSOA,
-        nome: order.cliente.nome,
-        telefone: order.cliente.telefone,
+        nome: order.cliente.nome ?? '',
+        telefone: order.cliente.telefone ?? '',
         cpfcnpj: order.cliente.cpfcnpj,
       });
 
       setSelectedVehicle({
         cod_veiculo: order.veiculo.cod_veiculo,
-        plate: order.veiculo.placa,
-        modelo: order.veiculo.modelo,
-        ano: order.veiculo.ano,
+        plate: order.veiculo.placa ?? '',
+        modelo: order.veiculo.modelo ?? '',
+        ano: order.veiculo.ano ?? '',
         mileage: order.veiculo.kmatual != null ? order.veiculo.kmatual.toString() : '',
       });
+
+      // ── Popula serviços vindos da API no context ──────────────────────────
+      if (order.servicos && order.servicos.length > 0) {
+        const mappedServices: ServiceData[] = order.servicos.map(s => ({
+          id: `api-${s.cod_servico}`,          // ID local único baseado no cod da API
+          cod_servico: s.cod_servico,           // ID real — usado para servicosRemovidos
+          descricao: s.descricao,
+          quantidade: s.quantidade,
+          valorUnitario: s.valorUnitario,
+          desconto: s.desconto,
+          cod_equipe: s.equipe.cod_equipe,
+          equipe: s.equipe.nome,
+          vendedores: s.vendedores.map(v => v.nome),
+          cod_vendedores: s.vendedores.map(v => v.cod_vendedor),
+        }));
+        setServices(mappedServices);
+        setServicesExpanded(true);
+      }
+
+      // ── Popula produtos vindos da API no context ──────────────────────────
+      if (order.produtos && order.produtos.length > 0) {
+        const mappedProducts: ProductData[] = order.produtos.map(p => ({
+          id: `api-${p.cod_itemProduto}`,       // ID local único baseado no cod da API
+          cod_itemProduto: p.cod_itemProduto,   // ID real — usado para produtosRemovidos
+          cod_subproduto: p.cod_itemProduto,    // será ignorado no update (não é novo)
+          nomeProduto: p.nome,
+          quantidade: Number(p.quantidade),
+          valorUnitario: Number(p.valorUnitario),
+          desconto: Number(p.desconto),
+          vendedores: p.vendedores.map(v => v.nome),
+          cod_vendedores: p.vendedores.map(v => v.cod_vendedor),
+        }));
+        setProducts(mappedProducts);
+        setProductsExpanded(true);
+      }
     } else {
       setIsEditMode(false);
       setTitle('');
@@ -90,7 +130,35 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
     navigation.navigate('CameraScreen', { cod_cliente: selectedClient.COD_PESSOA });
   };
 
-  // ─── Mapeamento de serviços ───────────────────────────────────────────────
+  // ─── Mapeamento de serviços (apenas os NOVOS — sem cod_servico) ───────────
+
+  const mapNewServicesToPayload = (serviceList: ServiceData[]): ServicoCreate[] =>
+    serviceList
+      .filter(s => s.cod_servico == null) // apenas novos
+      .map(s => ({
+        descricao: s.descricao,
+        quantidade: s.quantidade,
+        valorUnitario: s.valorUnitario,
+        desconto: s.desconto ?? 0,
+        cod_equipe: s.cod_equipe,
+        cods_vendedores: s.cod_vendedores,
+      }));
+
+  // ─── Mapeamento de produtos (apenas os NOVOS — sem cod_itemProduto) ───────
+
+  const mapNewProductsToPayload = (productList: ProductData[]): ItemProdutoCreate[] =>
+    productList
+      .filter(p => p.cod_itemProduto == null) // apenas novos
+      .map(p => ({
+        cod_subproduto: p.cod_subproduto,
+        quantidade: p.quantidade,
+        valorUnitario: p.valorUnitario,
+        desconto: p.desconto ?? 0,
+        cod_equipe: p.cod_equipe,
+        cods_vendedores: p.cod_vendedores,
+      }));
+
+  // ─── Mapeamento de serviços (criação) ─────────────────────────────────────
 
   const mapServicesToPayload = (serviceList: ServiceData[]): ServicoCreate[] =>
     serviceList.map(s => ({
@@ -102,7 +170,7 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
       cods_vendedores: s.cod_vendedores,
     }));
 
-  // ─── Mapeamento de produtos ───────────────────────────────────────────────
+  // ─── Mapeamento de produtos (criação) ─────────────────────────────────────
 
   const mapProductsToPayload = (productList: ProductData[]): ItemProdutoCreate[] =>
     productList.map(p => ({
@@ -113,8 +181,6 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
       cod_equipe: p.cod_equipe,
       cods_vendedores: p.cod_vendedores,
     }));
-
-  // ─── Serviços (compatibilidade) ───────────────────────────────────────────
 
   const updateService = (_id: string, _field: keyof Service, _value: string) => {};
 
@@ -127,7 +193,7 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
   // ─── Validação ────────────────────────────────────────────────────────────
 
   const validate = (): boolean => {
-    if (title === null || !title.trim()) {
+    if (!title.trim()) {
       Alert.alert('Atenção', 'O título é obrigatório');
       return false;
     }
@@ -174,12 +240,21 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
   };
 
   const handleUpdate = async (cod_ordem: number) => {
+    const newServices = mapNewServicesToPayload(services);
+    const newProducts = mapNewProductsToPayload(products);
+
     const result = await updateOrder({
       cod_ordem,
       titulo: title.trim(),
       descricao: description.trim() || '',
       cod_veiculo: selectedVehicle!.cod_veiculo!,
       cod_cliente: selectedClient!.COD_PESSOA,
+      // Envia apenas os novos (sem ID da API); undefined se vazio
+      servicos: newServices.length > 0 ? newServices : undefined,
+      produtos: newProducts.length > 0 ? newProducts : undefined,
+      // IDs dos serviços/produtos removidos durante a edição
+      servicosRemovidos: removedServiceIds.length > 0 ? removedServiceIds : undefined,
+      produtosRemovidos: removedProductIds.length > 0 ? removedProductIds : undefined,
     });
 
     if (!result.success) {
@@ -192,7 +267,13 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
     }
 
     Alert.alert('Sucesso!', `Ordem de serviço #${cod_ordem} atualizada com sucesso!`, [
-      { text: 'OK', onPress: () => { clearFormData(); navigation.goBack(); } },
+      {
+        text: 'OK',
+        onPress: () => {
+          clearFormData();
+          navigation.goBack();
+        },
+      },
     ]);
   };
 
