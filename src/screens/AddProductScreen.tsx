@@ -2,23 +2,23 @@
 
 import ModalHeader from '@/components/ModalHeader';
 import { useFormData } from '@/contexts/FormDataContext';
-import { fetchEquipes, fetchVendedores } from '@/services/teamVendorService';
+import { fetchVendedores } from '@/services/teamVendorService';
 import type { RootStackParamList } from '@/types/navigation.types';
 import type { Equipe, Vendedor } from '@/types/team-vendor.types';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ChevronDown, Search } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -42,21 +42,16 @@ const AddProductScreen = ({ navigation }: AddProductScreenProps) => {
   const [loadingEquipes, setLoadingEquipes] = useState(true);
   const [loadingVendedores, setLoadingVendedores] = useState(true);
 
-  const [showEquipeDropdown, setShowEquipeDropdown] = useState(false);
   const [showVendedoresDropdown, setShowVendedoresDropdown] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
-      const [equipesResult, vendedoresResult] = await Promise.all([
-        fetchEquipes(),
+      const [vendedoresResult] = await Promise.all([
+        
         fetchVendedores(),
       ]);
 
-      if (equipesResult.success && equipesResult.data) {
-        setEquipes(equipesResult.data);
-      } else {
-        Alert.alert('Atenção', equipesResult.error || 'Não foi possível carregar as equipes.');
-      }
+      
 
       if (vendedoresResult.success && vendedoresResult.data) {
         setVendedores(vendedoresResult.data);
@@ -247,63 +242,7 @@ const AddProductScreen = ({ navigation }: AddProductScreenProps) => {
               />
             </View>
 
-            {/* Dropdown Equipe */}
-            <View style={styles.fieldContainer}>
-              <Text style={styles.label}>
-                Equipe Responsável <Text style={styles.required}>*</Text>
-              </Text>
-              <TouchableOpacity
-                style={styles.dropdown}
-                onPress={() => {
-                  setShowEquipeDropdown(prev => !prev);
-                  setShowVendedoresDropdown(false);
-                }}
-              >
-                <Text style={[styles.dropdownText, !equipeNome && styles.placeholder]}>
-                  {equipeNome || 'Selecione uma equipe'}
-                </Text>
-                <ChevronDown size={20} color="#666" />
-              </TouchableOpacity>
-
-              {showEquipeDropdown && (
-                <View
-                  style={[
-                    styles.dropdownList,
-                    { height: Math.min(equipes.length, VISIBLE_ITEMS) * ITEM_HEIGHT },
-                  ]}
-                >
-                  <ScrollView
-                    nestedScrollEnabled
-                    bounces={false}
-                    showsVerticalScrollIndicator={equipes.length > VISIBLE_ITEMS}
-                    keyboardShouldPersistTaps="handled"
-                  >
-                    {equipes.map(equipe => (
-                      <TouchableOpacity
-                        key={equipe.cod_equipe}
-                        style={[
-                          styles.dropdownItem,
-                          equipeId === equipe.cod_equipe && styles.dropdownItemSelected,
-                        ]}
-                        onPress={() => {
-                          setEquipeId(equipe.cod_equipe);
-                          setShowEquipeDropdown(false);
-                        }}
-                      >
-                        <Text
-                          style={[
-                            styles.dropdownItemText,
-                            equipeId === equipe.cod_equipe && styles.dropdownItemTextSelected,
-                          ]}
-                        >
-                          {equipe.nome}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </ScrollView>
-                </View>
-              )}
-            </View>
+            
 
             {/* Dropdown Vendedores */}
             <View style={styles.fieldContainer}>
@@ -314,7 +253,7 @@ const AddProductScreen = ({ navigation }: AddProductScreenProps) => {
                 style={styles.dropdown}
                 onPress={() => {
                   setShowVendedoresDropdown(prev => !prev);
-                  setShowEquipeDropdown(false);
+                  
                 }}
               >
                 <Text style={[styles.dropdownText, !vendedoresNomes && styles.placeholder]}>

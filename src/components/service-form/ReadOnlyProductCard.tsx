@@ -8,6 +8,7 @@ const TAX_RATE = 0.05;
 
 export interface ProductData {
   id: string;
+  cod_itemProduto?: number; // presente apenas em produtos já salvos na API
   cod_subproduto: number;
   nomeProduto: string;
   quantidade: number;
