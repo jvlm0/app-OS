@@ -14,6 +14,7 @@ export const VehicleYearInput = ({
   disabled, 
   readOnly 
 }: VehicleYearInputProps) => {
+  if (!value) readOnly = false;
   return (
     <TextInput
       style={[styles.input, readOnly && styles.inputDisabled]}

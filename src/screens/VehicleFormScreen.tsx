@@ -86,7 +86,7 @@ const VehicleFormScreen = ({ navigation, route }: VehicleFormScreenProps) => {
 
             <FormField
               label="Modelo"
-              required={!isExistingVehicle}
+              required={false}
               helperText={
                 isExistingVehicle
                   ? 'Campo não editável para veículo existente'
@@ -103,7 +103,7 @@ const VehicleFormScreen = ({ navigation, route }: VehicleFormScreenProps) => {
 
             <FormField
               label="Ano"
-              required={!isExistingVehicle}
+              required={false}
               helperText={
                 isExistingVehicle
                   ? 'Campo não editável para veículo existente'
@@ -120,7 +120,7 @@ const VehicleFormScreen = ({ navigation, route }: VehicleFormScreenProps) => {
 
             <FormField
               label="Quilometragem (km)"
-              required={!isExistingVehicle}
+              required={false}
               helperText={
                 isExistingVehicle
                   ? 'Opcional: Informe para atualizar a quilometragem atual'

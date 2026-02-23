@@ -8,6 +8,9 @@ interface MileageInputProps {
 }
 
 export const MileageInput = ({ value, onChange, disabled }: MileageInputProps) => {
+
+  if (!value) disabled = false;
+
   const formatMileage = (text: string): string => {
     const numbers = text.replace(/\D/g, '');
     if (numbers.length === 0) return '';
