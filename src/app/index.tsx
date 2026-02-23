@@ -10,6 +10,7 @@ import ClientFormScreen from '@/screens/ClientFormScreen';
 import ClientSearchScreen from '@/screens/ClientSearchScreen';
 import LoadingScreen from '@/screens/LoadingScreen';
 import LoginScreen from '@/screens/LoginScreen';
+import OrderDetailScreen from '@/screens/OrderDetailScreen';
 import OrderListScreen from '@/screens/OrderListScreen';
 import ProductSearchScreen from '@/screens/ProductSearchScreen';
 import ServiceForm from '@/screens/ServiceForm';
@@ -128,6 +129,15 @@ function AppNavigator() {
               presentation: 'modal',
             }}
           />
+
+          <Stack.Screen
+            name="OrderDetail"
+            component={OrderDetailScreen}
+            options={{
+              headerShown: false,
+              presentation: 'modal',
+            }}
+            />
         </>
       )}
     </Stack.Navigator>

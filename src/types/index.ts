@@ -17,7 +17,6 @@ export type {
     ClientCreateResult, PersonType
 } from './client.types';
 
-
 // Tipos de ordem de serviço
 export type {
     OrderCreate,
@@ -29,11 +28,16 @@ export type {
     ServicoCreate
 } from './order.types';
 
-// Tipos de listagem de ordens
+// Tipos de listagem e detalhe de ordens
 export type {
+    EquipeResponsavel,
+    ItemProdutoResponse,
     Order,
+    OrderDetailResult,
     OrderListResult,
-    OrderVehicle
+    OrderVehicle,
+    ServicoResponse,
+    VendedorResponse
 } from './order-list.types';
 
 // Tipos de navegação
