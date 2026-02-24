@@ -27,8 +27,8 @@ interface FormDataContextType {
   clearProducts: () => void;
   removedProductIds: number[];
   // Produto pendente (selecionado na busca, aguardando preenchimento do form)
-  pendingProduct: { cod_subproduto: number; nome: string } | null;
-  setPendingProduct: (p: { cod_subproduto: number; nome: string } | null) => void;
+  pendingProduct: { cod_subproduto: number; nome: string; marca: string; preco: number } | null;
+  setPendingProduct: (p: { cod_subproduto: number; nome: string; marca: string; preco: number } | null) => void;
   // Ordem atualizada — preenchida pelo ServiceForm após update bem-sucedido,
   // consumida e limpa pelo OrderDetailScreen ao ganhar foco
   updatedOrder: Order | null;
@@ -49,6 +49,8 @@ export const FormDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [pendingProduct, setPendingProduct] = useState<{
     cod_subproduto: number;
     nome: string;
+    marca: string;
+    preco: number;
   } | null>(null);
   const [updatedOrder, setUpdatedOrder] = useState<Order | null>(null);
 
