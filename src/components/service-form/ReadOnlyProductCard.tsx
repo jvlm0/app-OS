@@ -4,7 +4,7 @@ import { Trash2 } from 'lucide-react-native';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-const TAX_RATE = 0.05;
+const TAX_RATE = 0.0449;
 
 export interface ProductData {
   id: string;

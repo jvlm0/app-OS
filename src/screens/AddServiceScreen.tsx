@@ -1,16 +1,19 @@
 // src/screens/AddServiceScreen.tsx
 
+import { ItemPriceFooter } from '@/components/ItemPriceFooter';
 import ModalHeader from '@/components/ModalHeader';
 import { useFormData } from '@/contexts/FormDataContext';
 import { fetchEquipes, fetchVendedores } from '@/services/teamVendorService';
 import type { RootStackParamList } from '@/types/navigation.types';
 import type { Equipe, Vendedor } from '@/types/team-vendor.types';
+import { useIsFocused } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ChevronDown } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -20,7 +23,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 type AddServiceScreenProps = NativeStackScreenProps<RootStackParamList, 'AddService'>;
 
@@ -30,8 +33,8 @@ const ITEM_HEIGHT = 53;
 const VISIBLE_ITEMS = 4;
 
 const AddServiceScreen = ({ navigation }: AddServiceScreenProps) => {
-  const insets = useSafeAreaInsets();
   const { addService } = useFormData();
+  const isFocused = useIsFocused();
 
   const [descricao, setDescricao] = useState('');
   const [quantidade, setQuantidade] = useState('');
@@ -48,6 +51,23 @@ const AddServiceScreen = ({ navigation }: AddServiceScreenProps) => {
 
   const [showEquipeDropdown, setShowEquipeDropdown] = useState(false);
   const [showVendedoresDropdown, setShowVendedoresDropdown] = useState(false);
+
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+
+  useEffect(() => {
+    if (!isFocused) return;
+
+    Keyboard.dismiss();
+    setIsKeyboardVisible(false);
+
+    const showSub = Keyboard.addListener('keyboardDidShow', () => setIsKeyboardVisible(true));
+    const hideSub = Keyboard.addListener('keyboardDidHide', () => setIsKeyboardVisible(false));
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, [isFocused]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -129,9 +149,9 @@ const AddServiceScreen = ({ navigation }: AddServiceScreenProps) => {
     const serviceData = {
       id: Date.now().toString(),
       descricao,
-      quantidade: parseFloat(quantidade),
+      quantidade: parseFloat(quantidade.replace(',','.')),
       valorUnitario: parseFloat(valorUnitario.replace(/\./g, '').replace(',', '.')),
-      desconto: desconto ? parseFloat(desconto) : 0,
+      desconto: desconto ? parseFloat(desconto.replace(',','.')) : 0,
       cod_equipe: equipeId,
       equipe: equipe?.nome || '',
       cod_vendedores: vendedoresSelecionados,
@@ -154,6 +174,7 @@ const AddServiceScreen = ({ navigation }: AddServiceScreenProps) => {
   const isLoading = loadingEquipes || loadingVendedores;
 
   return (
+    <SafeAreaView style={styles.flex}>
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.flex}
@@ -161,7 +182,7 @@ const AddServiceScreen = ({ navigation }: AddServiceScreenProps) => {
       <ModalHeader
         title="Adicionar Serviço"
         onClose={() => navigation.goBack()}
-        insetsTop={insets.top}
+        
       />
 
       {isLoading ? (
@@ -172,7 +193,7 @@ const AddServiceScreen = ({ navigation }: AddServiceScreenProps) => {
       ) : (
         <ScrollView
           style={styles.container}
-          contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}
+          contentContainerStyle={{ paddingBottom: !isKeyboardVisible ? 100 : 0 }}
           keyboardShouldPersistTaps="handled"
           nestedScrollEnabled
         >
@@ -354,28 +375,47 @@ const AddServiceScreen = ({ navigation }: AddServiceScreenProps) => {
               )}
             </View>
 
-            {/* Botão Salvar */}
-            <TouchableOpacity
-              style={[styles.submitButton, saving && styles.submitButtonDisabled]}
-              onPress={handleSave}
-              disabled={saving}
-            >
-              {saving ? (
-                <ActivityIndicator size="small" color="#fff" />
-              ) : (
-                <Text style={styles.submitButtonText}>Adicionar Serviço</Text>
-              )}
-            </TouchableOpacity>
+
+
+
+
+
+
 
           </View>
+          {isKeyboardVisible && (
+            <ItemPriceFooter
+              onPress={handleSave}
+              loading={saving}
+              floating={false}
+              text="Adicionar"
+              quantidade={quantidade ? parseFloat(quantidade.replace(',','.')) : 0}
+              valorUnitario={valorUnitario ? parseFloat(valorUnitario.replace(/\./g, '').replace(',', '.')) : 0}
+              desconto={desconto ? parseFloat(desconto.replace(',','.')) : 0}
+            />)}
+
         </ScrollView>
       )}
+      
+
     </KeyboardAvoidingView>
+
+    {!isKeyboardVisible && (
+        <ItemPriceFooter
+          onPress={handleSave}
+          loading={saving}
+          floating={true}
+          text="Adicionar"
+          quantidade={quantidade ? parseFloat(quantidade.replace(',','.')) : 0}
+          valorUnitario={valorUnitario ? parseFloat(valorUnitario.replace(/\./g, '').replace(',', '.')) : 0}
+          desconto={desconto ? parseFloat(desconto.replace(',','.')) : 0}
+        />)}
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  flex: { flex: 1 },
+  flex: { flex: 1, backgroundColor: '#fff' },
   container: { flex: 1, backgroundColor: '#fff' },
   loadingContainer: {
     flex: 1,

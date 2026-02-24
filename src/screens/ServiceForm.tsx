@@ -1,12 +1,12 @@
 // src/screens/ServiceForm.tsx
 
-import { SaveButton } from '@/components/client-form/SaveButton';
 import ModalHeader from '@/components/ModalHeader';
 import SelectField from '@/components/SelectField';
 import ClientField from '@/components/service-form/ClientField';
 import DetailsSection from '@/components/service-form/DetailsSection';
 import EditModeBanner from '@/components/service-form/EditModeBanner';
 import ProductsSection from '@/components/service-form/ProductsSection';
+import { SaveButtonWithSummary } from '@/components/service-form/Savebuttonwithsummary';
 import ServicesSection from '@/components/service-form/ServicesSection';
 import { useFormData } from '@/contexts/FormDataContext';
 import { useServiceForm } from '@/hooks/useServiceForm';
@@ -176,25 +176,28 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
           </View>
 
           {isKeyboardVisible && (
-            <SaveButton
+            <SaveButtonWithSummary
               onPress={handleSave}
               loading={saving}
               disabled={saving}
               text={isEditMode ? 'Atualizar' : 'Salvar'}
               floating={false}
+              services={services}
+              products={products}
             />
           )}
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {!isKeyboardVisible && (
-        <SaveButton
-          onPress={handleSave}
-          loading={saving}
-          disabled={saving}
-          text={isEditMode ? 'Atualizar' : 'Salvar'}
-        />
-      )}
+      <SaveButtonWithSummary
+        onPress={handleSave}
+        loading={saving}
+        disabled={saving}
+        text={isEditMode ? 'Atualizar' : 'Salvar'}
+        floating={!isKeyboardVisible}
+        services={services}
+        products={products}
+      />
     </SafeAreaView>
   );
 };

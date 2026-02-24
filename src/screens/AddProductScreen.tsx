@@ -1,16 +1,19 @@
 // src/screens/AddProductScreen.tsx
 
+import { ItemPriceFooter } from '@/components/ItemPriceFooter';
 import ModalHeader from '@/components/ModalHeader';
 import { useFormData } from '@/contexts/FormDataContext';
 import { fetchVendedores } from '@/services/teamVendorService';
 import type { RootStackParamList } from '@/types/navigation.types';
 import type { Vendedor } from '@/types/team-vendor.types';
+import { useIsFocused } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ChevronDown, Search } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -20,7 +23,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 type AddProductScreenProps = NativeStackScreenProps<RootStackParamList, 'AddProduct'>;
 
@@ -28,8 +31,8 @@ const ITEM_HEIGHT = 53;
 const VISIBLE_ITEMS = 4;
 
 const AddProductScreen = ({ navigation }: AddProductScreenProps) => {
-  const insets = useSafeAreaInsets();
   const { addProduct, pendingProduct, setPendingProduct } = useFormData();
+  const isFocused = useIsFocused();
 
   const [quantidade, setQuantidade] = useState('');
   const [valorUnitario, setValorUnitario] = useState('');
@@ -41,6 +44,23 @@ const AddProductScreen = ({ navigation }: AddProductScreenProps) => {
   const [loadingVendedores, setLoadingVendedores] = useState(true);
 
   const [showVendedoresDropdown, setShowVendedoresDropdown] = useState(false);
+
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+
+  useEffect(() => {
+    if (!isFocused) return;
+
+    Keyboard.dismiss();
+    setIsKeyboardVisible(false);
+
+    const showSub = Keyboard.addListener('keyboardDidShow', () => setIsKeyboardVisible(true));
+    const hideSub = Keyboard.addListener('keyboardDidHide', () => setIsKeyboardVisible(false));
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, [isFocused]);
 
   useEffect(() => {
     if (pendingProduct?.preco != null) {
@@ -138,9 +158,9 @@ const AddProductScreen = ({ navigation }: AddProductScreenProps) => {
       id: Date.now().toString(),
       cod_subproduto: pendingProduct.cod_subproduto,
       nomeProduto: pendingProduct.nome,
-      quantidade: parseFloat(quantidade),
+      quantidade: parseFloat(quantidade.replace(',','.')),
       valorUnitario: parseFloat(valorUnitario.replace(/\./g, '').replace(',', '.')),
-      desconto: desconto ? parseFloat(desconto) : 0,
+      desconto: desconto ? parseFloat(desconto.replace(',','.')) : 0,
       cod_vendedores: vendedoresSelecionados,
       vendedores: vendedoresFiltrados.map(v => v.nome),
     });
@@ -157,6 +177,7 @@ const AddProductScreen = ({ navigation }: AddProductScreenProps) => {
   const isLoading = loadingEquipes || loadingVendedores;
 
   return (
+    <SafeAreaView style={styles.flex}>
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.flex}
@@ -164,7 +185,7 @@ const AddProductScreen = ({ navigation }: AddProductScreenProps) => {
       <ModalHeader
         title="Adicionar Produto"
         onClose={() => navigation.goBack()}
-        insetsTop={insets.top}
+        
       />
 
       {isLoading ? (
@@ -175,7 +196,7 @@ const AddProductScreen = ({ navigation }: AddProductScreenProps) => {
       ) : (
         <ScrollView
           style={styles.container}
-          contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}
+          contentContainerStyle={{ paddingBottom: !isKeyboardVisible ? 100 : 0 }}
           keyboardShouldPersistTaps="handled"
           nestedScrollEnabled
         >
@@ -305,24 +326,53 @@ const AddProductScreen = ({ navigation }: AddProductScreenProps) => {
                         </TouchableOpacity>
                       );
                     })}
+
+                    
+
                   </ScrollView>
                 </View>
               )}
             </View>
 
             {/* Botão Salvar */}
-            <TouchableOpacity style={styles.submitButton} onPress={handleSave}>
-              <Text style={styles.submitButtonText}>Adicionar Produto</Text>
-            </TouchableOpacity>
+
+
+
+
           </View>
+
+          {isKeyboardVisible && (
+            <ItemPriceFooter
+              onPress={handleSave}
+              loading={false}
+              floating={false}
+              text="Adicionar"
+              quantidade={quantidade ? parseFloat(quantidade.replace(',','.')) : 0}
+              valorUnitario={valorUnitario ? parseFloat(valorUnitario.replace(/\./g, '').replace(',', '.')) : 0}
+              desconto={desconto ? parseFloat(desconto.replace(',','.')) : 0}
+            />)}
         </ScrollView>
       )}
+
+
+      
     </KeyboardAvoidingView>
+    {!isKeyboardVisible && (
+        <ItemPriceFooter
+          onPress={handleSave}
+          loading={false}
+          floating={true}
+          text="Adicionar"
+          quantidade={quantidade ? parseFloat(quantidade.replace(',','.')) : 0}
+          valorUnitario={valorUnitario ? parseFloat(valorUnitario.replace(/\./g, '').replace(',', '.')) : 0}
+          desconto={desconto ? parseFloat(desconto.replace(',','.')) : 0}
+        />)}
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  flex: { flex: 1 },
+  flex: { flex: 1, backgroundColor:'#fff' },
   container: { flex: 1, backgroundColor: '#fff' },
   loadingContainer: {
     flex: 1,
