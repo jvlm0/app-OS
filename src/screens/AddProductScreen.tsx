@@ -4,7 +4,7 @@ import ModalHeader from '@/components/ModalHeader';
 import { useFormData } from '@/contexts/FormDataContext';
 import { fetchVendedores } from '@/services/teamVendorService';
 import type { RootStackParamList } from '@/types/navigation.types';
-import type { Equipe, Vendedor } from '@/types/team-vendor.types';
+import type { Vendedor } from '@/types/team-vendor.types';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ChevronDown, Search } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
@@ -34,10 +34,8 @@ const AddProductScreen = ({ navigation }: AddProductScreenProps) => {
   const [quantidade, setQuantidade] = useState('');
   const [valorUnitario, setValorUnitario] = useState('');
   const [desconto, setDesconto] = useState('');
-  const [equipeId, setEquipeId] = useState<number | null>(null);
   const [vendedoresSelecionados, setVendedoresSelecionados] = useState<number[]>([]);
 
-  const [equipes, setEquipes] = useState<Equipe[]>([]);
   const [vendedores, setVendedores] = useState<Vendedor[]>([]);
   const [loadingEquipes, setLoadingEquipes] = useState(true);
   const [loadingVendedores, setLoadingVendedores] = useState(true);
@@ -45,13 +43,24 @@ const AddProductScreen = ({ navigation }: AddProductScreenProps) => {
   const [showVendedoresDropdown, setShowVendedoresDropdown] = useState(false);
 
   useEffect(() => {
+    if (pendingProduct?.preco != null) {
+      setValorUnitario(
+        pendingProduct.preco.toLocaleString('pt-BR', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })
+      );
+    }
+  }, [pendingProduct]);
+
+  useEffect(() => {
     const loadData = async () => {
       const [vendedoresResult] = await Promise.all([
-        
+
         fetchVendedores(),
       ]);
 
-      
+
 
       if (vendedoresResult.success && vendedoresResult.data) {
         setVendedores(vendedoresResult.data);
@@ -114,16 +123,13 @@ const AddProductScreen = ({ navigation }: AddProductScreenProps) => {
       Alert.alert('Atenção', 'Por favor, preencha o valor unitário');
       return;
     }
-    if (!equipeId) {
-      Alert.alert('Atenção', 'Por favor, selecione uma equipe');
-      return;
-    }
+
     if (vendedoresSelecionados.length === 0) {
       Alert.alert('Atenção', 'Por favor, selecione pelo menos um vendedor');
       return;
     }
 
-    const equipe = equipes.find(e => e.cod_equipe === equipeId);
+
     const vendedoresFiltrados = vendedores.filter(v =>
       vendedoresSelecionados.includes(v.cod_vendedor),
     );
@@ -143,7 +149,6 @@ const AddProductScreen = ({ navigation }: AddProductScreenProps) => {
     navigation.goBack();
   };
 
-  const equipeNome = equipeId ? equipes.find(e => e.cod_equipe === equipeId)?.nome : '';
   const vendedoresNomes = vendedores
     .filter(v => vendedoresSelecionados.includes(v.cod_vendedor))
     .map(v => v.nome)
@@ -184,7 +189,7 @@ const AddProductScreen = ({ navigation }: AddProductScreenProps) => {
               <TouchableOpacity style={styles.productSelector} onPress={handleOpenProductSearch}>
                 {pendingProduct ? (
                   <Text style={styles.productSelectorText} numberOfLines={1}>
-                    {pendingProduct.nome}
+                    {pendingProduct.nome} - {pendingProduct.marca}
                   </Text>
                 ) : (
                   <Text style={styles.productSelectorPlaceholder}>
@@ -240,7 +245,7 @@ const AddProductScreen = ({ navigation }: AddProductScreenProps) => {
               />
             </View>
 
-            
+
 
             {/* Dropdown Vendedores */}
             <View style={styles.fieldContainer}>
@@ -251,7 +256,7 @@ const AddProductScreen = ({ navigation }: AddProductScreenProps) => {
                 style={styles.dropdown}
                 onPress={() => {
                   setShowVendedoresDropdown(prev => !prev);
-                  
+
                 }}
               >
                 <Text style={[styles.dropdownText, !vendedoresNomes && styles.placeholder]}>

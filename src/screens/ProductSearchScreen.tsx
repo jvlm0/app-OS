@@ -19,6 +19,8 @@ const ProductSearchScreen = ({ navigation }: Props) => {
     setPendingProduct({
       cod_subproduto: product.cod_subproduto,
       nome: product.nome,
+      marca: product.marca,
+      preco: product.preco,
     });
     navigation.goBack();
   };
