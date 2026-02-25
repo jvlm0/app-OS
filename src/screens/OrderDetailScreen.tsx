@@ -1,6 +1,7 @@
 // src/screens/OrderDetailScreen.tsx
 
 import ModalHeader from '@/components/ModalHeader';
+import { SaveButtonWithSummary } from '@/components/service-form/Savebuttonwithsummary';
 import { useFormData } from '@/contexts/FormDataContext';
 import type { RootStackParamList } from '@/types/navigation.types';
 import type { ItemProdutoResponse, ServicoResponse } from '@/types/order-list.types';
@@ -83,9 +84,7 @@ const OrderDetailScreen = ({ navigation, route }: OrderDetailProps) => {
           <View style={[styles.statusBadge, getStatusStyle(order.status)]}>
             <Text style={styles.statusText}>{order.status}</Text>
           </View>
-          <TouchableOpacity style={styles.editButton} onPress={handleEdit}>
-            <Text style={styles.editButtonText}>Editar</Text>
-          </TouchableOpacity>
+          
         </View>
 
         {/* Título */}
@@ -154,8 +153,8 @@ const OrderDetailScreen = ({ navigation, route }: OrderDetailProps) => {
                 </View>
                 {s.desconto > 0 ? (
                   <View style={styles.itemRow}>
-                    <Text style={styles.itemLabel}>Desconto:</Text>
-                    <Text style={styles.itemValue}>{formatCurrency(s.desconto)}</Text>
+                    <Text style={styles.itemLabel}>Desconto ({s.desconto}%):</Text>
+                    <Text style={styles.itemValue}>{formatCurrency(s.quantidade*s.valorUnitario*s.desconto/100)}</Text>
                   </View>
                 ) : null}
                 <View style={styles.itemRow}>
@@ -197,8 +196,8 @@ const OrderDetailScreen = ({ navigation, route }: OrderDetailProps) => {
                 </View>
                 {Number(p.desconto) > 0 ? (
                   <View style={styles.itemRow}>
-                    <Text style={styles.itemLabel}>Desconto:</Text>
-                    <Text style={styles.itemValue}>{formatCurrency(Number(p.desconto))}</Text>
+                    <Text style={styles.itemLabel}>Desconto ({p.desconto}%):</Text>
+                    <Text style={styles.itemValue}>{formatCurrency(p.quantidade*p.valorUnitario*p.desconto/100)}</Text>
                   </View>
                 ) : null}
                 {p.vendedores.length > 0 ? (
@@ -214,6 +213,16 @@ const OrderDetailScreen = ({ navigation, route }: OrderDetailProps) => {
           </Section>
         ) : null}
       </ScrollView>
+      
+      <SaveButtonWithSummary
+                    onPress={handleEdit}
+                    loading={false}
+                    disabled={false}
+                    text={'Editar'}
+                    floating={false}
+                    services={order.servicos || []}
+                    products={order.produtos || []}
+          />        
     </SafeAreaView>
   );
 };
