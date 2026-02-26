@@ -8,9 +8,11 @@ import { VehicleModelInput } from '@/components/vehicle-form/VehicleModelInput';
 import { VehicleYearInput } from '@/components/vehicle-form/VehicleYearInput';
 import { useFormData } from '@/contexts/FormDataContext';
 import { useVehicleForm } from '@/hooks/useVehicleForm';
+import { useIsFocused } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -24,7 +26,25 @@ type VehicleFormScreenProps = NativeStackScreenProps<RootStackParamList, 'Vehicl
 
 const VehicleFormScreen = ({ navigation, route }: VehicleFormScreenProps) => {
   const { plate: initialPlate, cod_cliente } = route.params;
-  
+
+
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+  const isFocused = useIsFocused();
+  useEffect(() => {
+    if (!isFocused) return;
+
+    Keyboard.dismiss();
+    setIsKeyboardVisible(false);
+
+    const showSub = Keyboard.addListener('keyboardDidShow', () => setIsKeyboardVisible(true));
+    const hideSub = Keyboard.addListener('keyboardDidHide', () => setIsKeyboardVisible(false));
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, [isFocused]);
+
   // ✅ Usar context ao invés de callback
   const { setSelectedVehicle } = useFormData();
 
@@ -158,16 +178,30 @@ const VehicleFormScreen = ({ navigation, route }: VehicleFormScreenProps) => {
               />
             )}
           </View>
+
+          {isKeyboardVisible && (
+            <SaveButton
+              onPress={validateAndSave}
+              loading={saving}
+              disabled={searching}
+              text={isExistingVehicle ? 'Selecionar Veículo' : 'Salvar Veículo'}
+              floating={false}
+            />)}
+
         </ScrollView>
 
+
+
+      </KeyboardAvoidingView>
+      {!isKeyboardVisible && (
         <SaveButton
           onPress={validateAndSave}
           loading={saving}
           disabled={searching}
           text={isExistingVehicle ? 'Selecionar Veículo' : 'Salvar Veículo'}
-          floating={false}
-        />
-      </KeyboardAvoidingView>
+          floating={true}
+        />)}
+
     </SafeAreaView>
   );
 };

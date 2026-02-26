@@ -7,10 +7,12 @@ import { SaveButton } from '@/components/client-form/SaveButton';
 import { FormField } from '@/components/form/FormField';
 import { useFormData } from '@/contexts/FormDataContext';
 import { useClientForm } from '@/hooks/useClientForm';
+import { useIsFocused } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useRouter } from 'expo-router';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -26,6 +28,27 @@ const ClientFormScreen = ({ navigation }: ClientFormScreenProps) => {
   // ✅ Usar context ao invés de callback
   const { setSelectedClient } = useFormData();
   const router = useRouter();
+
+
+
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+  const isFocused = useIsFocused();
+  useEffect(() => {
+    if (!isFocused) return;
+
+    Keyboard.dismiss();
+    setIsKeyboardVisible(false);
+
+    const showSub = Keyboard.addListener('keyboardDidShow', () => setIsKeyboardVisible(true));
+    const hideSub = Keyboard.addListener('keyboardDidHide', () => setIsKeyboardVisible(false));
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, [isFocused]);
+
+
 
   const {
     personType,
@@ -74,7 +97,7 @@ const ClientFormScreen = ({ navigation }: ClientFormScreenProps) => {
 
         <ScrollView style={styles.scrollView} keyboardShouldPersistTaps="handled">
           <View style={styles.formContainer}>
-            <FormField label="Tipo de Pessoa" required = {true}>
+            <FormField label="Tipo de Pessoa" required={true}>
               <PersonTypeSelector
                 value={personType}
                 onChange={handlePersonTypeChange}
@@ -84,7 +107,7 @@ const ClientFormScreen = ({ navigation }: ClientFormScreenProps) => {
 
             <FormField
               label={personType === 'PF' ? 'Nome Completo' : 'Razão Social'}
-              required = {true}
+              required={true}
             >
               <ClientNameInput
                 value={name}
@@ -98,7 +121,7 @@ const ClientFormScreen = ({ navigation }: ClientFormScreenProps) => {
 
             <FormField
               label="Telefone"
-              required = {false}
+              required={false}
               helperText="Telefone com DDD"
             >
               <PhoneInput
@@ -111,7 +134,7 @@ const ClientFormScreen = ({ navigation }: ClientFormScreenProps) => {
 
             <FormField
               label={personType === 'PF' ? 'CPF' : 'CNPJ'}
-              required = {false}
+              required={false}
               helperText={
                 personType === 'PF'
                   ? 'Cadastro de Pessoa Física'
@@ -127,10 +150,31 @@ const ClientFormScreen = ({ navigation }: ClientFormScreenProps) => {
               />
             </FormField>
           </View>
+
+          {isKeyboardVisible && (
+            <SaveButton
+              onPress={validateAndSave}
+              loading={saving}
+              disabled={false}
+              text={'Salvar Cliente'}
+              floating={false}
+            />)}
+
         </ScrollView>
 
-        <SaveButton onPress={validateAndSave} loading={saving} floating={false} />
+        
       </KeyboardAvoidingView>
+
+
+      {!isKeyboardVisible && (
+        <SaveButton
+          onPress={validateAndSave}
+          loading={saving}
+          disabled={false}
+          text={'Salvar Cliente'}
+          floating={true}
+        />)}
+
     </SafeAreaView>
   );
 };
