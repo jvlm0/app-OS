@@ -105,6 +105,11 @@ export const validateDocument = (
   document: string, 
   personType: 'PF' | 'PJ'
 ): { isValid: boolean; error?: string } => {
+
+  if (document.trim().length ===0) {
+    return { isValid: true }; // Permitir campo vazio
+  }
+
   if (!document.trim()) {
     return { 
       isValid: false, 

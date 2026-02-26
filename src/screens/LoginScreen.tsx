@@ -79,7 +79,7 @@ export default function LoginScreen() {
             </View>
 
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>Senha</Text>
+              <Text style={[styles.label, {color: '#000'}]}>Senha</Text>
               <TextInput
                 style={styles.input}
                 placeholder="Digite sua senha"
