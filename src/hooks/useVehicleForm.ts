@@ -1,3 +1,4 @@
+import { useFormData } from '@/contexts/FormDataContext';
 import { createVehicle, getVehicleByPlate, updateVehicle } from '@/services/Vehicleservice';
 import { isValidPlate } from '@/services/ocrService';
 import type { Vehicle, VehicleData } from '@/types/vehicle.types';
@@ -34,6 +35,12 @@ export const useVehicleForm = ({
   const [autoFilled, setAutoFilled] = useState(false);
   const [foundVehicle, setFoundVehicle] = useState<VehicleData | null>(null);
   const [isExistingVehicle, setIsExistingVehicle] = useState(false);
+
+
+    const {
+      selectedClient,
+    } = useFormData();
+
 
   useEffect(() => {
     if (initialPlate) {
@@ -155,6 +162,7 @@ export const useVehicleForm = ({
         const mileageNumber = cleanMileage(mileage);
         const result = await updateVehicle({
           cod_veiculo: foundVehicle.cod_veiculo,
+          cod_cliente: cod_cliente,
           kmatual: mileageNumber,
         });
 

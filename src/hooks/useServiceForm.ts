@@ -192,10 +192,12 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
   // ─── Validação ────────────────────────────────────────────────────────────
 
   const validate = (): boolean => {
-    if (!title.trim()) {
-      Alert.alert('Atenção', 'O título é obrigatório');
-      return false;
-    }
+
+    
+    //if (!title.trim()) {
+    //  Alert.alert('Atenção', 'O título é obrigatório');
+    //  return false;
+    //}
     if (!selectedClient) {
       Alert.alert('Atenção', 'Selecione um cliente');
       return false;

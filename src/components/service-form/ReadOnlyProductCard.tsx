@@ -4,7 +4,7 @@ import { Trash2 } from 'lucide-react-native';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-const TAX_RATE = 0.0449;
+const TAX_RATE = 0;
 
 export interface ProductData {
   id: string;
@@ -83,10 +83,12 @@ const ReadOnlyProductCard = ({ product, index, onRemove }: ReadOnlyProductCardPr
         </View>
       )}
 
-      <View style={styles.calculationRow}>
-        <Text style={styles.calculationLabel}>Impostos ({TAX_RATE * 100}%):</Text>
-        <Text style={styles.calculationValue}>{formatMoney(impostos)}</Text>
-      </View>
+      {impostos > 0 && (
+        <View style={styles.calculationRow}>
+          <Text style={styles.calculationLabel}>Impostos ({TAX_RATE * 100}%):</Text>
+          <Text style={styles.calculationValue}>{formatMoney(impostos)}</Text>
+        </View>
+      )}
 
       <View style={styles.totalRow}>
         <Text style={styles.totalLabel}>TOTAL:</Text>

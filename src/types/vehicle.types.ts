@@ -70,6 +70,7 @@ export interface VehicleCreateResult {
  */
 export interface VehicleUpdate {
   cod_veiculo: number;
+  cod_cliente: number;
   modelo?: string;
   ano?: string;
   kmatual?: number;
