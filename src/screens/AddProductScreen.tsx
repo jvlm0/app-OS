@@ -34,7 +34,7 @@ const AddProductScreen = ({ navigation }: AddProductScreenProps) => {
   const { addProduct, pendingProduct, setPendingProduct } = useFormData();
   const isFocused = useIsFocused();
 
-  const [quantidade, setQuantidade] = useState('');
+  const [quantidade, setQuantidade] = useState('1');
   const [valorUnitario, setValorUnitario] = useState('');
   const [desconto, setDesconto] = useState('');
   const [vendedoresSelecionados, setVendedoresSelecionados] = useState<number[]>([]);

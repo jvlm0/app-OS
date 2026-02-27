@@ -3,7 +3,6 @@
 import ModalHeader from '@/components/ModalHeader';
 import SelectField from '@/components/SelectField';
 import ClientField from '@/components/service-form/ClientField';
-import DetailsSection from '@/components/service-form/DetailsSection';
 import EditModeBanner from '@/components/service-form/EditModeBanner';
 import ProductsSection from '@/components/service-form/ProductsSection';
 import { SaveButtonWithSummary } from '@/components/service-form/Savebuttonwithsummary';
@@ -100,19 +99,7 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
           <View style={styles.formContainer}>
             {isEditMode && order && <EditModeBanner orderCode={order.cod_ordem} />}
 
-            {/* Título */}
-            <View style={styles.fieldContainer}>
-              <Text style={styles.label}>
-                Título <Text style={styles.required}>*</Text>
-              </Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Ex.: Manutenção de ar condicionado"
-                placeholderTextColor="#999"
-                value={title}
-                onChangeText={setTitle}
-              />
-            </View>
+            
 
             {/* Cliente */}
             <ClientField
@@ -135,6 +122,21 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
               helperText="Tire uma foto da placa ou digite manualmente"
               onPress={handleVehicleAdd}
             />
+
+            {/* Título */}
+            <View style={styles.fieldContainer}>
+              <Text style={styles.label}>
+                Título (opcional)
+              </Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Ex.: Manutenção de ar condicionado"
+                placeholderTextColor="#999"
+                value={title}
+                onChangeText={setTitle}
+              />
+            </View>
+
 
             {/* Descrição */}
             <View style={styles.fieldContainer}>
@@ -168,11 +170,11 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
               onRemove={removeProduct}
             />
 
-            {/* Detalhes */}
+            {/* Detalhes 
             <DetailsSection
               expanded={detailsExpanded}
               onToggle={setDetailsExpanded}
-            />
+            />*/}
           </View>
 
           {isKeyboardVisible && (

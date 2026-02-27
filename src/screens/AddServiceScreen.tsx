@@ -37,7 +37,7 @@ const AddServiceScreen = ({ navigation }: AddServiceScreenProps) => {
   const isFocused = useIsFocused();
 
   const [descricao, setDescricao] = useState('');
-  const [quantidade, setQuantidade] = useState('');
+  const [quantidade, setQuantidade] = useState('1');
   const [valorUnitario, setValorUnitario] = useState('');
   const [desconto, setDesconto] = useState('');
   const [equipeId, setEquipeId] = useState<number | null>(null);
