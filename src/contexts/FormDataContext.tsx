@@ -2,10 +2,12 @@
 
 import type { ProductData } from '@/components/service-form/ReadOnlyProductCard';
 import type { ServiceData } from '@/components/service-form/ReadOnlyServiceCard';
+import type { ProblemaData } from '@/types/problema.types';
 import React, { createContext, useContext, useState } from 'react';
 import type { Client } from '../types/client.types';
 import type { Order } from '../types/order-list.types';
 import type { Vehicle } from '../types/vehicle.types';
+
 
 interface FormDataContextType {
   selectedClient: Client | null;
@@ -29,6 +31,12 @@ interface FormDataContextType {
   // Produto pendente (selecionado na busca, aguardando preenchimento do form)
   pendingProduct: { cod_subproduto: number; nome: string; marca: string; preco: number } | null;
   setPendingProduct: (p: { cod_subproduto: number; nome: string; marca: string; preco: number } | null) => void;
+  // Problemas
+  problemas: ProblemaData[];
+  setProblemas: (problemas: ProblemaData[]) => void;
+  addProblema: (data: Omit<ProblemaData, 'id'>) => void;
+  updateProblema: (id: string, data: Partial<Omit<ProblemaData, 'id'>>) => void;
+  removeProblema: (id: string) => void;
   // Ordem atualizada — preenchida pelo ServiceForm após update bem-sucedido,
   // consumida e limpa pelo OrderDetailScreen ao ganhar foco
   updatedOrder: Order | null;
@@ -52,17 +60,16 @@ export const FormDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     marca: string;
     preco: number;
   } | null>(null);
+  const [problemas, setProblemasState] = useState<ProblemaData[]>([]);
   const [updatedOrder, setUpdatedOrder] = useState<Order | null>(null);
 
   // ─── Serviços ─────────────────────────────────────────────────────────────
 
-  // Usado para carregar a lista completa de uma vez (modo edição)
   const setServices = (serviceList: ServiceData[]) => setServicesState(serviceList);
 
   const addService = (service: ServiceData) =>
     setServicesState(prev => [...prev, service]);
 
-  // Se o serviço veio da API (tem cod_servico), registra o ID para enviar em servicosRemovidos
   const removeService = (id: string) => {
     setServicesState(prev => {
       const found = prev.find(s => s.id === id);
@@ -80,13 +87,11 @@ export const FormDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // ─── Produtos ─────────────────────────────────────────────────────────────
 
-  // Usado para carregar a lista completa de uma vez (modo edição)
   const setProducts = (productList: ProductData[]) => setProductsState(productList);
 
   const addProduct = (product: ProductData) =>
     setProductsState(prev => [...prev, product]);
 
-  // Se o produto veio da API (tem cod_itemProduto), registra o ID para enviar em produtosRemovidos
   const removeProduct = (id: string) => {
     setProductsState(prev => {
       const found = prev.find(p => p.id === id);
@@ -102,6 +107,28 @@ export const FormDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setRemovedProductIds([]);
   };
 
+  // ─── Problemas ────────────────────────────────────────────────────────────
+
+  const setProblemas = (problemaList: ProblemaData[]) => setProblemasState(problemaList);
+
+  const addProblema = (data: Omit<ProblemaData, 'id'>) => {
+    const newProblema: ProblemaData = {
+      id: `local-${Date.now()}-${Math.random()}`,
+      ...data,
+    };
+    setProblemasState(prev => [...prev, newProblema]);
+  };
+
+  const updateProblema = (id: string, data: Partial<Omit<ProblemaData, 'id'>>) => {
+    setProblemasState(prev =>
+      prev.map(p => (p.id === id ? { ...p, ...data } : p))
+    );
+  };
+
+  const removeProblema = (id: string) => {
+    setProblemasState(prev => prev.filter(p => p.id !== id));
+  };
+
   // ─── Geral ────────────────────────────────────────────────────────────────
 
   const clearFormData = () => {
@@ -112,6 +139,7 @@ export const FormDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setRemovedServiceIds([]);
     setRemovedProductIds([]);
     setPendingProduct(null);
+    setProblemasState([]);
     // Não limpa updatedOrder aqui — é responsabilidade do OrderDetailScreen
   };
 
@@ -136,6 +164,11 @@ export const FormDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         removedProductIds,
         pendingProduct,
         setPendingProduct,
+        problemas,
+        setProblemas,
+        addProblema,
+        updateProblema,
+        removeProblema,
         updatedOrder,
         setUpdatedOrder,
         clearFormData,

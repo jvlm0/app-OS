@@ -3,13 +3,16 @@
 import ModalHeader from '@/components/ModalHeader';
 import SelectField from '@/components/SelectField';
 import ClientField from '@/components/service-form/ClientField';
+import DetailsSection from '@/components/service-form/DetailsSection';
 import EditModeBanner from '@/components/service-form/EditModeBanner';
+import ProblemasSection from '@/components/service-form/ProblemasSection';
 import ProductsSection from '@/components/service-form/ProductsSection';
 import { SaveButtonWithSummary } from '@/components/service-form/Savebuttonwithsummary';
 import ServicesSection from '@/components/service-form/ServicesSection';
 import { useFormData } from '@/contexts/FormDataContext';
 import { useServiceForm } from '@/hooks/useServiceForm';
 import type { RootStackParamList } from '@/types/navigation.types';
+import type { ProblemaData } from '@/types/problema.types';
 import { useIsFocused } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React, { useEffect, useState } from 'react';
@@ -62,6 +65,10 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
     setServicesExpanded,
     productsExpanded,
     setProductsExpanded,
+    problemas,
+    problemasExpanded,
+    setProblemasExpanded,
+    removeProblema,
     detailsExpanded,
     setDetailsExpanded,
     handleClientSelect,
@@ -78,6 +85,15 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
   const handleAddProduct = () => {
     navigation.navigate('AddProduct');
     setProductsExpanded(true);
+  };
+
+  const handleAddProblema = () => {
+    navigation.navigate('AddProblema');
+    setProblemasExpanded(true);
+  };
+
+  const handleEditProblema = (problema: ProblemaData) => {
+    navigation.navigate('AddProblema', { problema });
   };
 
   return (
@@ -99,7 +115,19 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
           <View style={styles.formContainer}>
             {isEditMode && order && <EditModeBanner orderCode={order.cod_ordem} />}
 
-            
+            {/* Título */}
+            <View style={styles.fieldContainer}>
+              <Text style={styles.label}>
+                Título <Text style={styles.required}>*</Text>
+              </Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Ex.: Manutenção de ar condicionado"
+                placeholderTextColor="#999"
+                value={title}
+                onChangeText={setTitle}
+              />
+            </View>
 
             {/* Cliente */}
             <ClientField
@@ -123,21 +151,6 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
               onPress={handleVehicleAdd}
             />
 
-            {/* Título */}
-            <View style={styles.fieldContainer}>
-              <Text style={styles.label}>
-                Título (opcional)
-              </Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Ex.: Manutenção de ar condicionado"
-                placeholderTextColor="#999"
-                value={title}
-                onChangeText={setTitle}
-              />
-            </View>
-
-
             {/* Descrição */}
             <View style={styles.fieldContainer}>
               <Text style={styles.label}>Descrição (opcional)</Text>
@@ -151,6 +164,16 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
                 onChangeText={setDescription}
               />
             </View>
+
+            {/* Problemas Relatados */}
+            <ProblemasSection
+              problemas={problemas}
+              expanded={problemasExpanded}
+              onToggle={setProblemasExpanded}
+              onAdd={handleAddProblema}
+              onRemove={removeProblema}
+              onEdit={handleEditProblema}
+            />
 
             {/* Serviços */}
             <ServicesSection
@@ -170,11 +193,11 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
               onRemove={removeProduct}
             />
 
-            {/* Detalhes 
+            {/* Detalhes */}
             <DetailsSection
               expanded={detailsExpanded}
               onToggle={setDetailsExpanded}
-            />*/}
+            />
           </View>
 
           {isKeyboardVisible && (

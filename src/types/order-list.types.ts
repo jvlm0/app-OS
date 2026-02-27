@@ -1,11 +1,6 @@
-// types/order-list.types.ts
-// Tipos e interfaces relacionados à listagem de ordens de serviço
-
 import type { Client } from './client.types';
+import type { ProblemaOrdem } from './order.types';
 
-/**
- * Dados do veículo na listagem de ordens
- */
 export interface OrderVehicle {
   cod_veiculo?: number;
   modelo?: string;
@@ -17,25 +12,16 @@ export interface OrderVehicle {
   marca?: string;
 }
 
-/**
- * Equipe responsável (usada em serviços e produtos)
- */
 export interface EquipeResponsavel {
   cod_equipe: number;
   nome: string;
 }
 
-/**
- * Vendedor (usado em serviços e produtos)
- */
 export interface VendedorResponse {
   cod_vendedor: number;
   nome: string;
 }
 
-/**
- * Serviço retornado na ordem
- */
 export interface ServicoResponse {
   cod_servico: number;
   descricao: string;
@@ -46,9 +32,6 @@ export interface ServicoResponse {
   vendedores: VendedorResponse[];
 }
 
-/**
- * Item de produto retornado na ordem
- */
 export interface ItemProdutoResponse {
   cod_itemProduto: number;
   nome: string;
@@ -59,9 +42,6 @@ export interface ItemProdutoResponse {
   vendedores: VendedorResponse[];
 }
 
-/**
- * Interface da ordem de serviço na listagem
- */
 export interface Order {
   cod_ordem: number;
   status: string;
@@ -71,20 +51,15 @@ export interface Order {
   veiculo: OrderVehicle;
   servicos?: ServicoResponse[];
   produtos?: ItemProdutoResponse[];
+  problemas?: ProblemaOrdem[]; // NOVO
 }
 
-/**
- * Resultado da busca de ordens
- */
 export interface OrderListResult {
   success: boolean;
   data?: Order[];
   error?: string;
 }
 
-/**
- * Resultado da busca de uma ordem específica
- */
 export interface OrderDetailResult {
   success: boolean;
   data?: Order;
