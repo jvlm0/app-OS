@@ -45,8 +45,7 @@ export interface ItemProdutoResponse {
 export interface Order {
   cod_ordem: number;
   status: string;
-  titulo: string;
-  descricao: string;
+  observacao: string;
   cliente: Client;
   veiculo: OrderVehicle;
   servicos?: ServicoResponse[];

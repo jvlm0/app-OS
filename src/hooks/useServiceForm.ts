@@ -43,8 +43,7 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
     clearFormData,
   } = useFormData();
 
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
+  const [obs, setObs] = useState('');
   const [saving, setSaving] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [servicesExpanded, setServicesExpanded] = useState(false);
@@ -57,8 +56,7 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
 
     if (order) {
       setIsEditMode(true);
-      setTitle(order.titulo ?? '');
-      setDescription(order.descricao ?? '');
+      setObs(order.observacao ?? '');
 
       setSelectedClient({
         COD_PESSOA: order.cliente.COD_PESSOA,
@@ -120,8 +118,7 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
       }
     } else {
       setIsEditMode(false);
-      setTitle('');
-      setDescription('');
+      setObs('');
     }
 
     return () => {
@@ -207,10 +204,6 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
   // ─── Validação ────────────────────────────────────────────────────────────
 
   const validate = (): boolean => {
-    if (!title.trim()) {
-      Alert.alert('Atenção', 'O título é obrigatório');
-      return false;
-    }
     if (!selectedClient) {
       Alert.alert('Atenção', 'Selecione um cliente');
       return false;
@@ -259,8 +252,7 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
 
     const result = await updateOrder({
       cod_ordem,
-      titulo: title.trim(),
-      descricao: description.trim() || '',
+      observacao: obs.trim() || '',
       cod_veiculo: selectedVehicle!.cod_veiculo!,
       cod_cliente: selectedClient!.COD_PESSOA,
       servicos: newServices.length > 0 ? newServices : undefined,
@@ -295,8 +287,7 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
     const problemaPayload = problemas.length > 0 ? mapProblemasToPayload(problemas) : undefined;
 
     const result = await createOrder({
-      titulo: title.trim(),
-      descricao: description.trim() || '',
+      observacao: obs.trim() || '',
       cod_veiculo: selectedVehicle!.cod_veiculo!,
       cod_cliente: selectedClient!.COD_PESSOA,
       servicos: services.length > 0 ? mapServicesToPayload(services) : undefined,
@@ -320,8 +311,7 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
         {
           text: 'OK',
           onPress: () => {
-            setTitle('');
-            setDescription('');
+            setObs('');
             clearFormData();
             navigation.goBack();
           },
@@ -331,10 +321,8 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
   };
 
   return {
-    title,
-    setTitle,
-    description,
-    setDescription,
+    obs,
+    setObs,
     saving,
     isEditMode,
     selectedClient,
