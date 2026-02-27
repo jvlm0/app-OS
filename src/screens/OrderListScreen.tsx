@@ -82,7 +82,7 @@ const OrderListScreen = ({ navigation }: OrderListScreenProps) => {
       <View style={styles.cardHeader}>
         <View style={styles.orderInfo}>
           <Text style={styles.orderTitle} numberOfLines={1}>
-            {item.titulo}
+            {item.observacao}
           </Text>
           <Text style={styles.orderNumber}>OS #{item.cod_ordem}</Text>
         </View>
@@ -91,11 +91,6 @@ const OrderListScreen = ({ navigation }: OrderListScreenProps) => {
         </View>
       </View>
 
-      {item.descricao && (
-        <Text style={styles.description} numberOfLines={2}>
-          {item.descricao}
-        </Text>
-      )}
 
       <View style={styles.divider} />
 

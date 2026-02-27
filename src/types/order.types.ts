@@ -30,8 +30,7 @@ export interface ItemProdutoCreate {
  * Dados para criar uma ordem de serviço na API
  */
 export interface OrderCreate {
-  titulo: string;
-  descricao: string;
+  observacao: string;
   cod_veiculo: number;
   cod_cliente: number;
   servicos?: ServicoCreate[];
@@ -61,8 +60,7 @@ export interface OrderCreateResult {
  */
 export interface OrderUpdate {
   cod_ordem: number;
-  titulo?: string;
-  descricao?: string;
+  observacao?: string;
   cod_veiculo?: number;
   cod_cliente?: number;
   servicos?: ServicoCreate[];

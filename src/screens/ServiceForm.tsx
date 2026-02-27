@@ -3,7 +3,6 @@
 import ModalHeader from '@/components/ModalHeader';
 import SelectField from '@/components/SelectField';
 import ClientField from '@/components/service-form/ClientField';
-import DetailsSection from '@/components/service-form/DetailsSection';
 import EditModeBanner from '@/components/service-form/EditModeBanner';
 import ProblemasSection from '@/components/service-form/ProblemasSection';
 import ProductsSection from '@/components/service-form/ProductsSection';
@@ -53,10 +52,8 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
   }, [isFocused]);
 
   const {
-    title,
-    setTitle,
-    description,
-    setDescription,
+    obs,
+    setObs,
     saving,
     isEditMode,
     selectedClient,
@@ -115,19 +112,7 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
           <View style={styles.formContainer}>
             {isEditMode && order && <EditModeBanner orderCode={order.cod_ordem} />}
 
-            {/* Título */}
-            <View style={styles.fieldContainer}>
-              <Text style={styles.label}>
-                Título <Text style={styles.required}>*</Text>
-              </Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Ex.: Manutenção de ar condicionado"
-                placeholderTextColor="#999"
-                value={title}
-                onChangeText={setTitle}
-              />
-            </View>
+            
 
             {/* Cliente */}
             <ClientField
@@ -153,15 +138,15 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
 
             {/* Descrição */}
             <View style={styles.fieldContainer}>
-              <Text style={styles.label}>Descrição (opcional)</Text>
+              <Text style={styles.label}>Observações (opcional)</Text>
               <TextInput
                 style={[styles.input, styles.textArea]}
                 placeholder="Detalhes adicionais, instruções especiais, etc."
                 placeholderTextColor="#999"
                 multiline
-                numberOfLines={4}
-                value={description}
-                onChangeText={setDescription}
+                numberOfLines={2}
+                value={obs}
+                onChangeText={setObs}
               />
             </View>
 
@@ -193,11 +178,11 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
               onRemove={removeProduct}
             />
 
-            {/* Detalhes */}
+            {/* Detalhes 
             <DetailsSection
               expanded={detailsExpanded}
               onToggle={setDetailsExpanded}
-            />
+            />*/}
           </View>
 
           {isKeyboardVisible && (

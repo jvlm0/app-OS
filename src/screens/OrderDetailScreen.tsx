@@ -87,19 +87,14 @@ const OrderDetailScreen = ({ navigation, route }: OrderDetailProps) => {
           
         </View>
 
-        {/* Título */}
-        {order.titulo ? (
-          <Section title="Título">
-            <Text style={styles.valueText}>{order.titulo}</Text>
+        {/* Observação */}
+        {order.observacao ? (
+          <Section title="Observação">
+            <Text style={styles.valueText}>{order.observacao}</Text>
           </Section>
         ) : null}
 
-        {/* Descrição */}
-        {order.descricao ? (
-          <Section title="Descrição">
-            <Text style={styles.valueText}>{order.descricao}</Text>
-          </Section>
-        ) : null}
+        
 
         {/* Cliente */}
         <Section title="Cliente">
