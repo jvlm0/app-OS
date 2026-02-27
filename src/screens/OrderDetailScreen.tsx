@@ -5,6 +5,7 @@ import { SaveButtonWithSummary } from '@/components/service-form/Savebuttonwiths
 import { useFormData } from '@/contexts/FormDataContext';
 import type { RootStackParamList } from '@/types/navigation.types';
 import type { ItemProdutoResponse, ServicoResponse } from '@/types/order-list.types';
+import type { ProblemaOrdem } from '@/types/order.types';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React, { useEffect } from 'react';
 import {
@@ -25,8 +26,6 @@ const OrderDetailScreen = ({ navigation, route }: OrderDetailProps) => {
   const { updatedOrder, setUpdatedOrder } = useFormData();
   const { order, setOrder, loading, error, refresh } = useOrderDetail(cod_ordem);
 
-  // Ao voltar do ServiceForm, o context já tem a ordem atualizada —
-  // aplica direto no estado local e limpa o context, sem novo GET
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       if (updatedOrder) {
@@ -84,7 +83,6 @@ const OrderDetailScreen = ({ navigation, route }: OrderDetailProps) => {
           <View style={[styles.statusBadge, getStatusStyle(order.status)]}>
             <Text style={styles.statusText}>{order.status}</Text>
           </View>
-          
         </View>
 
         {/* Observação */}
@@ -93,8 +91,6 @@ const OrderDetailScreen = ({ navigation, route }: OrderDetailProps) => {
             <Text style={styles.valueText}>{order.observacao}</Text>
           </Section>
         ) : null}
-
-        
 
         {/* Cliente */}
         <Section title="Cliente">
@@ -132,6 +128,35 @@ const OrderDetailScreen = ({ navigation, route }: OrderDetailProps) => {
           ) : null}
         </Section>
 
+        {/* Problemas Relatados */}
+        {order.problemas && order.problemas.length > 0 ? (
+          <Section title={`Problemas Relatados (${order.problemas.length})`}>
+            {order.problemas.map((p: ProblemaOrdem, index: number) => (
+              <View key={index} style={styles.itemCard}>
+                <View style={styles.problemaHeader}>
+                  <Text style={styles.problemaIndex}>PROBLEMA {index + 1}</Text>
+                </View>
+
+                <View style={styles.problemaBlock}>
+                  <Text style={styles.problemaFieldLabel}>Problema Relatado</Text>
+                  <Text style={styles.problemaText}>{p.descricao}</Text>
+                </View>
+
+                {p.solucao ? (
+                  <View style={[styles.problemaBlock, styles.solucaoBlock]}>
+                    <Text style={styles.problemaFieldLabel}>Solução</Text>
+                    <Text style={styles.problemaText}>{p.solucao}</Text>
+                  </View>
+                ) : (
+                  <View style={styles.semSolucaoBadge}>
+                    <Text style={styles.semSolucaoText}>Sem solução registrada</Text>
+                  </View>
+                )}
+              </View>
+            ))}
+          </Section>
+        ) : null}
+
         {/* Serviços */}
         {order.servicos && order.servicos.length > 0 ? (
           <Section title={`Serviços (${order.servicos.length})`}>
@@ -149,7 +174,9 @@ const OrderDetailScreen = ({ navigation, route }: OrderDetailProps) => {
                 {s.desconto > 0 ? (
                   <View style={styles.itemRow}>
                     <Text style={styles.itemLabel}>Desconto ({s.desconto}%):</Text>
-                    <Text style={styles.itemValue}>{formatCurrency(s.quantidade*s.valorUnitario*s.desconto/100)}</Text>
+                    <Text style={styles.itemValue}>
+                      {formatCurrency(s.quantidade * s.valorUnitario * s.desconto / 100)}
+                    </Text>
                   </View>
                 ) : null}
                 <View style={styles.itemRow}>
@@ -192,7 +219,9 @@ const OrderDetailScreen = ({ navigation, route }: OrderDetailProps) => {
                 {Number(p.desconto) > 0 ? (
                   <View style={styles.itemRow}>
                     <Text style={styles.itemLabel}>Desconto ({p.desconto}%):</Text>
-                    <Text style={styles.itemValue}>{formatCurrency(p.quantidade*p.valorUnitario*p.desconto/100)}</Text>
+                    <Text style={styles.itemValue}>
+                      {formatCurrency(p.quantidade * p.valorUnitario * p.desconto / 100)}
+                    </Text>
                   </View>
                 ) : null}
                 {p.vendedores.length > 0 ? (
@@ -208,16 +237,16 @@ const OrderDetailScreen = ({ navigation, route }: OrderDetailProps) => {
           </Section>
         ) : null}
       </ScrollView>
-      
+
       <SaveButtonWithSummary
-                    onPress={handleEdit}
-                    loading={false}
-                    disabled={false}
-                    text={'Editar'}
-                    floating={false}
-                    services={order.servicos || []}
-                    products={order.produtos || []}
-          />        
+        onPress={handleEdit}
+        loading={false}
+        disabled={false}
+        text={'Editar'}
+        floating={false}
+        services={order.servicos || []}
+        products={order.produtos || []}
+      />
     </SafeAreaView>
   );
 };
@@ -291,13 +320,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   statusText: { fontSize: 13, fontWeight: '600', color: '#333' },
-  editButton: {
-    backgroundColor: '#000',
-    paddingHorizontal: 20,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  editButtonText: { color: '#fff', fontWeight: '600', fontSize: 14 },
 
   section: { marginBottom: 24 },
   sectionTitle: {
@@ -317,6 +339,52 @@ const styles = StyleSheet.create({
 
   valueText: { fontSize: 15, color: '#333', lineHeight: 22 },
 
+  // ── Problemas ──
+  problemaHeader: {
+    marginBottom: 12,
+  },
+  problemaIndex: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#666',
+    letterSpacing: 0.5,
+  },
+  problemaBlock: {
+    marginBottom: 10,
+  },
+  solucaoBlock: {
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#e8e8e8',
+  },
+  problemaFieldLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#666',
+    marginBottom: 4,
+  },
+  problemaText: {
+    fontSize: 15,
+    color: '#000',
+    lineHeight: 22,
+  },
+  semSolucaoBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#fff8e1',
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#ffe082',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    marginTop: 4,
+  },
+  semSolucaoText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#f9a825',
+  },
+
+  // ── Serviços / Produtos ──
   itemCard: {
     backgroundColor: '#f9f9f9',
     borderRadius: 10,
@@ -329,6 +397,14 @@ const styles = StyleSheet.create({
   itemRow: { flexDirection: 'row', marginBottom: 4 },
   itemLabel: { fontSize: 13, color: '#666', width: 110, flexShrink: 0 },
   itemValue: { fontSize: 13, color: '#333', flex: 1, fontWeight: '500' },
+
+  editButton: {
+    backgroundColor: '#000',
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  editButtonText: { color: '#fff', fontWeight: '600', fontSize: 14 },
 });
 
 export default OrderDetailScreen;
