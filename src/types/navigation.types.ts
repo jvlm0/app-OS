@@ -1,6 +1,7 @@
 // src/types/navigation.types.ts
 
 import { Order } from './order-list.types';
+import type { ProblemaData } from './problema.types';
 import type { Vehicle } from './vehicle.types';
 
 export interface Client {
@@ -36,4 +37,7 @@ export type RootStackParamList = {
   AddService: undefined;
   AddProduct: undefined;
   ProductSearch: undefined;
+  AddProblema: {
+    problema?: ProblemaData;
+  } | undefined;
 };

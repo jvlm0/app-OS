@@ -1,4 +1,4 @@
-// src/hooks/useServiceForm.ts
+// src/hooks/useServiceForm.ts — versão completa atualizada com problemas
 
 import type { ProductData } from '@/components/service-form/ReadOnlyProductCard';
 import { ServiceData } from '@/components/service-form/ReadOnlyServiceCard';
@@ -6,7 +6,8 @@ import { useFormData } from '@/contexts/FormDataContext';
 import { createOrder, updateOrder } from '@/services/orderService';
 import type { RootStackParamList } from '@/types/navigation.types';
 import type { Order } from '@/types/order-list.types';
-import type { ItemProdutoCreate, ServicoCreate } from '@/types/order.types';
+import type { ItemProdutoCreate, ProblemaOrdem, ServicoCreate } from '@/types/order.types';
+import type { ProblemaData } from '@/types/problema.types';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useEffect, useState } from 'react';
 import { Alert } from 'react-native';
@@ -33,6 +34,9 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
     setServices,
     products,
     setProducts,
+    problemas,
+    setProblemas,
+    removeProblema,
     removedServiceIds,
     removedProductIds,
     setUpdatedOrder,
@@ -46,9 +50,9 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
   const [servicesExpanded, setServicesExpanded] = useState(false);
   const [productsExpanded, setProductsExpanded] = useState(false);
   const [detailsExpanded, setDetailsExpanded] = useState(false);
+  const [problemasExpanded, setProblemasExpanded] = useState(false);
 
   useEffect(() => {
-    // Limpa o estado anterior antes de popular o novo
     clearFormData();
 
     if (order) {
@@ -71,11 +75,10 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
         mileage: order.veiculo.kmatual != null ? order.veiculo.kmatual.toString() : '',
       });
 
-      // ── Popula serviços vindos da API no context ──────────────────────────
       if (order.servicos && order.servicos.length > 0) {
         const mappedServices: ServiceData[] = order.servicos.map(s => ({
-          id: `api-${s.cod_servico}`,          // ID local único baseado no cod da API
-          cod_servico: s.cod_servico,           // ID real — usado para servicosRemovidos
+          id: `api-${s.cod_servico}`,
+          cod_servico: s.cod_servico,
           descricao: s.descricao,
           quantidade: s.quantidade,
           valorUnitario: s.valorUnitario,
@@ -89,12 +92,11 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
         setServicesExpanded(true);
       }
 
-      // ── Popula produtos vindos da API no context ──────────────────────────
       if (order.produtos && order.produtos.length > 0) {
         const mappedProducts: ProductData[] = order.produtos.map(p => ({
-          id: `api-${p.cod_itemProduto}`,       // ID local único baseado no cod da API
-          cod_itemProduto: p.cod_itemProduto,   // ID real — usado para produtosRemovidos
-          cod_subproduto: p.cod_itemProduto,    // será ignorado no update (não é novo)
+          id: `api-${p.cod_itemProduto}`,
+          cod_itemProduto: p.cod_itemProduto,
+          cod_subproduto: p.cod_itemProduto,
           nomeProduto: p.nome,
           quantidade: Number(p.quantidade),
           valorUnitario: Number(p.valorUnitario),
@@ -104,6 +106,17 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
         }));
         setProducts(mappedProducts);
         setProductsExpanded(true);
+      }
+
+      // ── Popula problemas vindos da API ────────────────────────────────────
+      if (order.problemas && order.problemas.length > 0) {
+        const mappedProblemas: ProblemaData[] = order.problemas.map((p, i) => ({
+          id: `api-problema-${i}-${Date.now()}`,
+          descricao: p.descricao,
+          solucao: p.solucao,
+        }));
+        setProblemas(mappedProblemas);
+        setProblemasExpanded(true);
       }
     } else {
       setIsEditMode(false);
@@ -131,11 +144,19 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
     navigation.navigate('CameraScreen', { cod_cliente: selectedClient.COD_PESSOA });
   };
 
-  // ─── Mapeamento de serviços (apenas os NOVOS — sem cod_servico) ───────────
+  // ─── Mapeamento de problemas para payload ─────────────────────────────────
+
+  const mapProblemasToPayload = (problemaList: ProblemaData[]): ProblemaOrdem[] =>
+    problemaList.map(p => ({
+      descricao: p.descricao,
+      solucao: p.solucao || undefined,
+    }));
+
+  // ─── Mapeamento de serviços (apenas novos) ────────────────────────────────
 
   const mapNewServicesToPayload = (serviceList: ServiceData[]): ServicoCreate[] =>
     serviceList
-      .filter(s => s.cod_servico == null) // apenas novos
+      .filter(s => s.cod_servico == null)
       .map(s => ({
         descricao: s.descricao,
         quantidade: s.quantidade,
@@ -145,11 +166,9 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
         cods_vendedores: s.cod_vendedores,
       }));
 
-  // ─── Mapeamento de produtos (apenas os NOVOS — sem cod_itemProduto) ───────
-
   const mapNewProductsToPayload = (productList: ProductData[]): ItemProdutoCreate[] =>
     productList
-      .filter(p => p.cod_itemProduto == null) // apenas novos
+      .filter(p => p.cod_itemProduto == null)
       .map(p => ({
         cod_subproduto: p.cod_subproduto,
         quantidade: p.quantidade,
@@ -157,8 +176,6 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
         desconto: p.desconto ?? 0,
         cods_vendedores: p.cod_vendedores,
       }));
-
-  // ─── Mapeamento de serviços (criação) ─────────────────────────────────────
 
   const mapServicesToPayload = (serviceList: ServiceData[]): ServicoCreate[] =>
     serviceList.map(s => ({
@@ -169,8 +186,6 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
       cod_equipe: s.cod_equipe,
       cods_vendedores: s.cod_vendedores,
     }));
-
-  // ─── Mapeamento de produtos (criação) ─────────────────────────────────────
 
   const mapProductsToPayload = (productList: ProductData[]): ItemProdutoCreate[] =>
     productList.map(p => ({
@@ -192,12 +207,10 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
   // ─── Validação ────────────────────────────────────────────────────────────
 
   const validate = (): boolean => {
-
-    
-    //if (!title.trim()) {
-    //  Alert.alert('Atenção', 'O título é obrigatório');
-    //  return false;
-    //}
+    if (!title.trim()) {
+      Alert.alert('Atenção', 'O título é obrigatório');
+      return false;
+    }
     if (!selectedClient) {
       Alert.alert('Atenção', 'Selecione um cliente');
       return false;
@@ -221,9 +234,7 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
 
   const handleSave = async () => {
     if (!validate()) return;
-
     setSaving(true);
-
     try {
       if (isEditMode && order) {
         await handleUpdate(order.cod_ordem);
@@ -243,6 +254,8 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
   const handleUpdate = async (cod_ordem: number) => {
     const newServices = mapNewServicesToPayload(services);
     const newProducts = mapNewProductsToPayload(products);
+    // Problemas: envia lista completa (conforme spec da API)
+    const problemaPayload = problemas.length > 0 ? mapProblemasToPayload(problemas) : undefined;
 
     const result = await updateOrder({
       cod_ordem,
@@ -254,6 +267,7 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
       produtos: newProducts.length > 0 ? newProducts : undefined,
       servicosRemovidos: removedServiceIds.length > 0 ? removedServiceIds : undefined,
       produtosRemovidos: removedProductIds.length > 0 ? removedProductIds : undefined,
+      problemas: problemaPayload,
     });
 
     if (!result.success) {
@@ -269,7 +283,6 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
       {
         text: 'OK',
         onPress: () => {
-          // Armazena a ordem atualizada no context para o OrderDetailScreen consumir
           setUpdatedOrder(result.data!);
           clearFormData();
           navigation.goBack();
@@ -279,6 +292,8 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
   };
 
   const handleCreate = async () => {
+    const problemaPayload = problemas.length > 0 ? mapProblemasToPayload(problemas) : undefined;
+
     const result = await createOrder({
       titulo: title.trim(),
       descricao: description.trim() || '',
@@ -286,6 +301,7 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
       cod_cliente: selectedClient!.COD_PESSOA,
       servicos: services.length > 0 ? mapServicesToPayload(services) : undefined,
       produtos: products.length > 0 ? mapProductsToPayload(products) : undefined,
+      problemas: problemaPayload,
     });
 
     if (!result.success) {
@@ -315,39 +331,31 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
   };
 
   return {
-    // Estado do formulário
     title,
     setTitle,
     description,
     setDescription,
     saving,
     isEditMode,
-
-    // Cliente / Veículo (do context)
     selectedClient,
     selectedVehicle,
-
-    // Serviços (do context)
     services,
     servicesExpanded,
     setServicesExpanded,
-
-    // Produtos (do context)
     products,
     productsExpanded,
     setProductsExpanded,
-
+    problemas,
+    problemasExpanded,
+    setProblemasExpanded,
+    removeProblema,
     detailsExpanded,
     setDetailsExpanded,
     updateService,
     formatCurrency,
-
-    // Ações de navegação
     handleClientSelect,
     handleAddClient,
     handleVehicleAdd,
-
-    // Submit
     handleSave,
   };
 };

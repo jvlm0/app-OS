@@ -36,6 +36,7 @@ export interface OrderCreate {
   cod_cliente: number;
   servicos?: ServicoCreate[];
   produtos?: ItemProdutoCreate[];
+  problemas?: ProblemaOrdem[]; // NOVO
 }
 
 /**
@@ -68,6 +69,7 @@ export interface OrderUpdate {
   produtos?: ItemProdutoCreate[];
   servicosRemovidos?: number[];
   produtosRemovidos?: number[];
+  problemas?: ProblemaOrdem[];
 }
 
 /**
@@ -78,4 +80,10 @@ export interface OrderUpdateResult {
   success: boolean;
   data?: Order;
   error?: string;
+}
+
+
+export interface ProblemaOrdem {
+  descricao: string;
+  solucao?: string;
 }

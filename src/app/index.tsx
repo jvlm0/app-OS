@@ -3,6 +3,7 @@
 
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { FormDataProvider } from '@/contexts/FormDataContext';
+import AddProblemaScreen from '@/screens/AddProblemaScreen';
 import AddProductScreen from '@/screens/AddProductScreen';
 import AddServiceScreen from '@/screens/AddServiceScreen';
 import CameraScreen from '@/screens/CameraScreen';
@@ -137,7 +138,16 @@ function AppNavigator() {
               headerShown: false,
               presentation: 'modal',
             }}
-            />
+          />
+
+          <Stack.Screen
+            name="AddProblema"
+            component={AddProblemaScreen}
+            options={{
+              headerShown: false,
+              presentation: 'modal',
+            }}
+          />
         </>
       )}
     </Stack.Navigator>
