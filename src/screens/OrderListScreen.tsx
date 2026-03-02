@@ -2,11 +2,13 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrderList } from '@/hooks/useOrderList';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { FileText, LogOut, Plus, RefreshCw } from 'lucide-react-native';
-import React, { useEffect } from 'react';
+import { EllipsisVertical, Eye, FileText, LogOut, Pencil, Plus, RefreshCw, Trash2 } from 'lucide-react-native';
+import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
+  Pressable,
   RefreshControl,
   StatusBar,
   StyleSheet,
@@ -15,6 +17,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { deleteOrder } from '../services/orderListService';
 import type { RootStackParamList } from '../types/navigation.types';
 import type { Order } from '../types/order-list.types';
 
@@ -25,6 +28,8 @@ const OrderListScreen = ({ navigation }: OrderListScreenProps) => {
   const { logout } = useAuth();
 
   const { orders, loading, loadingMore, refreshing, error, loadMore, refresh } = useOrderList();
+  const [openMenuOrderId, setOpenMenuOrderId] = useState<number | null>(null);
+  const [deletingOrderId, setDeletingOrderId] = useState<number | null>(null);
 
   // Recarregar ao ganhar foco (ex: voltar do ServiceForm)
   useEffect(() => {
@@ -55,6 +60,69 @@ const OrderListScreen = ({ navigation }: OrderListScreenProps) => {
     navigation.navigate('OrderDetail', { cod_ordem: order.cod_ordem });
   };
 
+  const closeMenu = () => {
+    setOpenMenuOrderId(null);
+  };
+
+  const requestDeleteOrder = async (order: Order, trust: 'y' | 'n' = 'n') => {
+    setDeletingOrderId(order.cod_ordem);
+
+    const result = await deleteOrder(order.cod_ordem, trust);
+
+    setDeletingOrderId(null);
+
+    if (!result.success || !result.data) {
+      Alert.alert('Erro', result.error || 'Não foi possível excluir a ordem.');
+      return;
+    }
+
+    if ('status' in result.data && result.data.status === 'sucesso') {
+      Alert.alert('Sucesso', `Ordem #${result.data.cod_ordem} removida com sucesso.`);
+      closeMenu();
+      await refresh();
+      return;
+    }
+
+    if ('quantidade' in result.data && trust === 'n') {
+      const { quantidade } = result.data;
+      Alert.alert(
+        'Confirmar exclusão',
+        `A ordem tem ${quantidade} itens adicionados. Tem certeza que deseja remover?`,
+        [
+          {
+            text: 'Não',
+            style: 'cancel',
+          },
+          {
+            text: 'Sim',
+            style: 'destructive',
+            onPress: () => {
+              requestDeleteOrder(order, 'y');
+            },
+          },
+        ],
+      );
+    }
+  };
+
+  const handleViewOrder = (order: Order) => {
+    closeMenu();
+    handleOrderPress(order);
+  };
+
+  const handleEditOrder = (order: Order) => {
+    closeMenu();
+    navigation.navigate('ServiceForm', { order });
+  };
+
+  const handleDeleteOrder = (order: Order) => {
+    requestDeleteOrder(order, 'n');
+  };
+
+  const toggleOrderMenu = (orderId: number) => {
+    setOpenMenuOrderId(prev => (prev === orderId ? null : orderId));
+  };
+
   const getStatusStyle = (status: string) => {
     switch (status.toLowerCase()) {
       case 'aberto':
@@ -73,44 +141,100 @@ const OrderListScreen = ({ navigation }: OrderListScreenProps) => {
     }
   };
 
-  const renderOrderCard = ({ item }: { item: Order }) => (
-    <TouchableOpacity
-      style={styles.card}
-      activeOpacity={0.7}
-      onPress={() => handleOrderPress(item)}
-    >
-      <View style={styles.cardHeader}>
-        <View style={styles.orderInfo}>
-          <Text style={styles.orderTitle} numberOfLines={1}>
-            {item.observacao}
+  const renderOrderCard = ({ item }: { item: Order }) => {
+    const isMenuOpen = openMenuOrderId === item.cod_ordem;
+    const isDeleting = deletingOrderId === item.cod_ordem;
+
+    return (
+      <TouchableOpacity
+        style={styles.card}
+        activeOpacity={0.7}
+        onPress={() => handleOrderPress(item)}
+      >
+        <View style={styles.cardHeaderRow}>
+          <View style={styles.cardHeaderContent}>
+            <View style={styles.orderInfo}>
+              <Text style={styles.orderTitle} numberOfLines={1}>
+                {item.observacao}
+              </Text>
+              <Text style={styles.orderNumber}>OS #{item.cod_ordem}</Text>
+            </View>
+            <View style={[styles.statusBadge, getStatusStyle(item.status)]}>
+              <Text style={styles.statusText}>{item.status}</Text>
+            </View>
+          </View>
+
+          <View style={styles.menuWrapper}>
+            <Pressable
+              style={styles.menuButton}
+              onPress={event => {
+                event.stopPropagation();
+                toggleOrderMenu(item.cod_ordem);
+              }}
+            >
+              <EllipsisVertical size={18} color="#333" />
+            </Pressable>
+
+            {isMenuOpen && (
+              <View style={styles.dropdownMenu}>
+                <Pressable
+                  style={styles.dropdownItem}
+                  onPress={event => {
+                    event.stopPropagation();
+                    handleViewOrder(item);
+                  }}
+                >
+                  <Eye size={16} color="#333" />
+                  <Text style={styles.dropdownText}>Ver</Text>
+                </Pressable>
+                <Pressable
+                  style={styles.dropdownItem}
+                  onPress={event => {
+                    event.stopPropagation();
+                    handleEditOrder(item);
+                  }}
+                >
+                  <Pencil size={16} color="#333" />
+                  <Text style={styles.dropdownText}>Editar</Text>
+                </Pressable>
+                <Pressable
+                  style={styles.dropdownItem}
+                  disabled={isDeleting}
+                  onPress={event => {
+                    event.stopPropagation();
+                    handleDeleteOrder(item);
+                  }}
+                >
+                  <Trash2 size={16} color="#D32F2F" />
+                  <Text style={[styles.dropdownText, styles.deleteText]}>
+                    {isDeleting ? 'Excluindo...' : 'Excluir'}
+                  </Text>
+                </Pressable>
+              </View>
+            )}
+          </View>
+        </View>
+
+        <View style={styles.divider} />
+
+        <View style={styles.vehicleContainer}>
+          <View style={styles.plateContainer}>
+            <Text style={styles.plate}>{formatPlate(item.veiculo.placa ?? '')}</Text>
+          </View>
+          <Text style={styles.vehicleInfo}>
+            {item.veiculo.modelo} • {item.veiculo.ano}
           </Text>
-          <Text style={styles.orderNumber}>OS #{item.cod_ordem}</Text>
         </View>
-        <View style={[styles.statusBadge, getStatusStyle(item.status)]}>
-          <Text style={styles.statusText}>{item.status}</Text>
+
+        <View style={styles.clientContainer}>
+          <Text style={styles.clientLabel}>Cliente:</Text>
+          <Text style={styles.clientName} numberOfLines={1}>
+            {item.cliente.nome}
+          </Text>
         </View>
-      </View>
-
-
-      <View style={styles.divider} />
-
-      <View style={styles.vehicleContainer}>
-        <View style={styles.plateContainer}>
-          <Text style={styles.plate}>{formatPlate(item.veiculo.placa ?? '')}</Text>
-        </View>
-        <Text style={styles.vehicleInfo}>
-          {item.veiculo.modelo} • {item.veiculo.ano}
-        </Text>
-      </View>
-
-      <View style={styles.clientContainer}>
-        <Text style={styles.clientLabel}>Cliente:</Text>
-        <Text style={styles.clientName} numberOfLines={1}>
-          {item.cliente.nome}
-        </Text>
-      </View>
-    </TouchableOpacity>
-  );
+      </TouchableOpacity>
+    );
+  };
 
   const renderFooter = () => {
     if (!loadingMore) return null;
@@ -170,23 +294,25 @@ const OrderListScreen = ({ navigation }: OrderListScreenProps) => {
         </TouchableOpacity>
       </View>
 
-      <FlatList
-        data={orders}
-        renderItem={renderOrderCard}
-        keyExtractor={item => item.cod_ordem.toString()}
-        contentContainerStyle={[
-          styles.listContainer,
-          { paddingBottom: 20 + insets.bottom },
-          orders.length === 0 && styles.emptyListContainer,
-        ]}
-        ListEmptyComponent={renderEmptyState}
-        ListFooterComponent={renderFooter}
-        onEndReached={loadMore}
-        onEndReachedThreshold={0.5}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={refresh} />
-        }
-      />
+      <Pressable style={styles.screenOverlay} onPress={closeMenu}>
+        <FlatList
+          data={orders}
+          renderItem={renderOrderCard}
+          keyExtractor={item => item.cod_ordem.toString()}
+          contentContainerStyle={[
+            styles.listContainer,
+            { paddingBottom: 20 + insets.bottom },
+            orders.length === 0 && styles.emptyListContainer,
+          ]}
+          ListEmptyComponent={renderEmptyState}
+          ListFooterComponent={renderFooter}
+          onEndReached={loadMore}
+          onEndReachedThreshold={0.5}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={refresh} />
+          }
+        />
+      </Pressable>
 
       <TouchableOpacity
         style={[styles.fab, { bottom: insets.bottom + 60 }]}
@@ -241,11 +367,60 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  cardHeader: {
+  screenOverlay: {
+    flex: 1,
+  },
+  cardHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: 8,
+  },
+  cardHeaderContent: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginRight: 8,
+  },
+  menuWrapper: {
+    position: 'relative',
+  },
+  menuButton: {
+    padding: 6,
+    borderRadius: 8,
+  },
+  dropdownMenu: {
+    position: 'absolute',
+    top: 32,
+    right: 0,
+    width: 150,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    paddingVertical: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 10,
+    zIndex: 20,
+  },
+  dropdownItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  dropdownText: {
+    fontSize: 14,
+    color: '#333',
+    fontWeight: '500',
+  },
+  deleteText: {
+    color: '#D32F2F',
   },
   orderInfo: {
     flex: 1,
