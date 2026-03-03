@@ -1,5 +1,7 @@
 // src/components/QuantityPriceRow.tsx
 
+import { useTheme } from '@/contexts/ThemeContext';
+import type { AppColors } from '@/theme/colors';
 import React from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 
@@ -8,14 +10,9 @@ interface QuantityPriceRowProps {
   onQuantidadeChange: (value: string) => void;
   valorUnitario: string;
   onValorUnitarioChange: (value: string) => void;
-  /** Label do campo de quantidade. Padrão: "Quantidade" */
   quantidadeLabel?: string;
 }
 
-/**
- * Par de campos em linha: Quantidade (esquerda) + Valor Unitário (direita).
- * Usado em AddProductScreen e AddServiceScreen.
- */
 export const QuantityPriceRow = ({
   quantidade,
   onQuantidadeChange,
@@ -23,6 +20,9 @@ export const QuantityPriceRow = ({
   onValorUnitarioChange,
   quantidadeLabel = 'Quantidade',
 }: QuantityPriceRowProps) => {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
+
   return (
     <View style={styles.row}>
       <View style={styles.halfField}>
@@ -32,7 +32,7 @@ export const QuantityPriceRow = ({
         <TextInput
           style={styles.input}
           placeholder="0"
-          placeholderTextColor="#999"
+          placeholderTextColor={colors.textPlaceholder}
           keyboardType="decimal-pad"
           value={quantidade}
           onChangeText={onQuantidadeChange}
@@ -46,7 +46,7 @@ export const QuantityPriceRow = ({
         <TextInput
           style={styles.input}
           placeholder="0,00"
-          placeholderTextColor="#999"
+          placeholderTextColor={colors.textPlaceholder}
           keyboardType="decimal-pad"
           value={valorUnitario}
           onChangeText={onValorUnitarioChange}
@@ -56,31 +56,19 @@ export const QuantityPriceRow = ({
   );
 };
 
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 24,
-  },
-  halfField: {
-    flex: 1,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#000',
-    marginBottom: 8,
-  },
-  required: {
-    color: '#ff0000',
-  },
-  input: {
-    backgroundColor: '#f5f5f5',
-    borderRadius: 8,
-    padding: 16,
-    fontSize: 16,
-    color: '#000',
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-  },
-});
+const makeStyles = (colors: AppColors) =>
+  StyleSheet.create({
+    row: { flexDirection: 'row', gap: 12, marginBottom: 24 },
+    halfField: { flex: 1 },
+    label: { fontSize: 16, fontWeight: '600', color: colors.textPrimary, marginBottom: 8 },
+    required: { color: colors.required },
+    input: {
+      backgroundColor: colors.inputBackground,
+      borderRadius: 8,
+      padding: 16,
+      fontSize: 16,
+      color: colors.inputText,
+      borderWidth: 1,
+      borderColor: colors.inputBorder,
+    },
+  });

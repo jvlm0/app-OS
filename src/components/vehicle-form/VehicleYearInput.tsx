@@ -1,3 +1,7 @@
+// src/components/vehicle-form/VehicleYearInput.tsx
+
+import { useTheme } from '@/contexts/ThemeContext';
+import type { AppColors } from '@/theme/colors';
 import React from 'react';
 import { StyleSheet, TextInput } from 'react-native';
 
@@ -8,18 +12,17 @@ interface VehicleYearInputProps {
   readOnly?: boolean;
 }
 
-export const VehicleYearInput = ({ 
-  value, 
-  onChange, 
-  disabled, 
-  readOnly 
-}: VehicleYearInputProps) => {
+export const VehicleYearInput = ({ value, onChange, disabled, readOnly }: VehicleYearInputProps) => {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
+
   if (!value) readOnly = false;
+
   return (
     <TextInput
       style={[styles.input, readOnly && styles.inputDisabled]}
       placeholder="Ex: 2020"
-      placeholderTextColor="#999"
+      placeholderTextColor={colors.textPlaceholder}
       value={value}
       onChangeText={onChange}
       keyboardType="numeric"
@@ -29,18 +32,19 @@ export const VehicleYearInput = ({
   );
 };
 
-const styles = StyleSheet.create({
-  input: {
-    backgroundColor: '#f5f5f5',
-    borderRadius: 8,
-    padding: 16,
-    fontSize: 16,
-    color: '#000',
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-  },
-  inputDisabled: {
-    backgroundColor: '#e8e8e8',
-    color: '#666',
-  },
-});
+const makeStyles = (colors: AppColors) =>
+  StyleSheet.create({
+    input: {
+      backgroundColor: colors.inputBackground,
+      borderRadius: 8,
+      padding: 16,
+      fontSize: 16,
+      color: colors.inputText,
+      borderWidth: 1,
+      borderColor: colors.inputBorder,
+    },
+    inputDisabled: {
+      backgroundColor: colors.inputDisabledBg,
+      color: colors.inputDisabledText,
+    },
+  });

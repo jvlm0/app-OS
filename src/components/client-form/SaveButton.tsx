@@ -1,3 +1,7 @@
+// src/components/client-form/SaveButton.tsx
+
+import { useTheme } from '@/contexts/ThemeContext';
+import type { AppColors } from '@/theme/colors';
 import React from 'react';
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -10,31 +14,29 @@ interface SaveButtonProps {
   floating?: boolean;
 }
 
-export const SaveButton = ({ 
-  onPress, 
-  loading = false, 
+export const SaveButton = ({
+  onPress,
+  loading = false,
   disabled = false,
   text = 'Salvar Cliente',
-  floating = true 
+  floating = true,
 }: SaveButtonProps) => {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const insets = useSafeAreaInsets();
-  
-  
-
 
   return (
-    <View style={[ floating ? styles.footerFloat : styles.footerNormal, 
-                  { paddingBottom: floating ?  insets.bottom + 20 : 20}]}>
+    <View style={[
+      floating ? styles.footerFloat : styles.footerNormal,
+      { paddingBottom: floating ? insets.bottom + 20 : 20 },
+    ]}>
       <TouchableOpacity
-        style={[
-          styles.saveButton, 
-          (loading || disabled) && styles.saveButtonDisabled
-        ]}
+        style={[styles.saveButton, (loading || disabled) && styles.saveButtonDisabled]}
         onPress={onPress}
         disabled={loading || disabled}
       >
         {loading ? (
-          <ActivityIndicator size="small" color="#fff" />
+          <ActivityIndicator size="small" color={colors.onPrimary} />
         ) : (
           <Text style={styles.saveButtonText}>{text}</Text>
         )}
@@ -43,35 +45,30 @@ export const SaveButton = ({
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: AppColors) =>
+  StyleSheet.create({
     footerFloat: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,  // ancora no fundo
-    padding: 20,
-    paddingBottom: 20, // sobrescrito inline pelo insets
-    backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
-  },
-  footerNormal: {
-    padding: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
-  },
-  saveButton: {
-    backgroundColor: '#000',
-    borderRadius: 8,
-    padding: 18,
-    alignItems: 'center',
-  },
-  saveButtonDisabled: {
-    backgroundColor: '#666',
-  },
-  saveButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#fff',
-  },
-});
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      bottom: 0,
+      padding: 20,
+      paddingBottom: 20,
+      backgroundColor: colors.background,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+    footerNormal: {
+      padding: 20,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+    saveButton: {
+      backgroundColor: colors.primary,
+      borderRadius: 8,
+      padding: 18,
+      alignItems: 'center',
+    },
+    saveButtonDisabled: { backgroundColor: colors.primaryDisabled },
+    saveButtonText: { fontSize: 16, fontWeight: '600', color: colors.onPrimary },
+  });

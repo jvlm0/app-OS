@@ -1,3 +1,7 @@
+// src/components/vehicle-form/MileageInput.tsx
+
+import { useTheme } from '@/contexts/ThemeContext';
+import type { AppColors } from '@/theme/colors';
 import React from 'react';
 import { StyleSheet, TextInput } from 'react-native';
 
@@ -8,41 +12,39 @@ interface MileageInputProps {
 }
 
 export const MileageInput = ({ value, onChange, disabled }: MileageInputProps) => {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
 
   if (!value) disabled = false;
 
   const formatMileage = (text: string): string => {
     const numbers = text.replace(/\D/g, '');
     if (numbers.length === 0) return '';
-    const numberValue = parseInt(numbers, 10);
-    return numberValue.toLocaleString('pt-BR');
-  };
-
-  const handleChange = (text: string) => {
-    onChange(formatMileage(text));
+    return parseInt(numbers, 10).toLocaleString('pt-BR');
   };
 
   return (
     <TextInput
       style={styles.input}
       placeholder="Ex: 50.000"
-      placeholderTextColor="#999"
+      placeholderTextColor={colors.textPlaceholder}
       value={value}
-      onChangeText={handleChange}
+      onChangeText={text => onChange(formatMileage(text))}
       keyboardType="numeric"
       editable={!disabled}
     />
   );
 };
 
-const styles = StyleSheet.create({
-  input: {
-    backgroundColor: '#f5f5f5',
-    borderRadius: 8,
-    padding: 16,
-    fontSize: 16,
-    color: '#000',
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-  },
-});
+const makeStyles = (colors: AppColors) =>
+  StyleSheet.create({
+    input: {
+      backgroundColor: colors.inputBackground,
+      borderRadius: 8,
+      padding: 16,
+      fontSize: 16,
+      color: colors.inputText,
+      borderWidth: 1,
+      borderColor: colors.inputBorder,
+    },
+  });

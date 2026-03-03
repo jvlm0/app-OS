@@ -1,14 +1,10 @@
 // src/components/DropdownSelect.tsx
 
+import { useTheme } from '@/contexts/ThemeContext';
+import type { AppColors } from '@/theme/colors';
 import { ChevronDown } from 'lucide-react-native';
 import React from 'react';
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const ITEM_HEIGHT = 53;
 const DEFAULT_VISIBLE_ITEMS = 4;
@@ -22,26 +18,16 @@ interface DropdownSelectProps {
   label: string;
   required?: boolean;
   placeholder: string;
-  /** Texto exibido no botão trigger (já formatado pela tela pai) */
   displayValue: string;
   items: DropdownItem[];
-  /**
-   * - `'single'`: seleção única, sem checkbox
-   * - `'multi'`: multi-seleção com checkbox
-   */
   mode: 'single' | 'multi';
   selectedIds: number[];
   onSelect: (id: number) => void;
   isOpen: boolean;
   onToggle: () => void;
-  /** Quantos itens aparecem antes de rolar. Padrão: 4 */
   visibleItems?: number;
 }
 
-/**
- * Dropdown reutilizável que suporta seleção única (equipe) e
- * múltipla com checkbox (vendedores).
- */
 export const DropdownSelect = ({
   label,
   required = false,
@@ -55,6 +41,8 @@ export const DropdownSelect = ({
   onToggle,
   visibleItems = DEFAULT_VISIBLE_ITEMS,
 }: DropdownSelectProps) => {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const listHeight = Math.min(items.length, visibleItems) * ITEM_HEIGHT;
 
   return (
@@ -68,7 +56,7 @@ export const DropdownSelect = ({
         <Text style={[styles.triggerText, !displayValue && styles.placeholder]}>
           {displayValue || placeholder}
         </Text>
-        <ChevronDown size={20} color="#666" />
+        <ChevronDown size={20} color={colors.iconDefault} />
       </TouchableOpacity>
 
       {isOpen && (
@@ -111,83 +99,52 @@ export const DropdownSelect = ({
   );
 };
 
-const styles = StyleSheet.create({
-  fieldContainer: {
-    marginBottom: 24,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#000',
-    marginBottom: 8,
-  },
-  required: {
-    color: '#ff0000',
-  },
-  trigger: {
-    backgroundColor: '#f5f5f5',
-    borderRadius: 8,
-    padding: 16,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-  },
-  triggerText: {
-    fontSize: 16,
-    color: '#000',
-    flex: 1,
-  },
-  placeholder: {
-    color: '#999',
-  },
-  list: {
-    marginTop: 8,
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-    overflow: 'hidden',
-  },
-  item: {
-    height: ITEM_HEIGHT,
-    paddingHorizontal: 16,
-    justifyContent: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  itemSelected: {
-    backgroundColor: '#f5f5f5',
-  },
-  itemText: {
-    fontSize: 16,
-    color: '#000',
-  },
-  itemTextSelected: {
-    fontWeight: '600',
-  },
-  checkboxRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  checkbox: {
-    width: 20,
-    height: 20,
-    borderWidth: 2,
-    borderColor: '#e0e0e0',
-    borderRadius: 4,
-    marginRight: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  checkboxChecked: {
-    backgroundColor: '#000',
-    borderColor: '#000',
-  },
-  checkmark: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-});
+const makeStyles = (colors: AppColors) =>
+  StyleSheet.create({
+    fieldContainer: { marginBottom: 24 },
+    label: { fontSize: 16, fontWeight: '600', color: colors.textPrimary, marginBottom: 8 },
+    required: { color: colors.required },
+    trigger: {
+      backgroundColor: colors.inputBackground,
+      borderRadius: 8,
+      padding: 16,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: colors.inputBorder,
+    },
+    triggerText: { fontSize: 16, color: colors.textPrimary, flex: 1 },
+    placeholder: { color: colors.textPlaceholder },
+    list: {
+      marginTop: 8,
+      backgroundColor: colors.surface,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: colors.border,
+      overflow: 'hidden',
+    },
+    item: {
+      height: ITEM_HEIGHT,
+      paddingHorizontal: 16,
+      justifyContent: 'center',
+      borderBottomWidth: 1,
+      borderBottomColor: colors.divider,
+    },
+    itemSelected: { backgroundColor: colors.backgroundMuted },
+    itemText: { fontSize: 16, color: colors.textPrimary },
+    itemTextSelected: { fontWeight: '600' },
+    checkboxRow: { flexDirection: 'row', alignItems: 'center' },
+    checkbox: {
+      width: 20,
+      height: 20,
+      borderWidth: 2,
+      borderColor: colors.border,
+      borderRadius: 4,
+      marginRight: 12,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    checkboxChecked: { backgroundColor: colors.primary, borderColor: colors.primary },
+    checkmark: { color: colors.onPrimary, fontSize: 14, fontWeight: 'bold' },
+  });
