@@ -1,40 +1,44 @@
 // src/contexts/ThemeContext.tsx
 
-import { darkColors, lightColors, type AppColors } from '@/theme/colors';
+import { darkColors, lightBlueColors, lightColors, type AppColors, type ThemeName } from '@/theme/colors';
 import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
-import { useColorScheme } from 'react-native';
 
 interface ThemeContextType {
   colors: AppColors;
+  themeName: ThemeName;
   isDark: boolean;
-  /** Alterna entre claro e escuro, sobrescrevendo o tema do sistema. */
+  /** Define um tema específico pelo nome. */
+  setTheme: (name: ThemeName) => void;
+  /** Alterna entre light ↔ dark (ignora lightBlue). */
   toggleTheme: () => void;
-  /** Remove a sobrescrita e volta a seguir o tema do sistema. */
-  resetToSystem: () => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
-  const systemScheme = useColorScheme();
-  const [override, setOverride] = useState<'light' | 'dark' | null>(null);
+const themeMap: Record<ThemeName, AppColors> = {
+  light:     lightColors,
+  dark:      darkColors,
+  lightBlue: lightBlueColors,
+};
 
-  const scheme = override ?? systemScheme ?? 'light';
-  const isDark = scheme === 'dark';
-  const colors = isDark ? darkColors : lightColors;
+// ─── Tema padrão ao iniciar o app ─────────────────────────────────────────────
+const DEFAULT_THEME: ThemeName = 'light';
+
+export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
+  const [themeName, setThemeName] = useState<ThemeName>(DEFAULT_THEME);
+
+  const colors = themeMap[themeName];
+  const isDark = themeName === 'dark';
+
+  const setTheme = useCallback((name: ThemeName) => setThemeName(name), []);
 
   const toggleTheme = useCallback(() => {
-    setOverride(prev => {
-      if (prev === null) return isDark ? 'light' : 'dark';
-      return prev === 'dark' ? 'light' : 'dark';
-    });
-  }, [isDark]);
-
-  const resetToSystem = useCallback(() => setOverride(null), []);
+    setThemeName(prev => (prev === 'dark' ? 'light' : 'dark'));
+  }, []);
 
   const value = useMemo(
-    () => ({ colors, isDark, toggleTheme, resetToSystem }),
-    [colors, isDark, toggleTheme, resetToSystem],
+    () => ({ colors, themeName, isDark, setTheme, toggleTheme }),
+    [colors, themeName, isDark, setTheme, toggleTheme],
   );
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;

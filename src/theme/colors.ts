@@ -5,6 +5,26 @@
 // Use sempre os tokens semânticos abaixo.
 
 const palette = {
+  // ── Light Blue palette ──────────────────────────────────────────────────────
+  lb900:        '#0D2340',  // texto primário
+  lb800:        '#1565C0',  // primary / ação
+  lb700:        '#1976D2',
+  lb600:        '#1E88E5',
+  lb500:        '#2196F3',
+  lb400:        '#42A5F5',
+  lb300:        '#90CAF9',
+  lb200:        '#BBDEFB',
+  lb150:        '#D6EAFD',
+  lb100:        '#EEF3FB',  // input background
+  lb075:        '#F2F7FD',  // background card
+  lb050:        '#EFF4FB',  // background screen
+  lbBorder:     '#C5D7F0',  // border
+  lbDivider:    '#D9E8F7',  // divider
+  lbText2:      '#4A6280',  // text secondary / icon default
+  lbText3:      '#7A96B2',  // text tertiary / placeholder
+  lbDisabled:   '#8DAFD4',  // primary disabled
+  lbStrongBorder: '#1A4A8A', // border strong
+
   black:        '#000000',
   white:        '#ffffff',
 
@@ -238,4 +258,103 @@ export const darkColors: typeof lightColors = {
   semSolucaoText:         '#fbbf24',
 };
 
+// ─── Tokens semânticos — Light Blue ─────────────────────────────────────────
+
+export const lightBlueColors: typeof lightColors = {
+  // Superfícies
+  background:             palette.white,
+  backgroundMuted:        palette.lb100,
+  backgroundScreen:       palette.lb050,
+  backgroundCard:         palette.lb075,
+  surface:                palette.white,
+
+  // Bordas / divisores
+  border:                 palette.lbBorder,
+  borderStrong:           palette.lbStrongBorder,
+  borderDashed:           palette.lb800,
+  divider:                palette.lbDivider,
+  dividerSubtle:          palette.lb150,
+  sectionDivider:         palette.lb200,
+
+  // Texto
+  textPrimary:            palette.lb900,
+  textSecondary:          palette.lbText2,
+  textTertiary:           palette.lbText3,
+  textPlaceholder:        palette.lbText3,
+  textOnDark:             palette.white,
+  textMeta:               '#1A3A5C',
+  textDiscount:           palette.red300,
+  textDiscountGreen:      palette.teal400,
+  textError:              palette.red400,
+  textWarning:            palette.amber500,
+
+  // Interativo primário
+  primary:                palette.lb800,
+  primaryDisabled:        palette.lbDisabled,
+  onPrimary:              palette.white,
+
+  // Ícones
+  iconDefault:            palette.lbText2,
+  iconStrong:             palette.lb800,
+  iconMuted:              palette.lb300,
+
+  // Campos de entrada
+  inputBackground:        palette.lb100,
+  inputBorder:            palette.lbBorder,
+  inputBorderError:       palette.red500,
+  inputText:              palette.lb900,
+  inputDisabledBg:        palette.lb150,
+  inputDisabledText:      palette.lbText2,
+
+  // Obrigatório
+  required:               palette.red500,
+
+  // Destrutivo
+  danger:                 palette.red600,
+  dangerText:             palette.red600,
+
+  // Status badges (OrderList)
+  statusPendingBg:        palette.orange500,
+  statusInProgressBg:     palette.lb700,
+  statusCompletedBg:      palette.green500,
+  statusCancelledBg:      palette.red400,
+  statusDefaultBg:        palette.slate500,
+  statusText:             palette.white,
+
+  // Status (OrderDetail — fundo + borda)
+  statusAbertaBg:         palette.green200,
+  statusAbertaBorder:     palette.green500,
+  statusConcluidaBg:      palette.blue200,
+  statusConcluidaBorder:  palette.blue500,
+  statusCanceladaBg:      palette.red200,
+  statusCanceladaBorder:  palette.red400,
+  statusNeutralBg:        palette.lb100,
+  statusNeutralBorder:    palette.lbText3,
+  statusDetailText:       palette.lb900,
+
+  // VehicleInfoBox
+  infoBoxSuccessBg:       palette.blue200,
+  infoBoxSuccessBorder:   palette.blue500,
+  infoBoxSuccessTitle:    '#1565c0',
+  infoBoxSuccessMsg:      '#1976d2',
+  infoBoxWarningBg:       palette.orange200,
+  infoBoxWarningBorder:   palette.orange500,
+  infoBoxWarningTitle:    '#e65100',
+  infoBoxWarningMsg:      '#ef6c00',
+  infoBoxInfoBg:          palette.green200,
+  infoBoxInfoBorder:      palette.green500,
+  infoBoxInfoTitle:       palette.green600,
+  infoBoxInfoMsg:         palette.green400,
+
+  // EditModeBanner
+  editBannerBg:           palette.lb700,
+  editBannerText:         palette.white,
+
+  // SemSolucaoBadge (OrderDetailScreen)
+  semSolucaoBg:           palette.amber200,
+  semSolucaoBorder:       palette.amber100,
+  semSolucaoText:         palette.amber500,
+};
+
 export type AppColors = typeof lightColors;
+export type ThemeName = 'light' | 'dark' | 'lightBlue';
