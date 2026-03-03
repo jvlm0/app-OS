@@ -1,3 +1,7 @@
+// src/components/vehicle-form/VehicleInfoBox.tsx
+
+import { useTheme } from '@/contexts/ThemeContext';
+import type { AppColors } from '@/theme/colors';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
@@ -10,69 +14,38 @@ interface VehicleInfoBoxProps {
 }
 
 export const VehicleInfoBox = ({ type, title, message }: VehicleInfoBoxProps) => {
-  const getStyles = () => {
-    switch (type) {
-      case 'success':
-        return {
-          container: styles.successBox,
-          titleColor: '#2e7d32',
-          messageColor: '#558b2f',
-        };
-      case 'warning':
-        return {
-          container: styles.warningBox,
-          titleColor: '#e65100',
-          messageColor: '#ef6c00',
-        };
-      case 'info':
-      default:
-        return {
-          container: styles.infoBox,
-          titleColor: '#2e7d32',
-          messageColor: '#558b2f',
-        };
-    }
-  };
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
 
-  const boxStyles = getStyles();
+  const boxStyle = {
+    success: { container: styles.successBox, title: styles.successTitle, msg: styles.successMsg },
+    warning: { container: styles.warningBox, title: styles.warningTitle, msg: styles.warningMsg },
+    info:    { container: styles.infoBox,    title: styles.infoTitle,    msg: styles.infoMsg },
+  }[type];
 
   return (
-    <View style={[styles.container, boxStyles.container]}>
-      <Text style={[styles.title, { color: boxStyles.titleColor }]}>
-        {title}
-      </Text>
-      <Text style={[styles.message, { color: boxStyles.messageColor }]}>
-        {message}
-      </Text>
+    <View style={[styles.container, boxStyle.container]}>
+      <Text style={[styles.title, boxStyle.title]}>{title}</Text>
+      <Text style={[styles.message, boxStyle.msg]}>{message}</Text>
     </View>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    borderRadius: 8,
-    padding: 16,
-    borderLeftWidth: 4,
-    marginTop: 8,
-  },
-  infoBox: {
-    backgroundColor: '#e8f5e9',
-    borderLeftColor: '#4caf50',
-  },
-  successBox: {
-    backgroundColor: '#e3f2fd',
-    borderLeftColor: '#2196f3',
-  },
-  warningBox: {
-    backgroundColor: '#fff3e0',
-    borderLeftColor: '#ff9800',
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  message: {
-    fontSize: 14,
-  },
-});
+const makeStyles = (colors: AppColors) =>
+  StyleSheet.create({
+    container: { borderRadius: 8, padding: 16, borderLeftWidth: 4, marginTop: 8 },
+    title: { fontSize: 16, fontWeight: '600', marginBottom: 4 },
+    message: { fontSize: 14 },
+
+    infoBox:    { backgroundColor: colors.infoBoxInfoBg,    borderLeftColor: colors.infoBoxInfoBorder },
+    infoTitle:  { color: colors.infoBoxInfoTitle },
+    infoMsg:    { color: colors.infoBoxInfoMsg },
+
+    successBox:   { backgroundColor: colors.infoBoxSuccessBg,   borderLeftColor: colors.infoBoxSuccessBorder },
+    successTitle: { color: colors.infoBoxSuccessTitle },
+    successMsg:   { color: colors.infoBoxSuccessMsg },
+
+    warningBox:   { backgroundColor: colors.infoBoxWarningBg,   borderLeftColor: colors.infoBoxWarningBorder },
+    warningTitle: { color: colors.infoBoxWarningTitle },
+    warningMsg:   { color: colors.infoBoxWarningMsg },
+  });

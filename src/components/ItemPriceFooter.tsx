@@ -1,3 +1,7 @@
+// src/components/ItemPriceFooter.tsx
+
+import { useTheme } from '@/contexts/ThemeContext';
+import type { AppColors } from '@/theme/colors';
 import React from 'react';
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -27,13 +31,14 @@ export const ItemPriceFooter = ({
   valorUnitario,
   desconto = 0,
 }: ItemPriceFooterProps) => {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const insets = useSafeAreaInsets();
-  
+
   const subtotal = quantidade * valorUnitario;
-  desconto = subtotal * (desconto / 100); 
-  const total = subtotal - desconto;
-  //const hasSummary = subtotal > 0;
-  const hasSummary = true; 
+  const descontoValor = subtotal * (desconto / 100);
+  const total = subtotal - descontoValor;
+
   return (
     <View
       style={[
@@ -42,34 +47,28 @@ export const ItemPriceFooter = ({
       ]}
     >
       <View style={styles.row}>
-        {hasSummary && (
-          <View style={styles.summary}>
-            {desconto > 0 && (
-              <View style={styles.summaryLine}>
-                <Text style={styles.summaryLabel}>Desconto</Text>
-                <Text style={[styles.summaryValue, styles.discountValue]}>
-                  - {formatBRL(desconto)}
-                </Text>
-              </View>
-            )}
+        <View style={styles.summary}>
+          {descontoValor > 0 && (
             <View style={styles.summaryLine}>
-              <Text style={styles.summaryLabel}>Total</Text>
-              <Text style={styles.totalValue}>{formatBRL(total)}</Text>
+              <Text style={styles.summaryLabel}>Desconto</Text>
+              <Text style={[styles.summaryValue, styles.discountValue]}>
+                - {formatBRL(descontoValor)}
+              </Text>
             </View>
+          )}
+          <View style={styles.summaryLine}>
+            <Text style={styles.summaryLabel}>Total</Text>
+            <Text style={styles.totalValue}>{formatBRL(total)}</Text>
           </View>
-        )}
+        </View>
 
         <TouchableOpacity
-          style={[
-            styles.saveButton,
-            !hasSummary && styles.saveButtonFull,
-            (loading || disabled) && styles.saveButtonDisabled,
-          ]}
+          style={[styles.saveButton, (loading || disabled) && styles.saveButtonDisabled]}
           onPress={onPress}
           disabled={loading || disabled}
         >
           {loading ? (
-            <ActivityIndicator size="small" color="#fff" />
+            <ActivityIndicator size="small" color={colors.onPrimary} />
           ) : (
             <Text style={styles.saveButtonText}>{text}</Text>
           )}
@@ -79,74 +78,40 @@ export const ItemPriceFooter = ({
   );
 };
 
-const styles = StyleSheet.create({
-  footerFloat: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    padding: 20,
-    paddingBottom: 20,
-    backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
-  },
-  footerNormal: {
-    padding: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 20,
-  },
-  summary: {
-    flex: 1,
-    alignItems: 'flex-end',
-    gap: 2,
-  },
-  summaryLine: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  summaryLabel: {
-    fontSize: 13,
-    color: '#666',
-    fontWeight: '500',
-  },
-  summaryValue: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#333',
-  },
-  discountValue: {
-    color: '#e53935',
-  },
-  totalValue: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#000',
-  },
-  saveButton: {
-    backgroundColor: '#000',
-    borderRadius: 8,
-    paddingVertical: 18,
-    paddingHorizontal: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minWidth: 140,
-  },
-  saveButtonFull: {
-    flex: 1,
-  },
-  saveButtonDisabled: {
-    backgroundColor: '#666',
-  },
-  saveButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#fff',
-  },
-});
+const makeStyles = (colors: AppColors) =>
+  StyleSheet.create({
+    footerFloat: {
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      bottom: 0,
+      padding: 20,
+      paddingBottom: 20,
+      backgroundColor: colors.background,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+    footerNormal: {
+      padding: 20,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+    row: { flexDirection: 'row', alignItems: 'center', gap: 20 },
+    summary: { flex: 1, alignItems: 'flex-end', gap: 2 },
+    summaryLine: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+    summaryLabel: { fontSize: 13, color: colors.textSecondary, fontWeight: '500' },
+    summaryValue: { fontSize: 13, fontWeight: '600', color: colors.textMeta },
+    discountValue: { color: colors.textDiscount },
+    totalValue: { fontSize: 16, fontWeight: '700', color: colors.textPrimary },
+    saveButton: {
+      backgroundColor: colors.primary,
+      borderRadius: 8,
+      paddingVertical: 18,
+      paddingHorizontal: 24,
+      alignItems: 'center',
+      justifyContent: 'center',
+      minWidth: 140,
+    },
+    saveButtonDisabled: { backgroundColor: colors.primaryDisabled },
+    saveButtonText: { fontSize: 16, fontWeight: '600', color: colors.onPrimary },
+  });

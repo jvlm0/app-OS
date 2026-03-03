@@ -1,3 +1,7 @@
+// src/components/client-form/ClientNameInput.tsx
+
+import { useTheme } from '@/contexts/ThemeContext';
+import type { AppColors } from '@/theme/colors';
 import type { PersonType } from '@/types/client.types';
 import React from 'react';
 import { StyleSheet, TextInput } from 'react-native';
@@ -11,19 +15,22 @@ interface ClientNameInputProps {
   onSubmitEditing?: () => void;
 }
 
-export const ClientNameInput = ({ 
-  value, 
-  onChange, 
-  personType, 
-  disabled, 
+export const ClientNameInput = ({
+  value,
+  onChange,
+  personType,
+  disabled,
   inputRef,
-  onSubmitEditing 
+  onSubmitEditing,
 }: ClientNameInputProps) => {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
+
   return (
     <TextInput
       style={styles.input}
       placeholder={personType === 'PF' ? 'Ex: João da Silva' : 'Ex: Empresa LTDA'}
-      placeholderTextColor="#999"
+      placeholderTextColor={colors.textPlaceholder}
       value={value}
       onChangeText={onChange}
       autoCapitalize="words"
@@ -35,14 +42,15 @@ export const ClientNameInput = ({
   );
 };
 
-const styles = StyleSheet.create({
-  input: {
-    backgroundColor: '#f5f5f5',
-    borderRadius: 8,
-    padding: 16,
-    fontSize: 16,
-    color: '#000',
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-  },
-});
+const makeStyles = (colors: AppColors) =>
+  StyleSheet.create({
+    input: {
+      backgroundColor: colors.inputBackground,
+      borderRadius: 8,
+      padding: 16,
+      fontSize: 16,
+      color: colors.inputText,
+      borderWidth: 1,
+      borderColor: colors.inputBorder,
+    },
+  });

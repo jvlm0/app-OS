@@ -1,3 +1,7 @@
+// src/components/client-form/PhoneInput.tsx
+
+import { useTheme } from '@/contexts/ThemeContext';
+import type { AppColors } from '@/theme/colors';
 import { formatPhone } from '@/utils/formatters';
 import React from 'react';
 import { StyleSheet, TextInput } from 'react-native';
@@ -10,17 +14,16 @@ interface PhoneInputProps {
 }
 
 export const PhoneInput = ({ value, onChange, disabled, inputRef }: PhoneInputProps) => {
-  const handleChange = (text: string) => {
-    onChange(formatPhone(text));
-  };
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
 
   return (
     <TextInput
       style={styles.input}
       placeholder="(00) 00000-0000"
-      placeholderTextColor="#999"
+      placeholderTextColor={colors.textPlaceholder}
       value={value}
-      onChangeText={handleChange}
+      onChangeText={text => onChange(formatPhone(text))}
       keyboardType="phone-pad"
       editable={!disabled}
       ref={inputRef}
@@ -28,14 +31,15 @@ export const PhoneInput = ({ value, onChange, disabled, inputRef }: PhoneInputPr
   );
 };
 
-const styles = StyleSheet.create({
-  input: {
-    backgroundColor: '#f5f5f5',
-    borderRadius: 8,
-    padding: 16,
-    fontSize: 16,
-    color: '#000',
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-  },
-});
+const makeStyles = (colors: AppColors) =>
+  StyleSheet.create({
+    input: {
+      backgroundColor: colors.inputBackground,
+      borderRadius: 8,
+      padding: 16,
+      fontSize: 16,
+      color: colors.inputText,
+      borderWidth: 1,
+      borderColor: colors.inputBorder,
+    },
+  });

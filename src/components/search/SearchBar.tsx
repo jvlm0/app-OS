@@ -1,3 +1,7 @@
+// src/components/search/SearchBar.tsx
+
+import { useTheme } from '@/contexts/ThemeContext';
+import type { AppColors } from '@/theme/colors';
 import { Search } from 'lucide-react-native';
 import React from 'react';
 import { StyleSheet, TextInput, View } from 'react-native';
@@ -14,40 +18,47 @@ export const SearchBar = ({
   onChangeText,
   placeholder = 'Buscar por nome ou telefone',
   autoFocus = false,
-}: SearchBarProps) => (
-  <View style={styles.container}>
-    <View style={styles.inputContainer}>
-      <Search size={20} color="#666" />
-      <TextInput
-        style={styles.input}
-        placeholder={placeholder}
-        placeholderTextColor="#999"
-        value={value}
-        onChangeText={onChangeText}
-        autoFocus={autoFocus}
-      />
-    </View>
-  </View>
-);
+}: SearchBarProps) => {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
 
-const styles = StyleSheet.create({
-  container: {
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f5f5f5',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    gap: 12,
-  },
-  input: {
-    flex: 1,
-    fontSize: 16,
-    color: '#000',
-    paddingVertical: 12,
-  },
-});
+  return (
+    <View style={styles.container}>
+      <View style={styles.inputContainer}>
+        <Search size={20} color={colors.iconDefault} />
+        <TextInput
+          style={styles.input}
+          placeholder={placeholder}
+          placeholderTextColor={colors.textPlaceholder}
+          value={value}
+          onChangeText={onChangeText}
+          autoFocus={autoFocus}
+        />
+      </View>
+    </View>
+  );
+};
+
+const makeStyles = (colors: AppColors) =>
+  StyleSheet.create({
+    container: {
+      padding: 20,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+      backgroundColor: colors.background,
+    },
+    inputContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.inputBackground,
+      borderRadius: 8,
+      paddingHorizontal: 16,
+      gap: 12,
+    },
+    input: {
+      flex: 1,
+      fontSize: 16,
+      color: colors.inputText,
+      paddingVertical: 12,
+    },
+  });
