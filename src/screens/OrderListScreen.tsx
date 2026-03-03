@@ -1,7 +1,7 @@
 // src/screens/OrderListScreen.tsx
 
-import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { useOrderList } from '@/hooks/useOrderList';
 import type { AppColors } from '@/theme/colors';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -72,11 +72,11 @@ const OrderListScreen = ({ navigation }: OrderListScreenProps) => {
 
   const getStatusStyle = (status: string) => {
     switch (status.toLowerCase()) {
-      case 'aberto': case 'pendente':   return styles.statusPending;
+      case 'aberto': case 'pendente': return styles.statusPending;
       case 'em andamento': case 'em_andamento': return styles.statusInProgress;
-      case 'concluído': case 'concluido':       return styles.statusCompleted;
-      case 'cancelado':                         return styles.statusCancelled;
-      default:                                  return styles.statusDefault;
+      case 'concluído': case 'concluido': return styles.statusCompleted;
+      case 'cancelado': return styles.statusCancelled;
+      default: return styles.statusDefault;
     }
   };
 
@@ -163,7 +163,7 @@ const OrderListScreen = ({ navigation }: OrderListScreenProps) => {
       </View>
     );
   };
-
+const {toggleTheme, isDark} = useTheme();
   return (
     <View style={[styles.screen, { paddingBottom: insets.bottom }]}>
       <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
@@ -243,11 +243,11 @@ const makeStyles = (colors: AppColors) =>
     orderNumber: { fontSize: 14, fontWeight: '600', color: colors.textSecondary },
     statusBadge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6 },
     statusText: { fontSize: 12, fontWeight: '600', color: colors.statusText },
-    statusPending:    { backgroundColor: colors.statusPendingBg },
+    statusPending: { backgroundColor: colors.statusPendingBg },
     statusInProgress: { backgroundColor: colors.statusInProgressBg },
-    statusCompleted:  { backgroundColor: colors.statusCompletedBg },
-    statusCancelled:  { backgroundColor: colors.statusCancelledBg },
-    statusDefault:    { backgroundColor: colors.statusDefaultBg },
+    statusCompleted: { backgroundColor: colors.statusCompletedBg },
+    statusCancelled: { backgroundColor: colors.statusCancelledBg },
+    statusDefault: { backgroundColor: colors.statusDefaultBg },
     divider: { height: 1, backgroundColor: colors.divider, marginVertical: 12 },
     vehicleContainer: { marginBottom: 12 },
     plateContainer: {
