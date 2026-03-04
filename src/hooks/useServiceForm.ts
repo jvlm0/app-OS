@@ -40,6 +40,8 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
     imagens,
     addImagem,
     removeImagem,
+    imagensExistentes,
+    setImagensExistentes,
     removedServiceIds,
     removedProductIds,
     setUpdatedOrder,
@@ -110,9 +112,10 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
         setProductsExpanded(true);
       }
 
-      // ── Popula imagens vindas da API (se existirem)
-      // As imagens salvas não têm URI local, por isso não são populadas no estado
-      // (são exibidas separadamente no OrderDetail)
+      // ── Popula imagens existentes vindas da API
+      if (order.imagens && order.imagens.length > 0) {
+        setImagensExistentes(order.imagens);
+      }
 
       // ── Popula problemas vindos da API ────────────────────────────────────
       if (order.problemas && order.problemas.length > 0) {
@@ -354,6 +357,7 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
     detailsExpanded,
     setDetailsExpanded,
     imagens,
+    imagensExistentes,
     imagensExpanded,
     setImagensExpanded,
     addImagem,
