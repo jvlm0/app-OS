@@ -94,6 +94,18 @@ const OrderListScreen = ({ navigation }: OrderListScreenProps) => {
             <View style={styles.orderInfo}>
               <Text style={styles.orderTitle} numberOfLines={1}>{item.observacao}</Text>
               <Text style={styles.orderNumber}>OS #{item.cod_ordem}</Text>
+              {item.problemas && item.problemas.length > 0 && (
+                <View style={styles.problemasContainer}>
+                  {item.problemas.length === 1 ? (
+                    <Text style={styles.problemaText} numberOfLines={2}>{item.problemas[0].descricao}</Text>
+                  ) : (
+                    <>
+                      <Text style={styles.problemaText} numberOfLines={1}>{item.problemas[0].descricao}</Text>
+                      <Text style={styles.problemaText} numberOfLines={1}>{item.problemas[1].descricao}</Text>
+                    </>
+                  )}
+                </View>
+              )}
             </View>
             <View style={[styles.statusBadge, getStatusStyle(item.status)]}>
               <Text style={styles.statusText}>{item.status}</Text>
@@ -163,7 +175,7 @@ const OrderListScreen = ({ navigation }: OrderListScreenProps) => {
       </View>
     );
   };
-const {toggleTheme, isDark} = useTheme();
+
   return (
     <View style={[styles.screen, { paddingBottom: insets.bottom }]}>
       <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
@@ -241,6 +253,8 @@ const makeStyles = (colors: AppColors) =>
     orderInfo: { flex: 1, marginRight: 12 },
     orderTitle: { fontSize: 18, fontWeight: '700', color: colors.textPrimary, marginBottom: 4 },
     orderNumber: { fontSize: 14, fontWeight: '600', color: colors.textSecondary },
+    problemasContainer: { marginTop: 6 },
+    problemaText: { fontSize: 14, color: colors.textTertiary, lineHeight: 18 },
     statusBadge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6 },
     statusText: { fontSize: 12, fontWeight: '600', color: colors.statusText },
     statusPending: { backgroundColor: colors.statusPendingBg },
