@@ -37,6 +37,9 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
     problemas,
     setProblemas,
     removeProblema,
+    imagens,
+    addImagem,
+    removeImagem,
     removedServiceIds,
     removedProductIds,
     setUpdatedOrder,
@@ -50,6 +53,7 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
   const [productsExpanded, setProductsExpanded] = useState(false);
   const [detailsExpanded, setDetailsExpanded] = useState(false);
   const [problemasExpanded, setProblemasExpanded] = useState(false);
+  const [imagensExpanded, setImagensExpanded] = useState(false);
 
   useEffect(() => {
     clearFormData();
@@ -105,6 +109,10 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
         setProducts(mappedProducts);
         setProductsExpanded(true);
       }
+
+      // ── Popula imagens vindas da API (se existirem)
+      // As imagens salvas não têm URI local, por isso não são populadas no estado
+      // (são exibidas separadamente no OrderDetail)
 
       // ── Popula problemas vindos da API ────────────────────────────────────
       if (order.problemas && order.problemas.length > 0) {
@@ -250,17 +258,20 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
     // Problemas: envia lista completa (conforme spec da API)
     const problemaPayload = problemas.length > 0 ? mapProblemasToPayload(problemas) : undefined;
 
-    const result = await updateOrder({
-      cod_ordem,
-      observacao: obs.trim() || '',
-      cod_veiculo: selectedVehicle!.cod_veiculo!,
-      cod_cliente: selectedClient!.COD_PESSOA,
-      servicos: newServices.length > 0 ? newServices : undefined,
-      produtos: newProducts.length > 0 ? newProducts : undefined,
-      servicosRemovidos: removedServiceIds.length > 0 ? removedServiceIds : undefined,
-      produtosRemovidos: removedProductIds.length > 0 ? removedProductIds : undefined,
-      problemas: problemaPayload,
-    });
+    const result = await updateOrder(
+      {
+        cod_ordem,
+        observacao: obs.trim() || '',
+        cod_veiculo: selectedVehicle!.cod_veiculo!,
+        cod_cliente: selectedClient!.COD_PESSOA,
+        servicos: newServices.length > 0 ? newServices : undefined,
+        produtos: newProducts.length > 0 ? newProducts : undefined,
+        servicosRemovidos: removedServiceIds.length > 0 ? removedServiceIds : undefined,
+        produtosRemovidos: removedProductIds.length > 0 ? removedProductIds : undefined,
+        problemas: problemaPayload,
+      },
+      imagens,
+    );
 
     if (!result.success) {
       Alert.alert(
@@ -286,14 +297,17 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
   const handleCreate = async () => {
     const problemaPayload = problemas.length > 0 ? mapProblemasToPayload(problemas) : undefined;
 
-    const result = await createOrder({
-      observacao: obs.trim() || '',
-      cod_veiculo: selectedVehicle!.cod_veiculo!,
-      cod_cliente: selectedClient!.COD_PESSOA,
-      servicos: services.length > 0 ? mapServicesToPayload(services) : undefined,
-      produtos: products.length > 0 ? mapProductsToPayload(products) : undefined,
-      problemas: problemaPayload,
-    });
+    const result = await createOrder(
+      {
+        observacao: obs.trim() || '',
+        cod_veiculo: selectedVehicle!.cod_veiculo!,
+        cod_cliente: selectedClient!.COD_PESSOA,
+        servicos: services.length > 0 ? mapServicesToPayload(services) : undefined,
+        produtos: products.length > 0 ? mapProductsToPayload(products) : undefined,
+        problemas: problemaPayload,
+      },
+      imagens,
+    );
 
     if (!result.success) {
       Alert.alert(
@@ -339,6 +353,11 @@ export const useServiceForm = ({ order, navigation }: UseServiceFormProps) => {
     removeProblema,
     detailsExpanded,
     setDetailsExpanded,
+    imagens,
+    imagensExpanded,
+    setImagensExpanded,
+    addImagem,
+    removeImagem,
     updateService,
     formatCurrency,
     handleClientSelect,

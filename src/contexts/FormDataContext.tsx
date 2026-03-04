@@ -2,6 +2,7 @@
 
 import type { ProductData } from '@/components/service-form/ReadOnlyProductCard';
 import type { ServiceData } from '@/components/service-form/ReadOnlyServiceCard';
+import type { ImagemItem } from '@/components/service-form/ImagensSection';
 import type { ProblemaData } from '@/types/problema.types';
 import React, { createContext, useContext, useState } from 'react';
 import type { Client } from '../types/client.types';
@@ -37,6 +38,10 @@ interface FormDataContextType {
   addProblema: (data: Omit<ProblemaData, 'id'>) => void;
   updateProblema: (id: string, data: Partial<Omit<ProblemaData, 'id'>>) => void;
   removeProblema: (id: string) => void;
+  // Imagens
+  imagens: ImagemItem[];
+  addImagem: (imagem: ImagemItem) => void;
+  removeImagem: (localUri: string) => void;
   // Ordem atualizada — preenchida pelo ServiceForm após update bem-sucedido,
   // consumida e limpa pelo OrderDetailScreen ao ganhar foco
   updatedOrder: Order | null;
@@ -62,6 +67,7 @@ export const FormDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   } | null>(null);
   const [problemas, setProblemasState] = useState<ProblemaData[]>([]);
   const [updatedOrder, setUpdatedOrder] = useState<Order | null>(null);
+  const [imagens, setImagens] = useState<ImagemItem[]>([]);
 
   // ─── Serviços ─────────────────────────────────────────────────────────────
 
@@ -129,6 +135,14 @@ export const FormDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setProblemasState(prev => prev.filter(p => p.id !== id));
   };
 
+  // ─── Imagens ────────────────────────────────────────────────────────────────────────────────
+
+  const addImagem = (imagem: ImagemItem) =>
+    setImagens(prev => [...prev, imagem]);
+
+  const removeImagem = (localUri: string) =>
+    setImagens(prev => prev.filter(i => i.localUri !== localUri));
+
   // ─── Geral ────────────────────────────────────────────────────────────────
 
   const clearFormData = () => {
@@ -140,6 +154,7 @@ export const FormDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setRemovedProductIds([]);
     setPendingProduct(null);
     setProblemasState([]);
+    setImagens([]);
     // Não limpa updatedOrder aqui — é responsabilidade do OrderDetailScreen
   };
 
@@ -169,6 +184,9 @@ export const FormDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         addProblema,
         updateProblema,
         removeProblema,
+        imagens,
+        addImagem,
+        removeImagem,
         updatedOrder,
         setUpdatedOrder,
         clearFormData,
