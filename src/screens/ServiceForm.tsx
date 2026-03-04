@@ -4,6 +4,7 @@ import ModalHeader from '@/components/ModalHeader';
 import SelectField from '@/components/SelectField';
 import ClientField from '@/components/service-form/ClientField';
 import EditModeBanner from '@/components/service-form/EditModeBanner';
+import ImagensSection from '@/components/service-form/ImagensSection';
 import ProblemasSection from '@/components/service-form/ProblemasSection';
 import ProductsSection from '@/components/service-form/ProductsSection';
 import { SaveButtonWithSummary } from '@/components/service-form/Savebuttonwithsummary';
@@ -34,6 +35,7 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
     servicesExpanded, setServicesExpanded,
     productsExpanded, setProductsExpanded,
     problemas, problemasExpanded, setProblemasExpanded,
+    imagens, imagensExpanded, setImagensExpanded, addImagem, removeImagem,
     removeProblema, handleClientSelect, handleAddClient,
     handleVehicleAdd, handleSave,
   } = useServiceForm({ order, navigation });
@@ -83,6 +85,10 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
               problemas={problemas} expanded={problemasExpanded}
               onToggle={setProblemasExpanded} onAdd={handleAddProblema}
               onRemove={removeProblema} onEdit={handleEditProblema}
+            />
+            <ImagensSection
+              imagens={imagens} expanded={imagensExpanded}
+              onToggle={setImagensExpanded} onAdd={addImagem} onRemove={removeImagem}
             />
             <ServicesSection
               services={services} expanded={servicesExpanded}

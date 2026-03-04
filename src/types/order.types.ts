@@ -35,7 +35,7 @@ export interface OrderCreate {
   cod_cliente: number;
   servicos?: ServicoCreate[];
   produtos?: ItemProdutoCreate[];
-  problemas?: ProblemaOrdem[]; // NOVO
+  problemas?: ProblemaOrdem[];
 }
 
 /**
