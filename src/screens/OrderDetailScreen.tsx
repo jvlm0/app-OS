@@ -1,6 +1,7 @@
 // src/screens/OrderDetailScreen.tsx
 
 import ModalHeader from '@/components/ModalHeader';
+import ImagensGallery from '@/components/order-detail/ImagensGallery';
 import { SaveButtonWithSummary } from '@/components/service-form/Savebuttonwithsummary';
 import { useFormData } from '@/contexts/FormDataContext';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -130,6 +131,13 @@ const OrderDetailScreen = ({ navigation, route }: OrderDetailProps) => {
                 )}
               </View>
             ))}
+          </Section>
+        )}
+
+        {/* Imagens */}
+        {order.imagens && order.imagens.length > 0 && (
+          <Section title={`Imagens (${order.imagens.length})`} colors={colors}>
+            <ImagensGallery imagens={order.imagens} />
           </Section>
         )}
 

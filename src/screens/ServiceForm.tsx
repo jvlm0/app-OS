@@ -35,7 +35,7 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
     servicesExpanded, setServicesExpanded,
     productsExpanded, setProductsExpanded,
     problemas, problemasExpanded, setProblemasExpanded,
-    imagens, imagensExpanded, setImagensExpanded, addImagem, removeImagem,
+    imagens, imagensExistentes, imagensExpanded, setImagensExpanded, addImagem, removeImagem,
     removeProblema, handleClientSelect, handleAddClient,
     handleVehicleAdd, handleSave,
   } = useServiceForm({ order, navigation });
@@ -87,7 +87,8 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
               onRemove={removeProblema} onEdit={handleEditProblema}
             />
             <ImagensSection
-              imagens={imagens} expanded={imagensExpanded}
+              imagens={imagens} imagensExistentes={imagensExistentes}
+              expanded={imagensExpanded}
               onToggle={setImagensExpanded} onAdd={addImagem} onRemove={removeImagem}
             />
             <ServicesSection

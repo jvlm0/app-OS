@@ -38,10 +38,13 @@ interface FormDataContextType {
   addProblema: (data: Omit<ProblemaData, 'id'>) => void;
   updateProblema: (id: string, data: Partial<Omit<ProblemaData, 'id'>>) => void;
   removeProblema: (id: string) => void;
-  // Imagens
+  // Imagens novas (a enviar)
   imagens: ImagemItem[];
   addImagem: (imagem: ImagemItem) => void;
   removeImagem: (localUri: string) => void;
+  // Imagens existentes (URLs vindas da API, só leitura no form)
+  imagensExistentes: string[];
+  setImagensExistentes: (urls: string[]) => void;
   // Ordem atualizada — preenchida pelo ServiceForm após update bem-sucedido,
   // consumida e limpa pelo OrderDetailScreen ao ganhar foco
   updatedOrder: Order | null;
@@ -68,6 +71,7 @@ export const FormDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [problemas, setProblemasState] = useState<ProblemaData[]>([]);
   const [updatedOrder, setUpdatedOrder] = useState<Order | null>(null);
   const [imagens, setImagens] = useState<ImagemItem[]>([]);
+  const [imagensExistentes, setImagensExistentes] = useState<string[]>([]);
 
   // ─── Serviços ─────────────────────────────────────────────────────────────
 
@@ -155,6 +159,7 @@ export const FormDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setPendingProduct(null);
     setProblemasState([]);
     setImagens([]);
+    setImagensExistentes([]);
     // Não limpa updatedOrder aqui — é responsabilidade do OrderDetailScreen
   };
 
@@ -187,6 +192,8 @@ export const FormDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         imagens,
         addImagem,
         removeImagem,
+        imagensExistentes,
+        setImagensExistentes,
         updatedOrder,
         setUpdatedOrder,
         clearFormData,

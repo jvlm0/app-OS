@@ -50,7 +50,8 @@ export interface Order {
   veiculo: OrderVehicle;
   servicos?: ServicoResponse[];
   produtos?: ItemProdutoResponse[];
-  problemas?: ProblemaOrdem[]; // NOVO
+  problemas?: ProblemaOrdem[];
+  imagens?: string[];
 }
 
 export interface OrderListResult {
