@@ -1,21 +1,21 @@
 // src/components/order-detail/ImagensGallery.tsx
-// Galeria de imagens para visualização na tela de detalhe da ordem
+// Galeria de imagens com lightbox e swipe nativo entre fotos
 
 import { ENV } from '@/config/env';
 import { useTheme } from '@/contexts/ThemeContext';
 import type { AppColors } from '@/theme/colors';
 import { X, ZoomIn } from 'lucide-react-native';
-import React, { useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   Dimensions,
   FlatList,
   Image,
   Modal,
-  Pressable,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
+  type ViewToken,
 } from 'react-native';
 
 interface ImagensGalleryProps {
@@ -33,30 +33,58 @@ const resolveUrl = (url: string): string => {
 const ImagensGallery = ({ imagens }: ImagensGalleryProps) => {
   const { colors } = useTheme();
   const styles = makeStyles(colors);
+
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [visibleIndex, setVisibleIndex] = useState(0);
+  const flatRef = useRef<FlatList>(null);
 
   if (!imagens || imagens.length === 0) return null;
 
-  const prev = () => setActiveIndex(i => (i !== null && i > 0 ? i - 1 : i));
-  const next = () => setActiveIndex(i => (i !== null && i < imagens.length - 1 ? i + 1 : i));
+  const openAt = (index: number) => {
+    setVisibleIndex(index);
+    setActiveIndex(index);
+    requestAnimationFrame(() => {
+      flatRef.current?.scrollToIndex({ index, animated: false });
+    });
+  };
+
+  const close = () => setActiveIndex(null);
+
+  const onViewableItemsChanged = useCallback(
+    ({ viewableItems }: { viewableItems: ViewToken[] }) => {
+      if (viewableItems.length > 0 && viewableItems[0].index != null) {
+        setVisibleIndex(viewableItems[0].index);
+      }
+    },
+    [],
+  );
+
+  const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 50 }).current;
+
+  const renderLightboxItem = ({ item }: { item: string }) => (
+    <TouchableOpacity activeOpacity={1} style={styles.slideArea} onPress={close}>
+      <Image
+        source={{ uri: resolveUrl(item) }}
+        style={styles.fullImage}
+        resizeMode="contain"
+      />
+    </TouchableOpacity>
+  );
 
   return (
     <View style={styles.container}>
-      {/* Grade de thumbnails em 3 colunas */}
-      <FlatList
-        data={imagens}
-        keyExtractor={(item, index) => `${item}-${index}`}
-        numColumns={3}
-        scrollEnabled={false}
-        columnWrapperStyle={styles.row}
-        renderItem={({ item, index }) => (
+
+      {/* Grade de thumbnails */}
+      <View style={styles.grid}>
+        {imagens.map((url, index) => (
           <TouchableOpacity
+            key={`${url}-${index}`}
             style={styles.thumbWrapper}
-            onPress={() => setActiveIndex(index)}
+            onPress={() => openAt(index)}
             activeOpacity={0.8}
           >
             <Image
-              source={{ uri: resolveUrl(item) }}
+              source={{ uri: resolveUrl(url) }}
               style={styles.thumbnail}
               resizeMode="cover"
             />
@@ -64,82 +92,77 @@ const ImagensGallery = ({ imagens }: ImagensGalleryProps) => {
               <ZoomIn size={14} color="#fff" strokeWidth={2} />
             </View>
           </TouchableOpacity>
-        )}
-      />
+        ))}
+      </View>
 
-      {/* Lightbox com navegação */}
+      {/* Lightbox */}
       <Modal
         visible={activeIndex !== null}
         transparent
         animationType="fade"
-        onRequestClose={() => setActiveIndex(null)}
+        onRequestClose={close}
+        statusBarTranslucent
       >
         <View style={styles.overlay}>
-          {/* Fechar */}
-          <TouchableOpacity style={styles.closeBtn} onPress={() => setActiveIndex(null)}>
+
+          <TouchableOpacity style={styles.closeBtn} onPress={close}>
             <X size={20} color="#fff" strokeWidth={2.5} />
           </TouchableOpacity>
 
-          {/* Contador */}
-          {activeIndex !== null && (
-            <Text style={styles.counter}>{activeIndex + 1} / {imagens.length}</Text>
-          )}
+          <Text style={styles.counter}>
+            {visibleIndex + 1} / {imagens.length}
+          </Text>
 
-          {/* Imagem — toque fecha */}
-          {activeIndex !== null && (
-            <Pressable style={styles.imageArea} onPress={() => setActiveIndex(null)}>
-              <Image
-                source={{ uri: resolveUrl(imagens[activeIndex]) }}
-                style={styles.fullImage}
-                resizeMode="contain"
-              />
-            </Pressable>
-          )}
+          {/* Carrossel com swipe nativo */}
+          <FlatList
+            ref={flatRef}
+            data={imagens}
+            keyExtractor={(item, i) => `lb-${item}-${i}`}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            bounces={false}
+            initialScrollIndex={activeIndex ?? 0}
+            getItemLayout={(_, index) => ({
+              length: SCREEN_W,
+              offset: SCREEN_W * index,
+              index,
+            })}
+            onViewableItemsChanged={onViewableItemsChanged}
+            viewabilityConfig={viewabilityConfig}
+            renderItem={renderLightboxItem}
+          />
 
-          {/* Navegação inferior */}
-          <View style={styles.navRow}>
-            <TouchableOpacity
-              style={[styles.navBtn, activeIndex === 0 && styles.navBtnDisabled]}
-              onPress={prev}
-              disabled={activeIndex === 0}
-            >
-              <Text style={styles.navArrow}>‹</Text>
-            </TouchableOpacity>
-
+          {imagens.length > 1 && (
             <View style={styles.dots}>
               {imagens.map((_, i) => (
-                <TouchableOpacity
+                <View
                   key={i}
-                  style={[styles.dot, i === activeIndex && styles.dotActive]}
-                  onPress={() => setActiveIndex(i)}
+                  style={[styles.dot, i === visibleIndex && styles.dotActive]}
                 />
               ))}
             </View>
+          )}
 
-            <TouchableOpacity
-              style={[styles.navBtn, activeIndex === imagens.length - 1 && styles.navBtnDisabled]}
-              onPress={next}
-              disabled={activeIndex === imagens.length - 1}
-            >
-              <Text style={styles.navArrow}>›</Text>
-            </TouchableOpacity>
-          </View>
         </View>
       </Modal>
     </View>
   );
 };
 
+const THUMB_W = (SCREEN_W - 40 - GAP * 2) / 3;
+
 const makeStyles = (colors: AppColors) =>
   StyleSheet.create({
     container: { marginTop: 4 },
-
-    // Grid
-    row: { gap: GAP, marginBottom: GAP },
+    grid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: GAP,
+    },
     thumbWrapper: {
-      flex: 1,
-      maxWidth: (SCREEN_W - 40 - GAP * 2) / 3,
-      aspectRatio: 1,
+      width: THUMB_W,
+      height: THUMB_W,
       borderRadius: 8,
       overflow: 'hidden',
       backgroundColor: colors.inputBackground,
@@ -153,13 +176,10 @@ const makeStyles = (colors: AppColors) =>
       borderRadius: 6,
       padding: 3,
     },
-
-    // Lightbox
     overlay: {
       flex: 1,
       backgroundColor: 'rgba(0,0,0,0.95)',
       justifyContent: 'center',
-      alignItems: 'center',
     },
     closeBtn: {
       position: 'absolute',
@@ -177,41 +197,28 @@ const makeStyles = (colors: AppColors) =>
       position: 'absolute',
       top: 60,
       alignSelf: 'center',
+      width: '100%',
+      textAlign: 'center',
       color: 'rgba(255,255,255,0.7)',
       fontSize: 14,
       fontWeight: '500',
+      zIndex: 5,
     },
-    imageArea: {
+    slideArea: {
       width: SCREEN_W,
-      height: SCREEN_H * 0.72,
+      height: SCREEN_H,
       justifyContent: 'center',
       alignItems: 'center',
     },
     fullImage: {
       width: SCREEN_W,
-      height: SCREEN_H * 0.72,
+      height: SCREEN_H * 0.75,
     },
-
-    // Navegação
-    navRow: {
+    dots: {
       position: 'absolute',
       bottom: 52,
       flexDirection: 'row',
-      alignItems: 'center',
-      gap: 16,
-    },
-    navBtn: {
-      width: 44,
-      height: 44,
-      borderRadius: 22,
-      backgroundColor: 'rgba(255,255,255,0.15)',
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    navBtnDisabled: { opacity: 0.25 },
-    navArrow: { color: '#fff', fontSize: 28, lineHeight: 32, fontWeight: '300' },
-    dots: {
-      flexDirection: 'row',
+      alignSelf: 'center',
       gap: 6,
       alignItems: 'center',
     },
