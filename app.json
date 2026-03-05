@@ -16,7 +16,9 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "NSCameraUsageDescription": "Este app precisa acessar a câmera para ler placas de veículos."
+        "NSCameraUsageDescription": "Este app precisa acessar a câmera para ler placas de veículos.",
+        "NSSpeechRecognitionUsageDescription": "Este app usa reconhecimento de voz para preencher o campo de observações.",
+        "NSMicrophoneUsageDescription": "Este app precisa do microfone para transcrição de voz."
       }
     },
     "androidStatusBar": {
@@ -52,6 +54,13 @@
     },
     "plugins": [
       "expo-router",
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "Permitir que o app acesse o microfone para transcrever observações por voz.",
+          "speechRecognitionPermission": "Permitir que o app use reconhecimento de voz para preencher observações."
+        }
+      ],
       [
         "expo-camera",
         {

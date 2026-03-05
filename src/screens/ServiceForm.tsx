@@ -2,6 +2,7 @@
 
 import ModalHeader from '@/components/ModalHeader';
 import SelectField from '@/components/SelectField';
+import VoiceInputButton from '@/components/VoiceInputButton';
 import ClientField from '@/components/service-form/ClientField';
 import EditModeBanner from '@/components/service-form/EditModeBanner';
 import ImagensSection from '@/components/service-form/ImagensSection';
@@ -12,6 +13,7 @@ import ServicesSection from '@/components/service-form/ServicesSection';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useFormData } from '@/contexts/FormDataContext';
 import { useServiceForm } from '@/hooks/useServiceForm';
+import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
 import { useKeyboardVisibility } from '@/hooks/useKeyboardVisibility';
 import type { AppColors } from '@/theme/colors';
 import type { RootStackParamList } from '@/types/navigation.types';
@@ -30,6 +32,8 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
   const styles = makeStyles(colors);
   const isKeyboardVisible = useKeyboardVisibility();
 
+  // ── useServiceForm deve vir antes do useSpeechRecognition para que
+  //    obs / setObs estejam disponíveis quando montamos o hook de voz
   const {
     obs, setObs, saving, isEditMode, selectedClient, selectedVehicle,
     servicesExpanded, setServicesExpanded,
@@ -39,6 +43,18 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
     removeProblema, handleClientSelect, handleAddClient,
     handleVehicleAdd, handleSave,
   } = useServiceForm({ order, navigation });
+
+  // Ref para ter acesso ao valor mais recente de obs dentro dos callbacks do hook de voz
+  const obsRef = React.useRef(obs);
+  React.useEffect(() => { obsRef.current = obs; }, [obs]);
+
+  const { isListening, toggle: toggleVoice } = useSpeechRecognition({
+    onResult: (transcript) => {
+      const current = obsRef.current;
+      const updated = current ? `${current} ${transcript}` : transcript;
+      setObs(updated);
+    },
+  });
 
   const handleAddService = () => { navigation.navigate('AddService'); setServicesExpanded(true); };
   const handleAddProduct = () => { navigation.navigate('AddProduct'); setProductsExpanded(true); };
@@ -72,7 +88,13 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
               onPress={handleVehicleAdd}
             />
             <View style={styles.fieldContainer}>
-              <Text style={styles.label}>Observações (opcional)</Text>
+              <View style={styles.labelRow}>
+                <Text style={styles.label}>Observações (opcional)</Text>
+                <VoiceInputButton
+                  isListening={isListening}
+                  onToggle={toggleVoice}
+                />
+              </View>
               <TextInput
                 style={[styles.input, styles.textArea]}
                 placeholder="Detalhes adicionais, instruções especiais, etc."
@@ -115,7 +137,13 @@ const makeStyles = (colors: AppColors) =>
     container: { flex: 1, backgroundColor: colors.background },
     formContainer: { padding: 20 },
     fieldContainer: { marginBottom: 24 },
-    label: { fontSize: 16, fontWeight: '600', color: colors.textPrimary, marginBottom: 8 },
+    labelRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 8,
+    },
+    label: { fontSize: 16, fontWeight: '600', color: colors.textPrimary },
     input: {
       backgroundColor: colors.inputBackground,
       borderRadius: 8, padding: 16, fontSize: 16,
