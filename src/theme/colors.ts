@@ -17,6 +17,7 @@ const palette = {
   lb150:        '#D6EAFD',
   lb100:        '#EEF3FB',  // input background
   lb075:        '#F2F7FD',  // background card
+  lb060:        '#F7FAFD',  // section body background
   lb050:        '#EFF4FB',  // background screen
   lbBorder:     '#C5D7F0',  // border
   lbDivider:    '#D9E8F7',  // divider
@@ -36,6 +37,7 @@ const palette = {
   grey150:      '#f0f0f0',
   grey100:      '#f5f5f5',
   grey050:      '#f9f9f9',
+  grey025:      '#fdfdfd',  // section body background
 
   red600:       '#D32F2F',
   red500:       '#ff0000',
@@ -67,6 +69,7 @@ const palette = {
   darkSurface1: '#111111',
   darkSurface2: '#1a1a1a',
   darkSurface3: '#1c1c1c',
+  darkSurface35: '#202020', // section body background
   darkSurface4: '#242424',
   darkBorder1:  '#2a2a2a',
   darkBorder2:  '#2e2e2e',
@@ -84,6 +87,7 @@ export const lightColors = {
   backgroundScreen:       palette.grey100,
   backgroundCard:         palette.grey050,
   surface:                palette.white,
+  sectionBody:            palette.grey025,
 
   // Bordas / divisores
   border:                 palette.grey200,
@@ -181,6 +185,7 @@ export const darkColors: typeof lightColors = {
   backgroundScreen:       palette.darkSurface1,
   backgroundCard:         palette.darkSurface3,
   surface:                palette.darkSurface3,
+  sectionBody:            palette.darkSurface35,
 
   border:                 palette.darkBorder2,
   borderStrong:           palette.grey200,
@@ -267,6 +272,7 @@ export const lightBlueColors: typeof lightColors = {
   backgroundScreen:       palette.lb050,
   backgroundCard:         palette.lb075,
   surface:                palette.white,
+  sectionBody:            palette.lb060,
 
   // Bordas / divisores
   border:                 palette.lbBorder,

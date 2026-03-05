@@ -1,8 +1,8 @@
 // src/components/service-form/ImagensSection.tsx
 // Componente para seleção de imagens na ordem de serviço
 
-import { useTheme } from '@/contexts/ThemeContext';
 import { ENV } from '@/config/env';
+import { useTheme } from '@/contexts/ThemeContext';
 import type { AppColors } from '@/theme/colors';
 import * as ImagePicker from 'expo-image-picker';
 import { Camera, ChevronDown, ChevronUp, Image as ImageIcon, X } from 'lucide-react-native';
@@ -143,7 +143,7 @@ const ImagensSection = ({
         </TouchableOpacity>
 
         {expanded && (
-          <View>
+          <View style={styles.body}>
             <View style={styles.divider} />
             <View style={styles.content}>
 
@@ -245,7 +245,6 @@ const makeStyles = (colors: AppColors) =>
 
     // Card expansível
     card: {
-      backgroundColor: colors.inputBackground,
       borderRadius: 8,
       borderWidth: 1,
       borderColor: colors.inputBorder,
@@ -253,14 +252,18 @@ const makeStyles = (colors: AppColors) =>
     },
     cardExpanded: {},
     header: {
+      backgroundColor: colors.backgroundMuted,
       padding: 16,
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
     },
+    body: {
+      backgroundColor: colors.backgroundMuted,
+    },
     headerLeft: { flexDirection: 'row', alignItems: 'center' },
     label: { fontSize: 16, fontWeight: '600', color: colors.textPrimary },
-    divider: { height: 1, backgroundColor: colors.inputBorder },
+    divider: { height: 1, backgroundColor: colors.divider },
     content: { padding: 16, gap: 12 },
 
     // Grupos de imagens
@@ -314,6 +317,7 @@ const makeStyles = (colors: AppColors) =>
 
     // Botão adicionar
     addButton: {
+      backgroundColor: colors.backgroundMuted,
       borderRadius: 8,
       padding: 14,
       alignItems: 'center',

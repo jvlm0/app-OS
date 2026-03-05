@@ -48,7 +48,7 @@ const ReadOnlyProblemaCard = ({ problema, index, onRemove, onEdit }: ReadOnlyPro
 const makeStyles = (colors: AppColors) =>
   StyleSheet.create({
     card: {
-      backgroundColor: colors.backgroundCard,
+      backgroundColor: colors.surface,
       borderRadius: 12,
       padding: 20,
       marginBottom: 16,
@@ -70,6 +70,7 @@ const makeStyles = (colors: AppColors) =>
       borderRadius: 8,
       borderWidth: 1,
       borderColor: colors.borderDashed,
+      backgroundColor: colors.backgroundMuted,
       borderStyle: 'dashed',
       alignSelf: 'flex-start',
       marginTop: 4,
