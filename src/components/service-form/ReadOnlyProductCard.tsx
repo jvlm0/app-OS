@@ -76,7 +76,7 @@ const ReadOnlyProductCard = ({ product, index, onRemove }: ReadOnlyProductCardPr
 
 const makeStyles = (colors: AppColors) =>
   StyleSheet.create({
-    card: { backgroundColor: colors.backgroundCard, borderRadius: 12, padding: 20, marginBottom: 16, borderWidth: 1, borderColor: colors.border },
+    card: { backgroundColor: colors.surface, borderRadius: 12, padding: 20, marginBottom: 16, borderWidth: 1, borderColor: colors.border },
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
     title: { fontSize: 14, fontWeight: '600', color: colors.textSecondary, letterSpacing: 0.5 },
     deleteButton: { padding: 4 },

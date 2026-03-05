@@ -23,22 +23,29 @@ const ProblemasSection = ({ problemas, expanded, onToggle, onAdd, onRemove, onEd
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.header} onPress={() => onToggle(!expanded)}>
-        <Text style={styles.label}>Problemas Relatados (opcional)</Text>
-        {expanded
-          ? <ChevronUp size={20} color={colors.iconDefault} />
-          : <ChevronDown size={20} color={colors.iconDefault} />}
-      </TouchableOpacity>
-      {expanded && (
-        <View style={styles.content}>
-          {problemas.map((problema, index) => (
-            <ReadOnlyProblemaCard key={problema.id} problema={problema} index={index} onRemove={onRemove} onEdit={onEdit} />
-          ))}
-          <TouchableOpacity style={styles.addButton} onPress={onAdd}>
-            <Text style={styles.addText}>+ Adicionar problema</Text>
-          </TouchableOpacity>
-        </View>
-      )}
+      <View style={styles.card}>
+        <TouchableOpacity style={styles.header} onPress={() => onToggle(!expanded)}>
+          <Text style={styles.label}>
+            Problemas Relatados (opcional){problemas.length > 0 ? ` · ${problemas.length}` : ''}
+          </Text>
+          {expanded
+            ? <ChevronUp size={20} color={colors.iconDefault} />
+            : <ChevronDown size={20} color={colors.iconDefault} />}
+        </TouchableOpacity>
+        {expanded && (
+          <View style={styles.body}>
+            <View style={styles.divider} />
+            <View style={styles.content}>
+              {problemas.map((problema, index) => (
+                <ReadOnlyProblemaCard key={problema.id} problema={problema} index={index} onRemove={onRemove} onEdit={onEdit} />
+              ))}
+              <TouchableOpacity style={styles.addButton} onPress={onAdd}>
+                <Text style={styles.addText}>+ Adicionar problema</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+      </View>
     </View>
   );
 };
@@ -46,22 +53,29 @@ const ProblemasSection = ({ problemas, expanded, onToggle, onAdd, onRemove, onEd
 const makeStyles = (colors: AppColors) =>
   StyleSheet.create({
     container: { marginBottom: 24 },
-    header: {
-      backgroundColor: colors.inputBackground,
+    card: {
       borderRadius: 8,
+      borderWidth: 1,
+      borderColor: colors.inputBorder,
+      overflow: 'hidden',
+    },
+    header: {
+      backgroundColor: colors.backgroundMuted,
       padding: 16,
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      borderWidth: 1,
-      borderColor: colors.inputBorder,
+    },
+    body: {
+      backgroundColor: colors.sectionBody,
     },
     label: { fontSize: 16, fontWeight: '600', color: colors.textPrimary },
-    content: { marginTop: 16 },
+    divider: { height: 1, backgroundColor: colors.divider },
+    content: { padding: 16, gap: 12 },
     addButton: {
-      backgroundColor: colors.inputBackground,
+      backgroundColor: colors.backgroundMuted,
       borderRadius: 8,
-      padding: 16,
+      padding: 14,
       alignItems: 'center',
       borderWidth: 1,
       borderColor: colors.borderDashed,
