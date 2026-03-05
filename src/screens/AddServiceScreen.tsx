@@ -5,9 +5,11 @@ import { FormField } from '@/components/FormField';
 import { ItemPriceFooter } from '@/components/ItemPriceFooter';
 import ModalHeader from '@/components/ModalHeader';
 import { QuantityPriceRow } from '@/components/QuantityPriceRow';
+import VoiceInputButton from '@/components/VoiceInputButton';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useFormData } from '@/contexts/FormDataContext';
 import { useKeyboardVisibility } from '@/hooks/useKeyboardVisibility';
+import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
 import { useTeamVendorData } from '@/hooks/useTeamVendorData';
 import type { AppColors } from '@/theme/colors';
 import type { RootStackParamList } from '@/types/navigation.types';
@@ -30,6 +32,11 @@ const AddServiceScreen = ({ navigation }: Props) => {
   const { equipes, vendedores, isLoading } = useTeamVendorData();
 
   const [descricao, setDescricao] = useState('');
+
+  const { isListening: isListeningDescricao, toggle: toggleDescricao } = useSpeechRecognition({
+    currentValue: descricao,
+    onResult: setDescricao,
+  });
   const [quantidade, setQuantidade] = useState('1');
   const [valorUnitario, setValorUnitario] = useState('');
   const [desconto, setDesconto] = useState('');
@@ -97,7 +104,12 @@ const AddServiceScreen = ({ navigation }: Props) => {
             nestedScrollEnabled
           >
             <View style={styles.formContainer}>
-              <FormField label="Descrição" required>
+              <FormField
+                label="Descrição" required
+                rightElement={
+                  <VoiceInputButton isListening={isListeningDescricao} onToggle={toggleDescricao} />
+                }
+              >
                 <TextInput
                   style={styles.input}
                   placeholder="Ex.: Mão de obra"
