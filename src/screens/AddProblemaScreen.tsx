@@ -1,8 +1,10 @@
 // src/screens/AddProblemaScreen.tsx
 
 import ModalHeader from '@/components/ModalHeader';
+import VoiceInputButton from '@/components/VoiceInputButton';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useFormData } from '@/contexts/FormDataContext';
+import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
 import type { AppColors } from '@/theme/colors';
 import type { RootStackParamList } from '@/types/navigation.types';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -24,6 +26,16 @@ const AddProblemaScreen = ({ navigation, route }: Props) => {
   const [descricao, setDescricao] = useState(editingProblema?.descricao ?? '');
   const [solucao, setSolucao] = useState(editingProblema?.solucao ?? '');
 
+  const { isListening: isListeningDescricao, toggle: toggleDescricao } = useSpeechRecognition({
+    currentValue: descricao,
+    onResult: setDescricao,
+  });
+
+  const { isListening: isListeningSolucao, toggle: toggleSolucao } = useSpeechRecognition({
+    currentValue: solucao,
+    onResult: setSolucao,
+  });
+
   const handleSave = () => {
     if (!descricao.trim()) { Alert.alert('Atenção', 'O problema relatado é obrigatório.'); return; }
     if (editingProblema) {
@@ -40,7 +52,12 @@ const AddProblemaScreen = ({ navigation, route }: Props) => {
         <ModalHeader title={editingProblema ? 'Editar Problema' : 'Novo Problema'} onClose={() => navigation.goBack()} />
         <ScrollView style={styles.scroll} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           <View style={styles.fieldContainer}>
-            <Text style={styles.label}>Problema Relatado <Text style={styles.required}>*</Text></Text>
+            <View style={styles.labelRow}>
+              <Text style={styles.label}>
+                Problema Relatado <Text style={styles.required}>*</Text>
+              </Text>
+              <VoiceInputButton isListening={isListeningDescricao} onToggle={toggleDescricao} />
+            </View>
             <TextInput
               style={[styles.input, styles.textArea]}
               placeholder="Descreva o problema relatado pelo cliente..."
@@ -51,7 +68,12 @@ const AddProblemaScreen = ({ navigation, route }: Props) => {
             />
           </View>
           <View style={styles.fieldContainer}>
-            <Text style={styles.label}>Solução <Text style={styles.optional}>(opcional)</Text></Text>
+            <View style={styles.labelRow}>
+              <Text style={styles.label}>
+                Solução <Text style={styles.optional}>(opcional)</Text>
+              </Text>
+              <VoiceInputButton isListening={isListeningSolucao} onToggle={toggleSolucao} />
+            </View>
             <TextInput
               style={[styles.input, styles.textArea]}
               placeholder="Descreva a solução aplicada..."
@@ -79,7 +101,13 @@ const makeStyles = (colors: AppColors) =>
     scroll: { flex: 1 },
     content: { padding: 20, paddingBottom: 40 },
     fieldContainer: { marginBottom: 24 },
-    label: { fontSize: 16, fontWeight: '600', color: colors.textPrimary, marginBottom: 8 },
+    labelRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 8,
+    },
+    label: { fontSize: 16, fontWeight: '600', color: colors.textPrimary },
     required: { color: colors.required },
     optional: { fontSize: 14, fontWeight: '400', color: colors.textPlaceholder },
     input: {

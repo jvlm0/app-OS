@@ -9,20 +9,24 @@ interface FormFieldProps {
   label: string;
   required?: boolean;
   helperText?: string;
+  rightElement?: React.ReactNode;
   children: React.ReactNode;
 }
 
-export const FormField = ({ label, required, helperText, children }: FormFieldProps) => {
+export const FormField = ({ label, required, helperText, rightElement, children }: FormFieldProps) => {
   const { colors } = useTheme();
   const styles = makeStyles(colors);
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>
-        {label}
-        {required && <Text style={styles.required}> *</Text>}
-        {!required && <Text style={styles.optional}> (Opcional)</Text>}
-      </Text>
+      <View style={styles.labelRow}>
+        <Text style={styles.label}>
+          {label}
+          {required && <Text style={styles.required}> *</Text>}
+          {!required && <Text style={styles.optional}> (Opcional)</Text>}
+        </Text>
+        {rightElement}
+      </View>
       {children}
       {helperText && <Text style={styles.helperText}>{helperText}</Text>}
     </View>
@@ -32,7 +36,8 @@ export const FormField = ({ label, required, helperText, children }: FormFieldPr
 const makeStyles = (colors: AppColors) =>
   StyleSheet.create({
     container: { marginBottom: 24 },
-    label: { fontSize: 16, fontWeight: '600', color: colors.textPrimary, marginBottom: 8 },
+    labelRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
+    label: { fontSize: 16, fontWeight: '600', color: colors.textPrimary },
     required: { color: colors.required },
     optional: { color: colors.textSecondary, fontSize: 14, fontWeight: '400' },
     helperText: { color: colors.textSecondary, fontSize: 14, marginTop: 4 },
