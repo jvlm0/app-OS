@@ -44,16 +44,9 @@ const ServiceForm = ({ navigation, route }: ServiceFormProps) => {
     handleVehicleAdd, handleSave,
   } = useServiceForm({ order, navigation });
 
-  // Ref para ter acesso ao valor mais recente de obs dentro dos callbacks do hook de voz
-  const obsRef = React.useRef(obs);
-  React.useEffect(() => { obsRef.current = obs; }, [obs]);
-
   const { isListening, toggle: toggleVoice } = useSpeechRecognition({
-    onResult: (transcript) => {
-      const current = obsRef.current;
-      const updated = current ? `${current} ${transcript}` : transcript;
-      setObs(updated);
-    },
+    currentValue: obs,
+    onResult: setObs,
   });
 
   const handleAddService = () => { navigation.navigate('AddService'); setServicesExpanded(true); };

@@ -4,8 +4,6 @@ import { useEffect, useRef, useState } from 'react';
 import { Platform } from 'react-native';
 
 // ─── Carregamento seguro do módulo nativo ────────────────────────────────────
-// Usar Platform.OS + try/catch é mais confiável do que checar NativeModules,
-// que pode não estar populado no momento da avaliação do módulo (build release).
 
 let ExpoSpeechRecognitionModule: any = null;
 let useSpeechRecognitionEvent: (event: string, cb: (e: any) => void) => void = () => {};
@@ -25,20 +23,35 @@ if (Platform.OS !== 'web') {
 // ─── Tipos ───────────────────────────────────────────────────────────────────
 
 interface UseSpeechRecognitionOptions {
-  onResult: (transcript: string) => void;
+  /** Valor atual do campo de texto — necessário para preservar o que já foi digitado. */
+  currentValue: string;
+  /** Chamado a cada atualização com o texto completo a ser exibido no campo. */
+  onResult: (text: string) => void;
   onError?: (error: string) => void;
 }
 
 // ─── Hook ────────────────────────────────────────────────────────────────────
 
-export const useSpeechRecognition = ({ onResult, onError }: UseSpeechRecognitionOptions) => {
+export const useSpeechRecognition = ({ currentValue, onResult, onError }: UseSpeechRecognitionOptions) => {
   const [isListening, setIsListening] = useState(false);
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
-  const accumulatedRef = useRef('');
+
+  // Texto que existia no campo antes de iniciar a gravação — congelado no start, nunca atualizado
+  const baseRef = useRef('');
+  // Último trecho confirmado (isFinal) da sessão atual
+  const confirmedRef = useRef('');
 
   const isAvailable = ExpoSpeechRecognitionModule !== null;
 
-  // Solicita permissão ao montar (no-op se módulo indisponível)
+  const buildText = (fragment: string) => {
+    const base = baseRef.current;
+    const confirmed = confirmedRef.current;
+    // Prefixo = texto pré-gravação + trechos já confirmados nessa sessão
+    const prefix = confirmed ? (base ? `${base} ${confirmed}` : confirmed) : base;
+    return prefix ? `${prefix} ${fragment}` : fragment;
+  };
+
+  // Solicita permissão ao montar
   useEffect(() => {
     if (!isAvailable) return;
     ExpoSpeechRecognitionModule.requestPermissionsAsync().then(
@@ -46,18 +59,21 @@ export const useSpeechRecognition = ({ onResult, onError }: UseSpeechRecognition
     );
   }, [isAvailable]);
 
-  // ── Registros de eventos ─────────────────────────────────────────────────
-  // Os três são sempre chamados (sem condicionais) para respeitar as Rules of
-  // Hooks. Quando o módulo não existe, useSpeechRecognitionEvent é o stub
-  // () => {} e não faz nada.
+  // ── Eventos ──────────────────────────────────────────────────────────────
 
   useSpeechRecognitionEvent('result', (event: any) => {
     const transcript: string = event.results?.[0]?.transcript ?? '';
-    if (event.isFinal && transcript) {
-      accumulatedRef.current = accumulatedRef.current
-        ? `${accumulatedRef.current} ${transcript}`
+    if (!transcript) return;
+
+    if (event.isFinal) {
+      // Consolida o trecho confirmado e limpa o interim
+      confirmedRef.current = confirmedRef.current
+        ? `${confirmedRef.current} ${transcript}`
         : transcript;
-      onResult(accumulatedRef.current);
+      onResult(buildText('').trimEnd());
+    } else {
+      // Interim: substitui o rascunho anterior — nunca acumula
+      onResult(buildText(transcript));
     }
   });
 
@@ -84,13 +100,15 @@ export const useSpeechRecognition = ({ onResult, onError }: UseSpeechRecognition
       return;
     }
 
-    accumulatedRef.current = '';
+    // Congela o texto atual do campo — não será mais lido até a próxima sessão
+    baseRef.current = currentValue;
+    confirmedRef.current = '';
 
     try {
       ExpoSpeechRecognitionModule.start({
         lang: 'pt-BR',
-        interimResults: false,
-        continuous: false,
+        interimResults: true,
+        continuous: true,   // não para sozinho — usuário controla com o botão
       });
       setIsListening(true);
     } catch (e: any) {
