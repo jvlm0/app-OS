@@ -20,12 +20,16 @@ if (Platform.OS !== 'web') {
   }
 }
 
+// ─── ID da instância ativa no momento ────────────────────────────────────────
+// Garante que apenas a instância que iniciou a gravação processe os eventos,
+// mesmo quando múltiplos hooks estão montados na mesma tela.
+
+let activeInstanceId: string | null = null;
+
 // ─── Tipos ───────────────────────────────────────────────────────────────────
 
 interface UseSpeechRecognitionOptions {
-  /** Valor atual do campo de texto — necessário para preservar o que já foi digitado. */
   currentValue: string;
-  /** Chamado a cada atualização com o texto completo a ser exibido no campo. */
   onResult: (text: string) => void;
   onError?: (error: string) => void;
 }
@@ -36,22 +40,23 @@ export const useSpeechRecognition = ({ currentValue, onResult, onError }: UseSpe
   const [isListening, setIsListening] = useState(false);
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
 
-  // Texto que existia no campo antes de iniciar a gravação — congelado no start, nunca atualizado
+  // ID único e estável desta instância do hook
+  const instanceId = useRef(`speech_${Math.random().toString(36).slice(2)}`).current;
+
   const baseRef = useRef('');
-  // Último trecho confirmado (isFinal) da sessão atual
   const confirmedRef = useRef('');
 
   const isAvailable = ExpoSpeechRecognitionModule !== null;
 
+  const isOwner = () => activeInstanceId === instanceId;
+
   const buildText = (fragment: string) => {
-    const base = baseRef.current;
-    const confirmed = confirmedRef.current;
-    // Prefixo = texto pré-gravação + trechos já confirmados nessa sessão
-    const prefix = confirmed ? (base ? `${base} ${confirmed}` : confirmed) : base;
+    const prefix = confirmedRef.current
+      ? (baseRef.current ? `${baseRef.current} ${confirmedRef.current}` : confirmedRef.current)
+      : baseRef.current;
     return prefix ? `${prefix} ${fragment}` : fragment;
   };
 
-  // Solicita permissão ao montar
   useEffect(() => {
     if (!isAvailable) return;
     ExpoSpeechRecognitionModule.requestPermissionsAsync().then(
@@ -59,32 +64,43 @@ export const useSpeechRecognition = ({ currentValue, onResult, onError }: UseSpe
     );
   }, [isAvailable]);
 
-  // ── Eventos ──────────────────────────────────────────────────────────────
+  // Libera o ownership ao desmontar, evitando instância fantasma
+  useEffect(() => {
+    return () => {
+      if (isOwner()) activeInstanceId = null;
+    };
+  }, []);
+
+  // ── Eventos — todos os hooks registram, mas só o dono processa ───────────
 
   useSpeechRecognitionEvent('result', (event: any) => {
+    if (!isOwner()) return;
+
     const transcript: string = event.results?.[0]?.transcript ?? '';
     if (!transcript) return;
 
     if (event.isFinal) {
-      // Consolida o trecho confirmado e limpa o interim
       confirmedRef.current = confirmedRef.current
         ? `${confirmedRef.current} ${transcript}`
         : transcript;
       onResult(buildText('').trimEnd());
     } else {
-      // Interim: substitui o rascunho anterior — nunca acumula
       onResult(buildText(transcript));
     }
   });
 
   useSpeechRecognitionEvent('error', (event: any) => {
+    if (!isOwner()) return;
     if (event.error !== 'no-speech') {
       onError?.(event.message ?? event.error);
     }
+    activeInstanceId = null;
     setIsListening(false);
   });
 
   useSpeechRecognitionEvent('end', () => {
+    if (!isOwner()) return;
+    activeInstanceId = null;
     setIsListening(false);
   });
 
@@ -100,7 +116,7 @@ export const useSpeechRecognition = ({ currentValue, onResult, onError }: UseSpe
       return;
     }
 
-    // Congela o texto atual do campo — não será mais lido até a próxima sessão
+    activeInstanceId = instanceId;
     baseRef.current = currentValue;
     confirmedRef.current = '';
 
@@ -108,10 +124,11 @@ export const useSpeechRecognition = ({ currentValue, onResult, onError }: UseSpe
       ExpoSpeechRecognitionModule.start({
         lang: 'pt-BR',
         interimResults: true,
-        continuous: true,   // não para sozinho — usuário controla com o botão
+        continuous: true,
       });
       setIsListening(true);
     } catch (e: any) {
+      activeInstanceId = null;
       onError?.(e?.message ?? 'Erro ao iniciar reconhecimento de voz.');
     }
   };
@@ -119,6 +136,7 @@ export const useSpeechRecognition = ({ currentValue, onResult, onError }: UseSpe
   const stopListening = () => {
     if (!isAvailable) return;
     ExpoSpeechRecognitionModule.stop();
+    activeInstanceId = null;
     setIsListening(false);
   };
 
