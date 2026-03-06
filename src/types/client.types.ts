@@ -20,6 +20,7 @@ export interface Client {
  * Dados para criar um cliente na API
  */
 export interface ClientCreate {
+  tipoPessoa: string;
   nome: string;
   telefone: string;
   cpfcnpj: string;

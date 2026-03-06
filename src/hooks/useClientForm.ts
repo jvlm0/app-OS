@@ -56,6 +56,7 @@ export const useClientForm = ({ onClientAdd, onClose }: UseClientFormProps) => {
       const phoneNumbers = removeFormatting(phone);
       
       const result = await createClient({
+        tipoPessoa: personType,
         nome: name.trim(),
         telefone: phoneNumbers,
         cpfcnpj: cleanDocument,
