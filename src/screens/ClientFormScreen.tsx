@@ -1,3 +1,5 @@
+// src/screens/ClientFormScreen.tsx
+
 import ModalHeader from '@/components/ModalHeader';
 import { ClientNameInput } from '@/components/client-form/ClientNameInput';
 import { DocumentInput } from '@/components/client-form/DocumentInput';
@@ -24,15 +26,16 @@ import type { RootStackParamList } from '../types/navigation.types';
 
 type ClientFormScreenProps = NativeStackScreenProps<RootStackParamList, 'ClientForm'>;
 
-const ClientFormScreen = ({ navigation }: ClientFormScreenProps) => {
-  // ✅ Usar context ao invés de callback
+const ClientFormScreen = ({ navigation, route }: ClientFormScreenProps) => {
   const { setSelectedClient } = useFormData();
   const router = useRouter();
 
-
+  // Cliente recebido por parâmetro → modo edição
+  const initialClient = route.params?.client;
 
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const isFocused = useIsFocused();
+
   useEffect(() => {
     if (!isFocused) return;
 
@@ -48,9 +51,8 @@ const ClientFormScreen = ({ navigation }: ClientFormScreenProps) => {
     };
   }, [isFocused]);
 
-
-
   const {
+    isEditMode,
     personType,
     name,
     phone,
@@ -65,24 +67,27 @@ const ClientFormScreen = ({ navigation }: ClientFormScreenProps) => {
     handlePersonTypeChange,
     validateAndSave,
   } = useClientForm({
-    onClientAdd: (client) => {
-      setSelectedClient(client); // ✅ Atualiza context
+    initialClient,
+    onClientSaved: (client) => {
+      setSelectedClient(client);
     },
     onClose: () => {
       const state = navigation.getState();
       const currentIndex = state.index;
 
-      // Encontra o índice do ServiceForm na stack
       const serviceFormIndex = state.routes.findIndex(r => r.name === 'ServiceForm');
 
       if (serviceFormIndex !== -1) {
         const stepsBack = currentIndex - serviceFormIndex;
         router.dismiss(stepsBack);
       } else {
-        router.dismiss(1); // fallback
+        router.dismiss(1);
       }
     },
   });
+
+  const headerTitle = isEditMode ? 'Editar Cliente' : 'Novo Cliente';
+  const saveButtonText = isEditMode ? 'Salvar Alterações' : 'Salvar Cliente';
 
   return (
     <SafeAreaView style={styles.container}>
@@ -91,7 +96,7 @@ const ClientFormScreen = ({ navigation }: ClientFormScreenProps) => {
         style={styles.keyboardView}
       >
         <ModalHeader
-          title="Novo Cliente"
+          title={headerTitle}
           onClose={() => navigation.goBack()}
         />
 
@@ -156,25 +161,22 @@ const ClientFormScreen = ({ navigation }: ClientFormScreenProps) => {
               onPress={validateAndSave}
               loading={saving}
               disabled={false}
-              text={'Salvar Cliente'}
+              text={saveButtonText}
               floating={false}
-            />)}
-
+            />
+          )}
         </ScrollView>
-
-        
       </KeyboardAvoidingView>
-
 
       {!isKeyboardVisible && (
         <SaveButton
           onPress={validateAndSave}
           loading={saving}
           disabled={false}
-          text={'Salvar Cliente'}
+          text={saveButtonText}
           floating={true}
-        />)}
-
+        />
+      )}
     </SafeAreaView>
   );
 };

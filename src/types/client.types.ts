@@ -1,24 +1,16 @@
 // types/client.types.ts
-// Tipos e interfaces relacionados a clientes
 
-/**
- * Tipo de pessoa
- */
 export type PersonType = 'PF' | 'PJ';
 
-/**
- * Interface do cliente (unificada - usada em todo o app)
- */
 export interface Client {
   COD_PESSOA: number;
   nome: string;
   telefone: string;
   cpfcnpj?: string;
+  /** Tipo de pessoa — pode não vir da listagem, mas vem do detalhe */
+  tipoPessoa?: PersonType;
 }
 
-/**
- * Dados para criar um cliente na API
- */
 export interface ClientCreate {
   tipoPessoa: string;
   nome: string;
@@ -26,18 +18,18 @@ export interface ClientCreate {
   cpfcnpj: string;
 }
 
-/**
- * Resposta da API ao criar cliente
- */
 export interface ClientCreateResponse {
   status: string;
   cod_pessoa: number;
 }
 
-/**
- * Resultado da criação de cliente
- */
 export interface ClientCreateResult {
+  success: boolean;
+  data?: ClientCreateResponse;
+  error?: string;
+}
+
+export interface ClientUpdateResult {
   success: boolean;
   data?: ClientCreateResponse;
   error?: string;

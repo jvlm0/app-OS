@@ -19,8 +19,8 @@ const ClientSearchScreen = ({ navigation, route }: Props) => {
 
   const handleSelectClient = (client: Client) => {
     if (mode === 'view') {
-      // Navega para o cadastro do cliente passando o código
-      navigation.navigate('ClientForm', { cod_cliente: client.COD_PESSOA });
+      // Navega para o cadastro do cliente passando os dados completos
+      navigation.navigate('ClientForm', { client });
     } else {
       setSelectedClient(client);
       navigation.goBack();

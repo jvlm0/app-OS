@@ -169,6 +169,13 @@ export const api = {
       body: data ? JSON.stringify(data) : undefined,
     }),
   
+  put: (endpoint: string, data?: any, options?: FetchOptions) =>
+    apiClient(endpoint, {
+      ...options,
+      method: 'PUT',
+      body: data ? JSON.stringify(data) : undefined,
+    }),
+
   patch: (endpoint: string, data?: any, options?: FetchOptions) =>
     apiClient(endpoint, {
       ...options,
