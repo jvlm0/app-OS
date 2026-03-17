@@ -20,7 +20,7 @@ export const ProductItem = ({ product, onPress }: ProductItemProps) => {
       <View style={styles.info}>
         <Text style={styles.name}>{product.nome}</Text>
         <Text style={styles.brand}>
-          R$ {product.preco.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} - {product.marca}
+          R$ {product.preco?.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} - {product.marca}
         </Text>
       </View>
     </TouchableOpacity>

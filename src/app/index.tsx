@@ -9,6 +9,7 @@ import AddServiceScreen from '@/screens/AddServiceScreen';
 import CameraScreen from '@/screens/CameraScreen';
 import ClientFormScreen from '@/screens/ClientFormScreen';
 import ClientSearchScreen from '@/screens/ClientSearchScreen';
+import HomeScreen from '@/screens/HomeScreen';
 import LoadingScreen from '@/screens/LoadingScreen';
 import LoginScreen from '@/screens/LoginScreen';
 import OrderDetailScreen from '@/screens/OrderDetailScreen';
@@ -42,13 +43,14 @@ function AppNavigator() {
 
   return (
     <Stack.Navigator
-      initialRouteName={isAuthenticated ? 'OrderList' : 'Login'}
+      initialRouteName={isAuthenticated ? 'Home' : 'Login'}
       screenOptions={{ headerShown: false }}
     >
       {!isAuthenticated ? (
         <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
       ) : (
         <>
+          <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
           <Stack.Screen name="OrderList" component={OrderListScreen} options={{ headerShown: false }} />
           <Stack.Screen name="ServiceForm" component={ServiceForm} options={{ headerShown: false }} />
           <Stack.Screen name="ClientSearch" component={ClientSearchScreen} options={{ headerShown: false, presentation: 'modal' }} />
