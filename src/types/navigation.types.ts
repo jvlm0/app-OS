@@ -17,6 +17,7 @@ export type NavigationEvents = {
 };
 
 export type RootStackParamList = {
+  Home: undefined;
   OrderList: undefined;
   Login: undefined;
   OrderDetail: {
@@ -25,11 +26,15 @@ export type RootStackParamList = {
   ServiceForm: {
     order?: Order;
   } | undefined;
-  ClientSearch: undefined;
+  /**
+   * mode: 'select' → comportamento padrão (seleciona e volta)
+   * mode: 'view'   → ao selecionar o cliente abre ClientForm em vez de voltar
+   */
+  ClientSearch: { mode?: 'select' | 'view' } | undefined;
   CameraScreen: {
     cod_cliente: number;
   };
-  ClientForm: undefined;
+  ClientForm: { cod_cliente?: number } | undefined;
   VehicleForm: {
     plate?: string;
     cod_cliente: number;
