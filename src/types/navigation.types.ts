@@ -34,7 +34,7 @@ export type RootStackParamList = {
   CameraScreen: {
     cod_cliente: number;
   };
-  ClientForm: { cod_cliente?: number } | undefined;
+  ClientForm: { client?: import('./client.types').Client } | undefined;
   VehicleForm: {
     plate?: string;
     cod_cliente: number;
