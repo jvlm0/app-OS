@@ -30,7 +30,7 @@ export type RootStackParamList = {
    * mode: 'select' → comportamento padrão (seleciona e volta)
    * mode: 'view'   → ao selecionar o cliente abre ClientForm em vez de voltar
    */
-  ClientSearch: { mode?: 'select' | 'view' } | undefined;
+  ClientSearch: { mode?: 'select' | 'view'; updatedClient?: import('./client.types').Client } | undefined;
   CameraScreen: {
     cod_cliente: number;
   };
