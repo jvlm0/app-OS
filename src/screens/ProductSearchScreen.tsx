@@ -12,10 +12,14 @@ import React from 'react';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ProductSearch'>;
 
-const ProductSearchScreen = ({ navigation }: Props) => {
+const ProductSearchScreen = ({ navigation, route }: Props) => {
   const { setPendingProduct } = useFormData();
 
+  const mode = route.params?.mode ?? 'select';
+
   const handleSelectProduct = (product: Product) => {
+    if (mode === 'view') return; // vindo da Home: não faz nada
+
     setPendingProduct({
       cod_subproduto: product.cod_subproduto,
       nome: product.nome,

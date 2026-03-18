@@ -8,7 +8,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useOrderList } from '@/hooks/useOrderList';
 import type { AppColors } from '@/theme/colors';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { Plus } from 'lucide-react-native';
+import { BottomNavBar } from '@/components/shared/BottomNavBar';
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator, Alert, FlatList, Pressable,
@@ -72,7 +72,7 @@ const OrderListScreen = ({ navigation }: OrderListScreenProps) => {
   };
 
   return (
-    <View style={[styles.screen, { paddingBottom: insets.bottom }]}>
+    <View style={styles.screen}>
       <OrderListHeader onLogout={logout} />
 
       <Pressable style={styles.flex} onPress={closeMenu}>
@@ -93,7 +93,7 @@ const OrderListScreen = ({ navigation }: OrderListScreenProps) => {
           )}
           contentContainerStyle={[
             styles.listContainer,
-            { paddingBottom: 20 + insets.bottom },
+            { paddingBottom: 20 },
             orders.length === 0 && styles.emptyListContainer,
           ]}
           ListEmptyComponent={
@@ -110,13 +110,7 @@ const OrderListScreen = ({ navigation }: OrderListScreenProps) => {
         />
       </Pressable>
 
-      <TouchableOpacity
-        style={[styles.fab, { bottom: insets.bottom + 60 }]}
-        onPress={() => navigation.navigate('ServiceForm')}
-        activeOpacity={0.8}
-      >
-        <Plus size={28} color={colors.onPrimary} />
-      </TouchableOpacity>
+      <BottomNavBar navigation={navigation} activeTab="OrderList" />
     </View>
   );
 };
@@ -128,21 +122,7 @@ const makeStyles = (colors: AppColors) =>
     listContainer:    { padding: 16 },
     emptyListContainer: { flexGrow: 1 },
     footerLoader:     { paddingVertical: 20, alignItems: 'center' },
-    fab: {
-      position: 'absolute',
-      right: 20,
-      width: 64,
-      height: 64,
-      borderRadius: 32,
-      backgroundColor: colors.primary,
-      justifyContent: 'center',
-      alignItems: 'center',
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.3,
-      shadowRadius: 8,
-      elevation: 8,
-    },
+
   });
 
 export default OrderListScreen;
