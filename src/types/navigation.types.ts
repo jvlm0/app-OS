@@ -41,7 +41,7 @@ export type RootStackParamList = {
   };
   AddService: undefined;
   AddProduct: undefined;
-  ProductSearch: undefined;
+  ProductSearch: { mode?: 'select' | 'view' } | undefined;
   AddProblema: {
     problema?: ProblemaData;
   } | undefined;

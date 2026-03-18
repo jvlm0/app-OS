@@ -5,7 +5,8 @@ import { useTheme } from '@/contexts/ThemeContext';
 import type { AppColors } from '@/theme/colors';
 import type { RootStackParamList } from '@/types/navigation.types';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { ClipboardList, LogOut, Plus, UserPlus, Users } from 'lucide-react-native';
+import { BottomNavBar } from '@/components/shared/BottomNavBar';
+import { ClipboardList, LogOut, Package, Plus, UserPlus, Users } from 'lucide-react-native';
 import React from 'react';
 import {
   ScrollView,
@@ -26,11 +27,11 @@ const HomeScreen = ({ navigation }: Props) => {
   const styles = makeStyles(colors);
 
   return (
-    <View style={[styles.screen, { paddingTop: insets.top }]}>
+    <View style={styles.screen}>
       <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
 
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top }]}>
         <View>
           <Text style={styles.headerGreeting}>Bem-vindo 👋</Text>
           <Text style={styles.headerTitle}>Nortus</Text>
@@ -49,27 +50,28 @@ const HomeScreen = ({ navigation }: Props) => {
         <View style={styles.mainGrid}>
           <TouchableOpacity
             style={styles.mainCard}
+            onPress={() => navigation.navigate('ServiceForm')}
+            activeOpacity={0.75}
+          >
+            <View style={[styles.mainIconWrap, { backgroundColor: colors.primary }]}>
+              <Plus size={32} color={colors.onPrimary} />
+            </View>
+            <Text style={styles.mainCardTitle}>Nova Ordem</Text>
+            {/*<Text style={styles.mainCardSub}>Criar nova ordem de serviço</Text>*/}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.mainCard}
             onPress={() => navigation.navigate('OrderList')}
             activeOpacity={0.75}
           >
             <View style={[styles.mainIconWrap, { backgroundColor: colors.primary }]}>
               <ClipboardList size={32} color={colors.onPrimary} />
             </View>
-            <Text style={styles.mainCardTitle}>Ordens</Text>
-            <Text style={styles.mainCardSub}>Lista de ordens de serviço</Text>
+            <Text style={styles.mainCardTitle}>Ver Ordens</Text>
+            {/*<Text style={styles.mainCardSub}>Lista de ordens de serviço</Text>*/}
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.mainCard}
-            onPress={() => navigation.navigate('ClientSearch', { mode: 'view' })}
-            activeOpacity={0.75}
-          >
-            <View style={[styles.mainIconWrap, { backgroundColor: colors.primary }]}>
-              <Users size={32} color={colors.onPrimary} />
-            </View>
-            <Text style={styles.mainCardTitle}>Clientes</Text>
-            <Text style={styles.mainCardSub}>Buscar e visualizar clientes</Text>
-          </TouchableOpacity>
         </View>
 
         {/* ── Atalhos rápidos ── */}
@@ -77,15 +79,31 @@ const HomeScreen = ({ navigation }: Props) => {
         <View style={styles.shortcutList}>
           <TouchableOpacity
             style={styles.shortcutRow}
-            onPress={() => navigation.navigate('ServiceForm')}
+            onPress={() => navigation.navigate('ClientSearch', { mode: 'view' })}
             activeOpacity={0.75}
           >
             <View style={[styles.shortcutIconWrap, { backgroundColor: colors.backgroundMuted }]}>
-              <Plus size={22} color={colors.primary} />
+              <Users size={22} color={colors.primary} />
             </View>
             <View style={styles.shortcutTextWrap}>
-              <Text style={styles.shortcutTitle}>Nova Ordem</Text>
-              <Text style={styles.shortcutSub}>Criar uma nova ordem de serviço</Text>
+              <Text style={styles.shortcutTitle}>Clientes</Text>
+              <Text style={styles.shortcutSub}>Buscar e visualizar clientes</Text>
+            </View>
+          </TouchableOpacity>
+
+          <View style={styles.shortcutDivider} />
+
+          <TouchableOpacity
+            style={styles.shortcutRow}
+            onPress={() => navigation.navigate('ProductSearch', { mode: 'view' })}
+            activeOpacity={0.75}
+          >
+            <View style={[styles.shortcutIconWrap, { backgroundColor: colors.backgroundMuted }]}>
+              <Package size={22} color={colors.primary} />
+            </View>
+            <View style={styles.shortcutTextWrap}>
+              <Text style={styles.shortcutTitle}>Estoque</Text>
+              <Text style={styles.shortcutSub}>Consultar produtos em estoque</Text>
             </View>
           </TouchableOpacity>
 
@@ -106,6 +124,8 @@ const HomeScreen = ({ navigation }: Props) => {
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      <BottomNavBar navigation={navigation} activeTab="Home" />
     </View>
   );
 };
@@ -155,13 +175,15 @@ const makeStyles = (colors: AppColors) =>
       marginBottom: 12,
     },
 
-    // Main cards (2 colunas)
+    // Main cards (grid 2 colunas com wrap)
     mainGrid: {
       flexDirection: 'row',
+      flexWrap: 'wrap',
       gap: 12,
     },
     mainCard: {
-      flex: 1,
+      flexBasis: '47%',
+      flexGrow: 0,
       backgroundColor: colors.background,
       borderRadius: 16,
       padding: 18,
