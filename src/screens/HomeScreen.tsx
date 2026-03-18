@@ -1,13 +1,13 @@
 // src/screens/HomeScreen.tsx
 
-import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import type { AppColors } from '@/theme/colors';
 import type { RootStackParamList } from '@/types/navigation.types';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { BottomNavBar } from '@/components/shared/BottomNavBar';
-import { ClipboardList, LogOut, Package, Plus, UserPlus, Users } from 'lucide-react-native';
-import React from 'react';
+import { Sidebar } from '@/components/shared/Sidebar';
+import { ClipboardList, Menu, Package, Plus, UserPlus, Users } from 'lucide-react-native';
+import React, { useState } from 'react';
 import {
   ScrollView,
   StatusBar,
@@ -23,12 +23,19 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 const HomeScreen = ({ navigation }: Props) => {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
-  const { logout } = useAuth();
   const styles = makeStyles(colors);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
     <View style={styles.screen}>
       <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
+
+      {/* Sidebar */}
+      <Sidebar
+        visible={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        navigation={navigation}
+      />
 
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top }]}>
@@ -36,8 +43,8 @@ const HomeScreen = ({ navigation }: Props) => {
           <Text style={styles.headerGreeting}>Bem-vindo 👋</Text>
           <Text style={styles.headerTitle}>Nortus</Text>
         </View>
-        <TouchableOpacity style={styles.logoutButton} onPress={logout} activeOpacity={0.7}>
-          <LogOut size={22} color={colors.iconStrong} />
+        <TouchableOpacity style={styles.logoutButton} onPress={() => setSidebarOpen(true)} activeOpacity={0.7}>
+          <Menu size={22} color={colors.iconStrong} />
         </TouchableOpacity>
       </View>
 
