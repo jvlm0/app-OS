@@ -28,6 +28,8 @@ export interface UseGenericSearchReturn<T> {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   loadMore: () => void;
+  /** Substitui um item na lista pelo resultado de updater(item), usando o keyExtractor para identificá-lo */
+  updateItem: (key: string, keyExtractor: (item: T) => string, updater: (item: T) => T) => void;
 }
 
 export function useGenericSearch<T>(fetchFn: FetchFn<T>): UseGenericSearchReturn<T> {
@@ -83,6 +85,15 @@ export function useGenericSearch<T>(fetchFn: FetchFn<T>): UseGenericSearchReturn
     search(searchQueryRef.current, currentPage + 1);
   }, [loadingMore, loading, currentPage, totalPages, search]);
 
+  const updateItem = useCallback(
+    (key: string, keyExtractor: (item: T) => string, updater: (item: T) => T) => {
+      setItems(prev =>
+        prev.map(item => (keyExtractor(item) === key ? updater(item) : item)),
+      );
+    },
+    [],
+  );
+
   return {
     items,
     loading,
@@ -92,5 +103,6 @@ export function useGenericSearch<T>(fetchFn: FetchFn<T>): UseGenericSearchReturn
     searchQuery,
     setSearchQuery,
     loadMore,
+    updateItem,
   };
 }

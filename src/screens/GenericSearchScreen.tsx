@@ -26,6 +26,8 @@ interface GenericSearchScreenProps<T> {
   objectName?: string;
   searchParam?: string;
   icon?: React.ComponentType<{ size?: number; color?: string }>;
+  /** Callback chamado uma vez na montagem, entregando a função updateItem do hook interno */
+  onReady?: (updateItem: (key: string, keyExtractor: (item: T) => string, updater: (item: T) => T) => void) => void;
 }
 
 export function GenericSearchScreen<T>({
@@ -39,12 +41,20 @@ export function GenericSearchScreen<T>({
   objectName = 'cliente',
   searchParam = 'nome ou telefone',
   icon: Icon = UserPlus,
+  onReady,
 }: GenericSearchScreenProps<T>) {
   const { colors } = useTheme();
   const styles = makeStyles(colors);
 
-  const { items, loading, loadingMore, hasSearched, searchQuery, setSearchQuery, loadMore } =
+  const { items, loading, loadingMore, hasSearched, searchQuery, setSearchQuery, loadMore, updateItem } =
     useGenericSearch<T>(fetchFn);
+
+  const onReadyRef = React.useRef(onReady);
+  onReadyRef.current = onReady;
+  React.useEffect(() => {
+    onReadyRef.current?.(updateItem);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const showAddButton = !!onAdd && !searchQuery.trim() && items.length === 0 && !hasSearched;
 

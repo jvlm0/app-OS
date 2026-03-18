@@ -9,7 +9,7 @@ import { SaveButton } from '@/components/client-form/SaveButton';
 import { FormField } from '@/components/form/FormField';
 import { useFormData } from '@/contexts/FormDataContext';
 import { useClientForm } from '@/hooks/useClientForm';
-import { useIsFocused } from '@react-navigation/native';
+import { CommonActions, useIsFocused } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -32,6 +32,9 @@ const ClientFormScreen = ({ navigation, route }: ClientFormScreenProps) => {
 
   // Cliente recebido por parâmetro → modo edição
   const initialClient = route.params?.client;
+
+  // Guarda o cliente salvo para repassar ao ClientSearch no onClose
+  const savedClientRef = React.useRef<import('../types/client.types').Client | null>(null);
 
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const isFocused = useIsFocused();
@@ -70,8 +73,29 @@ const ClientFormScreen = ({ navigation, route }: ClientFormScreenProps) => {
     initialClient,
     onClientSaved: (client) => {
       setSelectedClient(client);
+      savedClientRef.current = client;
     },
     onClose: () => {
+      if (initialClient && savedClientRef.current) {
+        // Modo edição: atualiza os params da rota ClientSearch já existente na
+        // stack e depois faz goBack — sem criar nova entrada na pilha.
+        const saved = savedClientRef.current;
+        savedClientRef.current = null;
+
+        const state = navigation.getState();
+        const clientSearchRoute = state.routes.find(r => r.name === 'ClientSearch');
+
+        if (clientSearchRoute) {
+          navigation.dispatch({
+            ...CommonActions.setParams({ updatedClient: saved }),
+            source: clientSearchRoute.key,
+          });
+        }
+
+        navigation.goBack();
+        return;
+      }
+
       const state = navigation.getState();
       const currentIndex = state.index;
 
