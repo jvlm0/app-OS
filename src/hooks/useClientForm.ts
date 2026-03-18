@@ -2,7 +2,7 @@
 
 import { createClient, updateClient } from '@/services/clientService';
 import type { Client, PersonType } from '@/types/client.types';
-import { removeFormatting } from '@/utils/formatters';
+import { formatCNPJ, formatCPF, formatPhone, removeFormatting } from '@/utils/formatters';
 import { validateDocument, validateName, validatePhone } from '@/utils/validators';
 import { useRef, useState } from 'react';
 import { Alert, TextInput } from 'react-native';
@@ -31,8 +31,15 @@ export const useClientForm = ({ initialClient, onClientSaved, onClose }: UseClie
     initialClient?.tipoPessoa ?? inferPersonType(initialClient?.cpfcnpj),
   );
   const [name, setName] = useState(initialClient?.nome ?? '');
-  const [phone, setPhone] = useState(initialClient?.telefone ?? '');
-  const [document, setDocument] = useState(initialClient?.cpfcnpj ?? '');
+  const [phone, setPhone] = useState(
+    initialClient?.telefone ? formatPhone(initialClient.telefone) : '',
+  );
+  const [document, setDocument] = useState(() => {
+    const raw = initialClient?.cpfcnpj ?? '';
+    if (!raw) return '';
+    const digits = raw.replace(/\D/g, '');
+    return digits.length > 11 ? formatCNPJ(raw) : formatCPF(raw);
+  });
   const [saving, setSaving] = useState(false);
 
   const nameRef = useRef<TextInput>(null);
