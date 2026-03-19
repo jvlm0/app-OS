@@ -68,7 +68,7 @@ export const Sidebar = ({ visible, onClose, navigation }: SidebarProps) => {
 
           {/* Cabeçalho */}
           <View style={styles.panelHeader}>
-            <Text style={styles.panelTitle}>Menu</Text>
+            <Text style={styles.panelTitle}>Nortus Mobile</Text>
             <TouchableOpacity onPress={onClose} style={styles.closeBtn} activeOpacity={0.7}>
               <X size={20} color={colors.iconStrong} />
             </TouchableOpacity>
