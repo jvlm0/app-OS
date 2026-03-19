@@ -2,13 +2,15 @@
 
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { RecentOrders } from '@/components/home/RecentOrders';
+import { BottomNavBar } from '@/components/shared/BottomNavBar';
+import { Sidebar } from '@/components/shared/Sidebar';
 import type { AppColors } from '@/theme/colors';
 import type { RootStackParamList } from '@/types/navigation.types';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { BottomNavBar } from '@/components/shared/BottomNavBar';
-import { Sidebar } from '@/components/shared/Sidebar';
+import { useFocusEffect } from '@react-navigation/native';
 import { ClipboardList, Menu, Package, Plus, UserPlus, Users } from 'lucide-react-native';
-import React, { useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   ScrollView,
   StatusBar,
@@ -27,6 +29,19 @@ const HomeScreen = ({ navigation }: Props) => {
   const { nome } = useAuth();
   const styles = makeStyles(colors);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const isMounted = useRef(false);
+
+  // Incrementa o trigger toda vez que a tela ganhar foco (exceto na montagem inicial)
+  useFocusEffect(
+    useCallback(() => {
+      if (isMounted.current) {
+        setRefreshTrigger(prev => prev + 1);
+      } else {
+        isMounted.current = true;
+      }
+    }, [])
+  );
 
   return (
     <View style={styles.screen}>
@@ -130,6 +145,8 @@ const HomeScreen = ({ navigation }: Props) => {
             </View>
           </TouchableOpacity>
         </View>
+        {/* ── Ordens recentes ── */}
+        <RecentOrders navigation={navigation} refreshTrigger={refreshTrigger} />
       </ScrollView>
 
       <BottomNavBar navigation={navigation} activeTab="Home" />
