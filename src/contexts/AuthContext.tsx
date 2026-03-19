@@ -28,7 +28,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const checkStoredAuth = async () => {
     try {
-      const { accessToken, refreshToken, usuario } = await authService.getStoredAuthData();
+      const { accessToken, refreshToken, usuario, nome } = await authService.getStoredAuthData();
 
       if (accessToken && refreshToken && usuario) {
         // Verificar se o token ainda é válido tentando renovar
