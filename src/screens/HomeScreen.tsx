@@ -1,5 +1,6 @@
 // src/screens/HomeScreen.tsx
 
+import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import type { AppColors } from '@/theme/colors';
 import type { RootStackParamList } from '@/types/navigation.types';
@@ -23,6 +24,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 const HomeScreen = ({ navigation }: Props) => {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
+  const { nome } = useAuth();
   const styles = makeStyles(colors);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -42,7 +44,7 @@ const HomeScreen = ({ navigation }: Props) => {
         <TouchableOpacity style={styles.menuButton} onPress={() => setSidebarOpen(true)} activeOpacity={0.7}>
           <Menu size={22} color={colors.iconStrong} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Nortus</Text>
+        <Text style={styles.headerTitle}>{nome || 'Nortus'}</Text>
         <View style={styles.headerSpacer} />
       </View>
 
