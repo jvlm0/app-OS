@@ -13,6 +13,7 @@ const STORAGE_KEYS = {
   ACCESS_TOKEN: '@auth:access_token',
   REFRESH_TOKEN: '@auth:refresh_token',
   USUARIO: '@auth:usuario',
+  NOME: '@auth:nome',
 };
 
 /**
@@ -40,11 +41,12 @@ export const login = async (credentials: LoginCredentials): Promise<LoginResult>
 
     const data = await response.json();
 
-    // Salvar tokens no AsyncStorage
+    // Salvar tokens e dados do usuário no AsyncStorage
     await AsyncStorage.multiSet([
       [STORAGE_KEYS.ACCESS_TOKEN, data.access_token],
       [STORAGE_KEYS.REFRESH_TOKEN, data.refresh_token],
       [STORAGE_KEYS.USUARIO, data.usuario],
+      [STORAGE_KEYS.NOME, data.nome ?? ''],
     ]);
 
     return {
@@ -117,6 +119,7 @@ export const logout = async (): Promise<void> => {
       STORAGE_KEYS.ACCESS_TOKEN,
       STORAGE_KEYS.REFRESH_TOKEN,
       STORAGE_KEYS.USUARIO,
+      STORAGE_KEYS.NOME,
     ]);
   } catch (error) {
     console.error('Erro ao fazer logout:', error);
@@ -132,12 +135,14 @@ export const getStoredAuthData = async () => {
       STORAGE_KEYS.ACCESS_TOKEN,
       STORAGE_KEYS.REFRESH_TOKEN,
       STORAGE_KEYS.USUARIO,
+      STORAGE_KEYS.NOME,
     ]);
 
     return {
       accessToken: values[0][1],
       refreshToken: values[1][1],
       usuario: values[2][1],
+      nome: values[3][1] || null,
     };
   } catch (error) {
     console.error('Erro ao recuperar dados de autenticação:', error);
@@ -145,6 +150,7 @@ export const getStoredAuthData = async () => {
       accessToken: null,
       refreshToken: null,
       usuario: null,
+      nome: null,
     };
   }
 };

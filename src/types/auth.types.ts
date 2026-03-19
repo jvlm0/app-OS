@@ -17,6 +17,7 @@ export interface LoginResponse {
   refresh_token: string;
   token_type: string;
   usuario: string;
+  nome?: string;
 }
 
 /**
@@ -53,5 +54,6 @@ export interface AuthState {
   accessToken: string | null;
   refreshToken: string | null;
   usuario: string | null;
+  nome: string | null;
   isLoading: boolean;
 }

@@ -17,6 +17,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     accessToken: null,
     refreshToken: null,
     usuario: null,
+    nome: null,
     isLoading: true,
   });
 
@@ -39,6 +40,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             accessToken: refreshResult.data!.access_token,
             refreshToken,
             usuario,
+            nome,
             isLoading: false,
           });
         } else {
@@ -49,6 +51,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             accessToken: null,
             refreshToken: null,
             usuario: null,
+            nome: null,
             isLoading: false,
           });
         }
@@ -71,6 +74,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           accessToken: result.data.access_token,
           refreshToken: result.data.refresh_token,
           usuario: result.data.usuario,
+          nome: result.data.nome ?? null,
           isLoading: false,
         });
 
@@ -91,6 +95,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       accessToken: null,
       refreshToken: null,
       usuario: null,
+      nome: null,
       isLoading: false,
     });
   };
