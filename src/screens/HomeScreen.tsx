@@ -39,13 +39,11 @@ const HomeScreen = ({ navigation }: Props) => {
 
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top }]}>
-        <View>
-          <Text style={styles.headerGreeting}>Bem-vindo 👋</Text>
-          <Text style={styles.headerTitle}>Nortus</Text>
-        </View>
-        <TouchableOpacity style={styles.logoutButton} onPress={() => setSidebarOpen(true)} activeOpacity={0.7}>
+        <TouchableOpacity style={styles.menuButton} onPress={() => setSidebarOpen(true)} activeOpacity={0.7}>
           <Menu size={22} color={colors.iconStrong} />
         </TouchableOpacity>
+        <Text style={styles.headerTitle}>Nortus</Text>
+        <View style={styles.headerSpacer} />
       </View>
 
       <ScrollView
@@ -153,20 +151,20 @@ const makeStyles = (colors: AppColors) =>
       borderBottomWidth: 1,
       borderBottomColor: colors.border,
     },
-    headerGreeting: {
-      fontSize: 13,
-      color: colors.textSecondary,
-      marginBottom: 2,
-    },
     headerTitle: {
-      fontSize: 26,
+      flex: 1,
+      textAlign: 'center',
+      fontSize: 20,
       fontWeight: '700',
       color: colors.textPrimary,
     },
-    logoutButton: {
+    menuButton: {
       padding: 8,
       borderRadius: 8,
       backgroundColor: colors.backgroundMuted,
+    },
+    headerSpacer: {
+      width: 38,
     },
 
     scrollContent: {

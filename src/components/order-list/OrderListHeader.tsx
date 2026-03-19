@@ -2,9 +2,8 @@
 
 import { useTheme } from '@/contexts/ThemeContext';
 import type { AppColors } from '@/theme/colors';
-import { LogOut } from 'lucide-react-native';
 import React from 'react';
-import { StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StatusBar, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface OrderListHeaderProps {
@@ -21,9 +20,9 @@ export const OrderListHeader = ({ onLogout }: OrderListHeaderProps) => {
       <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
       <View style={[styles.header, { paddingTop: insets.top }]}>
         <Text style={styles.title}>Ordens de Serviço</Text>
-        <TouchableOpacity style={styles.logoutButton} onPress={onLogout} activeOpacity={0.7}>
+        {/*<TouchableOpacity style={styles.logoutButton} onPress={onLogout} activeOpacity={0.7}>
           <LogOut size={24} color={colors.iconStrong} />
-        </TouchableOpacity>
+        </TouchableOpacity>*/}
       </View>
     </>
   );
