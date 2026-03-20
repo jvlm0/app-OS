@@ -41,14 +41,18 @@ const HomeScreen = ({ navigation }: Props) => {
     useCallback(() => {
       if (isMounted.current) {
         setRefreshTrigger(prev => prev + 1);
-
-        if (pendingToastRef.current) {
-          setToastMessage(pendingToastRef.current);
-          setToastVisible(true);
-          setPendingToast(null);
-        }
       } else {
         isMounted.current = true;
+      }
+
+      if (pendingToastRef.current) {
+        const message = pendingToastRef.current;
+        setPendingToast(null);
+        // Pequeno defer para garantir que a tela já está visível antes de exibir o toast
+        setTimeout(() => {
+          setToastMessage(message);
+          setToastVisible(true);
+        }, 300);
       }
     }, [])
   );
