@@ -27,7 +27,7 @@ import type { RootStackParamList } from '../types/navigation.types';
 type ClientFormScreenProps = NativeStackScreenProps<RootStackParamList, 'ClientForm'>;
 
 const ClientFormScreen = ({ navigation, route }: ClientFormScreenProps) => {
-  const { setSelectedClient } = useFormData();
+  const { setSelectedClient, setPendingToast } = useFormData();
   const router = useRouter();
 
   // Cliente recebido por parâmetro → modo edição
@@ -76,37 +76,46 @@ const ClientFormScreen = ({ navigation, route }: ClientFormScreenProps) => {
       savedClientRef.current = client;
     },
     onClose: () => {
-      if (initialClient && savedClientRef.current) {
-        // Modo edição: atualiza os params da rota ClientSearch já existente na
-        // stack e depois faz goBack — sem criar nova entrada na pilha.
+      const state = navigation.getState();
+      const currentIndex = state.index;
+      const clientSearchRoute = state.routes.find(r => r.name === 'ClientSearch');
+      const serviceFormIndex = state.routes.findIndex(r => r.name === 'ServiceForm');
+
+      if (initialClient && clientSearchRoute && savedClientRef.current) {
+        // Modo edição: devolve o cliente atualizado para o ClientSearch
         const saved = savedClientRef.current;
         savedClientRef.current = null;
-
-        const state = navigation.getState();
-        const clientSearchRoute = state.routes.find(r => r.name === 'ClientSearch');
-
-        if (clientSearchRoute) {
-          navigation.dispatch({
-            ...CommonActions.setParams({ updatedClient: saved }),
-            source: clientSearchRoute.key,
-          });
-        }
-
+        navigation.dispatch({
+          ...CommonActions.setParams({ updatedClient: saved }),
+          source: clientSearchRoute.key,
+        });
         navigation.goBack();
         return;
       }
 
-      const state = navigation.getState();
-      const currentIndex = state.index;
-
-      const serviceFormIndex = state.routes.findIndex(r => r.name === 'ServiceForm');
-
       if (serviceFormIndex !== -1) {
+        // Veio do ServiceForm
         const stepsBack = currentIndex - serviceFormIndex;
         router.dismiss(stepsBack);
-      } else {
-        router.dismiss(1);
+        return;
       }
+
+      if (!initialClient && clientSearchRoute && savedClientRef.current) {
+        // Novo cliente cadastrado via ClientSearch (mode: view) vindo da Home
+        // Volta direto para a Home pulando o ClientSearch
+        setPendingToast(`Cliente "${savedClientRef.current.nome}" cadastrado com sucesso!`);
+        savedClientRef.current = null;
+        navigation.navigate('Home');
+        return;
+      }
+
+      if (!clientSearchRoute && savedClientRef.current) {
+        // Veio direto da Home sem passar pelo ClientSearch
+        setPendingToast(`Cliente "${savedClientRef.current.nome}" cadastrado com sucesso!`);
+        savedClientRef.current = null;
+      }
+
+      navigation.goBack();
     },
   });
 

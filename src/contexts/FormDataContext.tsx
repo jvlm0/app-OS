@@ -49,6 +49,10 @@ interface FormDataContextType {
   // consumida e limpa pelo OrderDetailScreen ao ganhar foco
   updatedOrder: Order | null;
   setUpdatedOrder: (order: Order | null) => void;
+  // Toast pendente — preenchido por qualquer tela, consumido e limpo pela Home
+  // Usa ref para garantir leitura síncrona (sem depender de re-render)
+  pendingToastRef: React.MutableRefObject<string | null>;
+  setPendingToast: (message: string | null) => void;
   // Geral
   clearFormData: () => void;
 }
@@ -70,6 +74,10 @@ export const FormDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   } | null>(null);
   const [problemas, setProblemasState] = useState<ProblemaData[]>([]);
   const [updatedOrder, setUpdatedOrder] = useState<Order | null>(null);
+  const pendingToastRef = React.useRef<string | null>(null);
+  const setPendingToast = React.useCallback((message: string | null) => {
+    pendingToastRef.current = message;
+  }, []);
   const [imagens, setImagens] = useState<ImagemItem[]>([]);
   const [imagensExistentes, setImagensExistentes] = useState<string[]>([]);
 
@@ -196,6 +204,8 @@ export const FormDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         setImagensExistentes,
         updatedOrder,
         setUpdatedOrder,
+        pendingToastRef,
+        setPendingToast,
         clearFormData,
       }}
     >
