@@ -21,7 +21,7 @@ interface UseClientFormProps {
   /** Se fornecido, o formulário entra em modo de edição com os dados pré-preenchidos */
   initialClient?: Client;
   onClientSaved: (client: Client) => void;
-  onClose: () => void;
+  onClose: (savedClient?: Client) => void;
 }
 
 export const useClientForm = ({ initialClient, onClientSaved, onClose }: UseClientFormProps) => {
